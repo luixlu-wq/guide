@@ -1,940 +1,1280 @@
-# Stage 3 — Machine Learning Algorithms
+﻿# Stage 3 - Machine Learning Algorithms
 
-*(Week 4–6)*
+*(Week 4-6)*
 
-## Goal
+## 0) If This Chapter Feels Hard
 
-Understand major machine learning algorithms and how they behave.
+Do not read this chapter in one long pass.
+Use this 4-pass loop for each algorithm:
 
-You are **NOT** just learning APIs.
+1. Problem framing: what problem it solves and what output it predicts.
+2. Intuition: what shape/boundary/rule the model is trying to learn.
+3. Mechanics: loss function, optimization idea, and key hyperparameters.
+4. Operatable practice: run code, inspect metrics/plots, and explain one failure mode.
+
+If you are stuck, answer these first before changing algorithms:
+
+- What is the target type (number, class label, or no label)?
+- Which metric should decide success?
+- Which preprocessing is required for this model?
+- Is failure from underfitting, overfitting, leakage, or bad features?
+
+---
+
+## 1) Stage Goal
+
+Understand major classical ML algorithms and how they behave on real data.
+
+You are not only learning `.fit()` and `.predict()`.
 You are learning:
 
-- how models think
+- how models "think"
 - when to use each model
-- why models fail
+- when a model is a bad choice
+- how to compare models fairly
 
-This stage is where you move from:
+By the end of Stage 3, you should move from:
 
-> "I can call `.fit()`"
+> "I can run a model"
 
 to:
 
-> "I understand what kind of model I am using, why it works, and when it is a bad choice."
+> "I can justify model choice, detect failure patterns, and improve the pipeline."
 
 ---
 
-## Quick Summary
+## 2) How To Use This Handbook
 
-Different machine learning algorithms solve problems in different ways.
+### Script-first study loop (recommended)
 
-Some models:
+For each module:
 
-- assume simple relationships
-- split data with rules
-- draw boundaries between classes
-- combine many weak learners
-- group similar examples without labels
+1. Read "What it is" and "Why it matters".
+2. Read assumptions and preprocessing requirements.
+3. Run the complete example.
+4. Record your result in a small learner log:
+   - dataset used
+   - metric value
+   - one mistake you made
+   - one fix you applied
 
-A beginner should finish this stage understanding:
+### Time guide
 
-- what each major classical ML algorithm does
-- what kind of data each model likes
-- what the strengths and weaknesses are
-- how to compare models fairly
-- why features and preprocessing strongly affect performance
+- One algorithm module: 60-90 minutes
+- One evaluation module: 60 minutes
+- Weekly commitment: 8-12 hours
 
----
+### What to do when results look strange
 
-## Study Materials
-
-**Google ML Crash Course**
-https://developers.google.com/machine-learning/crash-course
-
-### Algorithms to Learn
-
-- Linear Regression
-- Logistic Regression
-- Decision Trees
-- Random Forest
-- SVM
-- Clustering (KMeans)
+- Use the Debugging Checklist in Section 12.
+- Do not change many things at once.
+- Change one variable, rerun, compare.
 
 ---
 
-## Key Knowledge (Deep Understanding)
+## 3) Prerequisites And Environment Setup
 
-### 1. Linear Regression
+### Knowledge prerequisites
 
-Used for predicting **continuous values**.
+- Python basics (functions, loops, lists, dicts)
+- NumPy / pandas basics
+- Stage 1 and Stage 2 concepts
 
-```
-y = wx + b
-```
+### Environment
 
-**Key idea:** Find the best line that fits the data.
+Windows:
 
-#### Beginner Explanation
-
-Linear Regression is one of the simplest machine learning algorithms.
-
-It is used when:
-
-- the output is a number
-- you want to predict a continuous value
-
-Examples: house price, temperature, demand, sales, expected return.
-
-- If you have one feature, it learns a **line**.
-- If you have many features, it learns a **higher-dimensional plane**.
-
-*Intuition: If house size increases, price may also increase. Linear regression learns how much each input affects the output.*
-
-#### Step-by-Step Mental Model
-
-| Step | Description |
-|---|---|
-| 1 | Start with inputs and outputs |
-| 2 | Guess a line |
-| 3 | Compare predictions to real values |
-| 4 | Adjust the line to reduce error |
-| 5 | Repeat until a better-fitting line is found |
-
-Example data:
-
-| Size | Price |
-|---|---|
-| 1000 | 200000 |
-| 1500 | 300000 |
-| 2000 | 400000 |
-
-#### Important Core Ideas
-
-- output is continuous
-- model is linear in parameters
-- learning means minimizing prediction error
-- each feature gets a weight
-
-#### Key Algorithms / Mechanisms
-
-**A. Ordinary Least Squares (OLS)** — The standard algorithm for linear regression.
-
-How it works:
-
-1. Predict a value for each row
-2. Compute the error between prediction and actual value
-3. Square those errors
-4. Find the parameters that minimize the total squared error
-
-*Why important: OLS is the classic mathematical foundation of linear regression.*
-
----
-
-**B. Gradient Descent for Linear Regression** — Another way to learn the weights.
-
-How it works:
-
-1. Start with random weights
-2. Predict
-3. Compute loss
-4. Compute gradients
-5. Update weights in the direction that lowers error
-6. Repeat
-
-*Why important: Useful when datasets are large or when understanding learning mechanics.*
-
----
-
-**C. Regularized Linear Regression**
-
-Examples: Ridge Regression, Lasso Regression.
-
-*How it works: Adds a penalty for large weights.*
-
-*Why important: Helps reduce overfitting and improves generalization.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Simple | Assumes mostly linear relationships |
-| Fast | Sensitive to outliers |
-| Interpretable | May underfit complex patterns |
-| Good baseline model | |
-
-#### When to Use
-
-Use linear regression when:
-
-- output is numeric
-- you want interpretability
-- you need a strong baseline
-- relationships may be roughly linear
-
----
-
-### 2. Logistic Regression
-
-Used for **classification**.
-
-**Output:** probability between 0 and 1.
-
-#### Beginner Explanation
-
-Despite its name, logistic regression is used for **classification**, not regression.
-
-It predicts the probability that an input belongs to a class.
-
-Examples: spam or not spam, churn or not churn, fraud or not fraud, survive or not survive.
-
-It is often one of the best first models for classification.
-
-#### Step-by-Step Mental Model
-
-1. **Compute a weighted score** — Like linear regression, it first computes a score from the inputs.
-2. **Convert score to probability** — Uses the sigmoid function to turn any number into a value between 0 and 1.
-3. **Apply a threshold** — If probability > 0.5, predict class 1. Otherwise predict class 0.
-
-#### Why the Sigmoid Matters
-
-The sigmoid squashes output into 0 to 1, making it useful for probability-based classification.
-
-#### Key Algorithms / Mechanisms
-
-**A. Sigmoid Function**
-
-```
-σ(z) = 1 / (1 + e^-z)
+```powershell
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -U pip
+pip install numpy pandas scikit-learn matplotlib seaborn
 ```
 
-- Very negative score → probability near 0
-- Very positive score → probability near 1
+macOS/Linux:
 
-*Why important: This is what turns raw model output into class probability.*
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+pip install numpy pandas scikit-learn matplotlib seaborn
+```
 
----
+Optional (bridge module only):
 
-**B. Log Loss / Cross-Entropy Optimization** — Logistic regression is trained by minimizing log loss.
+```bash
+pip install torch
+```
 
-- If the model is confidently wrong → penalized heavily
-- If the model is confidently correct → loss is lower
+### Reproducibility rules
 
-*Why important: This teaches the model to output better probabilities.*
-
----
-
-**C. Gradient Descent** — Used to update weights to reduce log loss.
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Simple | Assumes a relatively simple decision boundary |
-| Fast | May struggle with complex nonlinear patterns |
-| Interpretable | |
-| Strong baseline for classification | |
-| Outputs probabilities | |
-
-#### When to Use
-
-Use logistic regression when:
-
-- task is classification
-- you want class probabilities
-- you need a fast, explainable baseline
-- dataset is not extremely complex
+- Use fixed `random_state` whenever supported.
+- Keep train/test split constant for fair comparison.
+- Keep preprocessing policy constant across compared models.
 
 ---
 
-### 3. Decision Trees
+## 4) Learning Targets (Weighted Rubric)
 
-Rule-based model.
+| Target | Evidence | Weight |
+|---|---|---|
+| Distinguish regression/classification/clustering | Correct task type for each example | 10 |
+| Explain 6 core algorithms at concept level | Short written explanation per module | 15 |
+| Run complete workflow per module | Code runs end-to-end with outputs | 20 |
+| Apply correct preprocessing per model | Pipeline uses scaling/encoding correctly | 10 |
+| Compare models fairly | Same split, same metric, same folds | 15 |
+| Diagnose underfit/overfit/leakage | Correct failure diagnosis and fix | 15 |
+| Produce model comparison report | Table + rationale + tradeoff discussion | 15 |
+
+Total: 100
+
+Pass levels:
+
+- 85-100: Ready for Stage 4
+- 70-84: Continue with targeted remediation
+- <70: Repeat core modules and fair-comparison workflow
+
+---
+
+## 5) Data Resources And Data Structure Declarations
+
+Use these datasets for Stage 3 examples.
+
+| Dataset | Source | Rows | Features | Target | Task |
+|---|---|---:|---:|---|---|
+| Diabetes | `sklearn.datasets.load_diabetes` | 442 | 10 numeric | disease progression score | Regression |
+| Breast Cancer Wisconsin | `sklearn.datasets.load_breast_cancer` | 569 | 30 numeric | malignant/benign (0/1) | Classification |
+| Iris | `sklearn.datasets.load_iris` | 150 | 4 numeric | species (0/1/2) | Classification / Clustering demo |
+| Synthetic blobs | `sklearn.datasets.make_blobs` | configurable | configurable | optional label for validation | Clustering |
+
+Common structure in scikit-learn examples:
+
+- `X`: feature matrix, shape `(n_samples, n_features)`
+- `y`: target vector, shape `(n_samples,)`
+
+Reusable dataset inspection helper:
 
 ```python
-if age > 30:
-    predict yes
-else:
-    predict no
+from sklearn.datasets import load_breast_cancer
+
+
+def inspect_dataset(loader):
+    data = loader(as_frame=True)
+    X = data.data
+    y = data.target
+    print("Dataset:", loader.__name__)
+    print("Rows:", X.shape[0])
+    print("Features:", X.shape[1])
+    print("Feature columns:", list(X.columns)[:5], "...")
+    print("Target name:", data.target_names if hasattr(data, "target_names") else "n/a")
+
+
+if __name__ == "__main__":
+    inspect_dataset(load_breast_cancer)
 ```
 
-#### Beginner Explanation
+---
 
-A decision tree makes predictions by asking a sequence of questions.
+## 6) Fair Model Comparison Rules (Must Follow)
 
-Example questions:
+When comparing models, use all rules below:
 
-- Is age > 30?
-- Is income > 50k?
-- Is country = Canada?
+1. Same task and same dataset.
+2. Same train/test split (or same CV folds).
+3. Same preprocessing policy where applicable.
+4. Same evaluation metric set.
+5. Same random seed strategy.
+6. Compare both train and test metrics.
+7. Record runtime and model complexity when relevant.
 
-Each question splits the data into smaller groups until the tree reaches a final decision.
-
-This makes trees easy to understand visually.
-
-#### Step-by-Step Mental Model
-
-1. **Look at all features** — The model checks many possible questions.
-2. **Choose the best split** — Picks the question that separates the data best.
-3. **Split the data** — Rows are separated into groups.
-4. **Repeat recursively** — Each group is split again.
-5. **Stop and assign prediction** — When a group is pure enough or small enough, the tree stops growing.
-
-#### Key Algorithms / Mechanisms
-
-**A. Split Selection** — A tree chooses the best question at each step.
-
-- For classification: Gini impurity, entropy / information gain
-- For regression: reduction in variance or MSE
-
-*How it works: The tree measures how much a split improves purity or reduces error.*
+Do not compare models on different splits and call it "better".
 
 ---
 
-**B. Gini Impurity** — Measures how mixed a node is.
+## 7) Concept Modules With Complete Operatable Examples
 
-- Low impurity = mostly one class
-- High impurity = mixed classes
+### Example Complexity Scale (Used In All Modules)
 
-*Why important: Trees try to create purer child nodes.*
+- `Simple`: one clear objective, small/clean data, minimal preprocessing, one main metric.
+- `Intermediate`: real benchmark dataset, proper split strategy, full metric set, stronger workflow discipline.
+- `Advanced`: model comparison or deeper tuning, extra validation logic, tradeoff analysis, and failure-aware decisions.
 
----
+Complexity dimensions you should watch:
 
-**C. Information Gain** — Measures how much uncertainty is reduced after a split.
+- data complexity: noise, imbalance, nonlinearity, dimensionality
+- pipeline complexity: preprocessing, feature engineering, leakage prevention
+- model complexity: hyperparameter search, regularization, ensembling, kernel choice
+- evaluation complexity: cross-validation, threshold tuning, multi-metric tradeoffs
+- debugging complexity: overfitting/underfitting diagnosis and correction
 
-*Why important: A good split gives a large information gain.*
+## Module 1 - Linear Regression
 
----
+Runnable script: [topic01_linear_regression.py](src/stage-3/topic01_linear_regression.py)
 
-**D. Tree Pruning** — Used to reduce overfitting.
+Progressive examples:
+- Simple: [topic01a_linear_regression_simple.py](src/stage-3/topic01a_linear_regression_simple.py)
+- Intermediate: [topic01_linear_regression.py](src/stage-3/topic01_linear_regression.py)
+- Advanced: [topic01c_linear_regression_advanced.py](src/stage-3/topic01c_linear_regression_advanced.py)
 
-- Remove branches that are too specific
-- Simplify the tree
+Where complexity is in Topic 1:
 
-*Why important: Deep trees can memorize the training data.*
+- `Simple`: complexity is only parameter fitting (`slope`, `intercept`) on one feature.
+- `Intermediate`: complexity comes from train/test split, scaling pipeline, and multiple regression metrics.
+- `Advanced`: complexity comes from nonlinear feature expansion, regularization, and model-tradeoff comparison.
 
-#### Strengths and Weaknesses
+### What it is
 
-| Strengths | Weaknesses |
-|---|---|
-| Easy to understand | Overfits easily |
-| Works with nonlinear patterns | Unstable: small data changes can create different trees |
-| Handles mixed feature types well | Single trees often generalize poorly |
-| Little preprocessing needed | |
+Linear Regression predicts a continuous number by learning a weighted linear combination of features.
 
-#### When to Use
+### Why it matters
 
-Use decision trees when:
+It is a strong baseline and teaches core ideas: residuals, error minimization, and interpretability.
 
-- interpretability is important
-- you want rule-based behavior
-- you need a quick nonlinear model baseline
+### Data declaration
 
----
+- Data: Diabetes dataset (`load_diabetes`)
+- Rows: 442
+- Features: 10 numeric standardized features
+- Target: disease progression score (continuous)
+- Type: Regression
 
-### 4. Random Forest
+### Assumptions
 
-Collection of trees.
+- Relationship is approximately linear in parameters.
+- Errors are not dominated by extreme outliers.
+- Features carry predictive signal.
 
-**Key idea:** many weak models → strong model.
+### Preprocessing requirements
 
-#### Beginner Explanation
+- Scaling is often helpful but not always mandatory.
+- Remove/handle extreme outliers when needed.
 
-Random Forest improves decision trees by combining many of them.
-
-A single tree can overfit badly. A forest reduces that risk by:
-
-- training many trees
-- making them different from each other
-- combining their predictions
-
-It is one of the most useful classical ML algorithms.
-
-#### Step-by-Step Mental Model
-
-1. **Create many different training samples** — Each tree sees a slightly different version of the dataset.
-2. **Build one tree per sample** — Each tree learns different details.
-3. **Randomly limit features at splits** — This increases diversity between trees.
-4. **Combine predictions** — Classification: majority vote. Regression: average prediction.
-
-#### Key Algorithms / Mechanisms
-
-**A. Bagging (Bootstrap Aggregating)**
-
-*Core idea: Train models on random sampled versions of the data.*
-
-How it works:
-
-1. Sample rows with replacement
-2. Train one tree on each sample
-3. Combine predictions
-
-*Why important: Bagging reduces variance.*
-
----
-
-**B. Random Feature Subsampling** — At each split, only a random subset of features is considered.
-
-*Why important: Prevents all trees from becoming too similar.*
-
----
-
-**C. Voting / Averaging**
-
-- Classification: trees vote
-- Regression: outputs are averaged
-
-*Why important: Combining many imperfect models often gives stronger performance.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Strong general-purpose model | Less interpretable than a single tree |
-| Less overfitting than a single tree | Can be slower than simpler models |
-| Handles nonlinear relationships | May struggle with sparse or very high-dimensional problems |
-| Can estimate feature importance | |
-
-#### When to Use
-
-Use Random Forest when:
-
-- you want a strong tabular-data baseline
-- data may contain nonlinear patterns
-- you want good performance without huge tuning effort
-
----
-
-### 5. SVM
-
-Finds the **best boundary** between classes.
-
-**Good for:** small datasets with clear separation.
-
-#### Beginner Explanation
-
-SVM stands for **Support Vector Machine**.
-
-It tries to separate classes with the best possible boundary — not just any line, but the line with the **maximum margin**: the largest gap between classes.
-
-That usually helps generalization.
-
-#### Step-by-Step Mental Model
-
-1. **Plot the classes in feature space** — Imagine points from two categories.
-2. **Find a separating boundary** — There may be many possible lines.
-3. **Choose the boundary with maximum margin** — The best line is the one farthest from both groups.
-4. **Use support vectors** — Only some important boundary points strongly influence the final separator.
-
-#### Key Algorithms / Mechanisms
-
-**A. Maximum Margin Classifier** — The core idea of SVM.
-
-*How it works: Find the separating line or plane that maximizes the distance to the closest points in each class.*
-
-*Why important: This often improves robustness.*
-
----
-
-**B. Support Vectors** — The critical points closest to the boundary.
-
-*Why important: They determine the final decision boundary.*
-
----
-
-**C. Kernel Trick** — Used when classes are not linearly separable.
-
-Examples: linear kernel, polynomial kernel, RBF kernel.
-
-*How it works: Instead of explicitly transforming data into higher dimensions, the kernel lets SVM behave as if it did.*
-
-*Why important: Allows SVM to model more complex boundaries.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Powerful on small to medium datasets | Can be slower on large datasets |
-| Strong for clear class separation | Sensitive to scaling |
-| Kernels allow nonlinear boundaries | Harder to interpret than logistic regression or trees |
-
-#### When to Use
-
-Use SVM when:
-
-- dataset is not huge
-- feature space is meaningful
-- you want a strong classifier with a well-defined margin
-
----
-
-### 6. Clustering (KMeans)
-
-Groups **similar data** without labels.
-
-#### Beginner Explanation
-
-KMeans is an **unsupervised** learning algorithm.
-
-It does not get correct answers. Instead, it tries to group similar data points together.
-
-Example uses:
-
-- customer segmentation
-- grouping similar products
-- document grouping
-- finding natural structure in data
-
-#### Step-by-Step Mental Model
-
-1. **Choose K** — You decide how many groups you want.
-2. **Place K centers** — Start with initial cluster centers.
-3. **Assign each point to the nearest center** — Each point joins its nearest cluster.
-4. **Recompute each center** — Each cluster center moves to the average of its assigned points.
-5. **Repeat** — Reassign and update until clusters stop changing much.
-
-#### Key Algorithms / Mechanisms
-
-**A. Distance-Based Assignment** — Usually uses Euclidean distance.
-
-*How it works: Each point goes to the nearest center.*
-
-*Why important: This defines the cluster membership.*
-
----
-
-**B. Centroid Update** — After assignment, each center becomes the average of its cluster points.
-
-*Why important: This is how the clusters move toward better positions.*
-
----
-
-**C. Iterative Optimization** — KMeans alternates: assign points → update centers → until stable.
-
-*Why important: This is how the algorithm improves cluster quality.*
-
----
-
-**D. Elbow Method** — A common method for choosing K.
-
-*How it works: Train KMeans with different K values and look at within-cluster error. Choose a K where improvement starts slowing down.*
-
-*Why important: K must usually be chosen by the user.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Simple | Must choose K |
-| Fast | Sensitive to initialization |
-| Useful first clustering algorithm | Struggles with irregular cluster shapes |
-| Works well for roughly spherical clusters | Sensitive to scaling |
-
-#### When to Use
-
-Use KMeans when:
-
-- you want simple clustering
-- features are numerical
-- cluster shapes may be compact and separated
-
----
-
-## Difficulty Points
-
-### 1. Choosing wrong model
-
-**Why it happens:** Many tutorials focus on code first, not model behavior.
-
-**Why it is a problem:** You may use regression for a classification problem, choose a complex model for simple data, or choose an unsuitable model for nonlinear patterns.
-
-**Fix strategy:** Before selecting a model, ask:
-
-- Is the target numeric or categorical?
-- Do I need interpretability?
-- Is the dataset small or large?
-- Are relationships likely linear or nonlinear?
-- Am I solving supervised or unsupervised learning?
-
-### 2. Overfitting trees
-
-**Why it happens:** Trees keep splitting until they fit tiny details.
-
-**Why it is a problem:** Training score becomes very high, but test performance drops.
-
-**Fix strategy:** Use max depth limits, minimum samples per leaf, pruning, or Random Forest instead of a single tree.
-
-### 3. Ignoring feature importance
-
-**Why it happens:** Beginners often focus on algorithms more than data.
-
-**Why it is a problem:** Even a strong algorithm performs poorly with weak inputs.
-
-**Fix strategy:** Improve feature quality, domain-informed features, preprocessing, and encoding/scaling where needed.
-
-### 4. Not comparing models fairly
-
-**Why it happens:** People retrain with different random splits and compare raw scores.
-
-**Why it is a problem:** The comparison becomes unfair because each model saw different train/test examples.
-
-**Fix strategy:** Use the same split for all models (or cross-validation), the same metric, and the same preprocessing rules.
-
-### 5. Using wrong evaluation metric
-
-**Why it happens:** Beginners often use accuracy for every classification task.
-
-**Why it is a problem:** Accuracy may hide failure on minority classes.
-
-**Fix strategy:**
-
-| Task | Metrics |
-|---|---|
-| Regression | MSE, MAE, R² |
-| Classification | accuracy, precision, recall, F1, ROC-AUC depending on needs |
-
-### 6. Forgetting preprocessing differences between models
-
-**Why it happens:** People assume all models can consume the same inputs equally well.
-
-**Why it is a problem:** Some models, like SVM and logistic regression, are more sensitive to scaling than trees.
-
-**Fix strategy:**
-
-| Model Type | Scaling Sensitivity |
-|---|---|
-| Trees / Random Forest | Often less sensitive to scaling |
-| SVM / Logistic Regression | Often benefit from scaling |
-| Categorical features | May require encoding |
-
----
-
-## Model Selection Workflow (Real World)
-
-1. Define task type
-2. Inspect target type
-3. Prepare features
-4. Choose baseline models
-5. Train fairly
-6. Evaluate with correct metrics
-7. Check overfitting
-8. Compare tradeoffs
-9. Improve features and preprocessing
-10. Retest
-
-### Beginner Explanation of Each Step
-
-1. **Define task type** — Is this regression, classification, or clustering?
-2. **Inspect target type** — Make sure you know what the output means.
-3. **Prepare features** — Clean and encode data if needed.
-4. **Choose baseline models** — Start with simple models first.
-5. **Train fairly** — Use the same split and same data conditions.
-6. **Evaluate with correct metrics** — Do not rely on one metric blindly.
-7. **Check overfitting** — Compare train vs test results.
-8. **Compare tradeoffs** — Accuracy is not the only factor. Also consider speed, interpretability, and robustness.
-9. **Improve features and preprocessing** — Often this matters more than switching models immediately.
-10. **Retest** — Re-evaluate after changes.
-
----
-
-## Debugging Checklist for Stage 3
-
-If results look strange, check:
-
-- [ ] Is the problem regression or classification?
-- [ ] Did you define the correct target?
-- [ ] Did you accidentally leak information?
-- [ ] Did all models use the same train/test split?
-- [ ] Did you use the right metric?
-- [ ] Is one model badly overfitting?
-- [ ] Are features scaled where needed?
-- [ ] Are categories encoded properly?
-- [ ] Is the dataset too small for the chosen model?
-- [ ] Did you compare train and test performance?
-
----
-
-## Practice Project
-
-### Project: Model Comparison Lab
-
-**Goal:** Train multiple models and compare them.
-
-You are not just trying to get the highest score. You are trying to learn:
-
-- how models behave differently
-- how preprocessing changes results
-- how overfitting appears
-- how feature engineering changes performance
-
-**Step 1 — Load dataset**
-
-Use: Titanic, Iris, or stock dataset.
-
-*Beginner guidance:*
-- Iris → easiest classification dataset
-- Titanic → good real-world style tabular dataset
-- Stock dataset → more advanced, requires careful target design
-
-If you are a beginner, start with Iris, then try Titanic.
-
----
-
-**Step 2 — Preprocess**
-
-- Clean missing values
-- Encode categories
-- Define target
-
-Step-by-step:
-
-1. Inspect columns
-2. Identify target
-3. Handle missing values
-4. Encode categorical columns
-5. Select feature columns
-6. Optionally scale numerical features for sensitive models
-
-*Why this step matters: If preprocessing is weak, comparison becomes meaningless.*
-
----
-
-**Step 3 — Split data**
+### Complete example (data + functions + workflow)
 
 ```python
+from sklearn.datasets import load_diabetes
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
+
+def load_data():
+    data = load_diabetes(as_frame=True)
+    return data.data, data.target
+
+
+def build_model():
+    return Pipeline([
+        ("scaler", StandardScaler()),
+        ("model", LinearRegression()),
+    ])
+
+
+def evaluate(model, X_train, X_test, y_train, y_test):
+    model.fit(X_train, y_train)
+    train_pred = model.predict(X_train)
+    test_pred = model.predict(X_test)
+
+    print("Train MSE:", round(mean_squared_error(y_train, train_pred), 3))
+    print("Test MSE:", round(mean_squared_error(y_test, test_pred), 3))
+    print("Test MAE:", round(mean_absolute_error(y_test, test_pred), 3))
+    print("Test R^2:", round(r2_score(y_test, test_pred), 3))
+
+
+def main():
+    X, y = load_data()
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+    model = build_model()
+    evaluate(model, X_train, X_test, y_train, y_test)
+
+
+if __name__ == "__main__":
+    main()
 ```
 
-> **Beginner rule:** Do NOT create a new split for each model. Make one split and reuse it.
+### What this model gets wrong
+
+- Nonlinear relationships if features are not transformed.
+- Datasets with strong outliers and heavy noise.
+
+### Common beginner mistake and fix
+
+- Mistake: judging only by train score.
+- Fix: always compare train vs test metrics.
+
+### Demonstration checklist
+
+- [ ] Dataset and target type are declared.
+- [ ] MSE, MAE, R^2 are reported.
+- [ ] Train and test metrics are compared.
+
+### Quick check
+
+Q: When should you avoid plain linear regression?
+A: When relationship is strongly nonlinear and feature engineering cannot linearize it.
+
+### When to use / not use
+
+- Use: interpretable numeric prediction baseline.
+- Not use: highly nonlinear pattern without engineered features.
 
 ---
 
-**Step 4 — Train models**
+## Module 2 - Logistic Regression
+
+Runnable script: [topic02_logistic_regression.py](src/stage-3/topic02_logistic_regression.py)
+
+Progressive examples:
+- Simple: [topic02a_logistic_regression_simple.py](src/stage-3/topic02a_logistic_regression_simple.py)
+- Intermediate: [topic02_logistic_regression.py](src/stage-3/topic02_logistic_regression.py)
+- Advanced: [topic02c_logistic_regression_advanced.py](src/stage-3/topic02c_logistic_regression_advanced.py)
+
+Where complexity is in Topic 2:
+
+- `Simple`: complexity is binary decision boundary learning with one core metric.
+- `Intermediate`: complexity comes from stratified split, scaling, and multi-metric evaluation.
+- `Advanced`: complexity comes from imbalanced data handling and threshold-dependent precision/recall tradeoffs.
+
+### What it is
+
+Logistic Regression predicts class probability (0 to 1) and then class label.
+
+### Why it matters
+
+It is one of the best first baselines for classification.
+
+### Data declaration
+
+- Data: Breast Cancer Wisconsin (`load_breast_cancer`)
+- Rows: 569
+- Features: 30 numeric features
+- Target: malignant/benign (binary)
+- Type: Classification
+
+### Assumptions
+
+- Decision boundary is approximately linear in transformed feature space.
+- Labels are reliable.
+
+### Preprocessing requirements
+
+- Scaling usually helps a lot.
+
+### Complete example
 
 ```python
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
-# Train each model on the same data
+
+def main():
+    data = load_breast_cancer(as_frame=True)
+    X, y = data.data, data.target
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    clf = Pipeline([
+        ("scaler", StandardScaler()),
+        ("model", LogisticRegression(max_iter=3000, random_state=42)),
+    ])
+
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    y_proba = clf.predict_proba(X_test)[:, 1]
+
+    print("Accuracy:", round(accuracy_score(y_test, y_pred), 3))
+    print("Precision:", round(precision_score(y_test, y_pred), 3))
+    print("Recall:", round(recall_score(y_test, y_pred), 3))
+    print("F1:", round(f1_score(y_test, y_pred), 3))
+    print("ROC-AUC:", round(roc_auc_score(y_test, y_proba), 3))
+
+
+if __name__ == "__main__":
+    main()
 ```
 
-*Suggested extension: Also include LinearRegression for regression datasets and KMeans separately for clustering experiments.*
+### What this model gets wrong
+
+- Complex nonlinear boundaries without engineered features.
+
+### Common beginner mistake and fix
+
+- Mistake: using accuracy only on imbalanced classes.
+- Fix: include precision, recall, F1, and ROC-AUC.
+
+### Demonstration checklist
+
+- [ ] Uses scaling.
+- [ ] Reports probability-based metric (ROC-AUC).
+- [ ] Uses stratified split for classification.
+
+### Quick check
+
+Q: Why is logistic regression still a classification model?
+A: It models class probability using sigmoid/logistic link and predicts labels via threshold.
+
+### When to use / not use
+
+- Use: fast, interpretable classification baseline.
+- Not use: highly nonlinear boundary with weak feature engineering.
 
 ---
 
-**Step 5 — Evaluate**
+## Module 3 - Decision Tree
 
-Compare train score and test score to see underfitting, overfitting, and generalization.
+Runnable script: [topic03_decision_tree_depth.py](src/stage-3/topic03_decision_tree_depth.py)
 
-For classification, compare:
+Progressive examples:
+- Simple: [topic03a_decision_tree_simple.py](src/stage-3/topic03a_decision_tree_simple.py)
+- Intermediate: [topic03_decision_tree_depth.py](src/stage-3/topic03_decision_tree_depth.py)
+- Advanced: [topic03c_decision_tree_advanced.py](src/stage-3/topic03c_decision_tree_advanced.py)
 
-- training accuracy
-- test accuracy
-- confusion matrix
-- precision / recall / F1 when useful
+Where complexity is in Topic 3:
 
-For regression, compare:
+- `Simple`: complexity is basic rule-based splitting and reading tree size.
+- `Intermediate`: complexity comes from depth sweep and overfitting gap interpretation.
+- `Advanced`: complexity comes from pruning-path search, cross-validation, and alpha selection logic.
 
-- training error
-- test error
-- MSE / MAE / R²
+### What it is
 
----
+A Decision Tree recursively splits features into rule-based branches.
 
-**Step 6 — Compare results**
+### Why it matters
 
-Build a comparison table:
+Very interpretable and naturally handles nonlinear patterns.
 
-| Model | Train Score | Test Score | Overfitting? | Notes |
-|---|---|---|---|---|
-| Logistic Regression | | | | |
-| Decision Tree | | | | |
-| Random Forest | | | | |
-| SVM | | | | |
+### Data declaration
 
----
+- Data: Breast Cancer Wisconsin (`load_breast_cancer`)
+- Rows: 569
+- Features: 30 numeric features
+- Target: binary class
+- Type: Classification
 
-**Step 7 — Add a feature**
+### Assumptions
 
-Add one new engineered feature and repeat the full comparison.
+- Useful split rules exist in current feature space.
 
-*Why this step matters: Better features can change model performance significantly.*
+### Preprocessing requirements
 
-Beginner ideas:
+- Usually no scaling requirement.
 
-- For Titanic: family size, title extracted from name
-- For stock dataset: moving average, return, volatility proxy
-- For Iris: petal length × petal width interaction
+### Complete example
 
-### Deliverables
+```python
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
 
-- dataset
-- model scripts
-- comparison table
-- analysis
 
-### Experiment Tasks
+def train_and_eval(max_depth):
+    data = load_breast_cancer(as_frame=True)
+    X, y = data.data, data.target
 
-**Experiment 1 — Compare simple vs complex models**
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
 
-Try: logistic regression, decision tree, random forest, SVM.
+    clf = DecisionTreeClassifier(max_depth=max_depth, random_state=42)
+    clf.fit(X_train, y_train)
 
-- Purpose: See which models underfit, overfit, or generalize best.
+    train_acc = accuracy_score(y_train, clf.predict(X_train))
+    test_acc = accuracy_score(y_test, clf.predict(X_test))
+    print(f"max_depth={max_depth}, train={train_acc:.3f}, test={test_acc:.3f}")
 
-**Experiment 2 — Limit tree depth**
 
-Train decision trees with depth 2, depth 4, and unlimited depth.
+def main():
+    for d in [2, 4, 8, None]:
+        train_and_eval(d)
 
-- Purpose: See how tree complexity affects train and test scores.
 
-**Experiment 3 — Scale features for SVM and Logistic Regression**
+if __name__ == "__main__":
+    main()
+```
 
-Train before and after scaling.
+### What this model gets wrong
 
-- Purpose: See how some models depend strongly on preprocessing.
+- Overfits easily with deep trees.
+- Unstable: small data changes can produce different trees.
 
-**Experiment 4 — Add one engineered feature**
+### Common beginner mistake and fix
 
-Repeat the full comparison.
+- Mistake: training unrestricted deep tree first.
+- Fix: tune `max_depth`, `min_samples_leaf`, and compare train/test gap.
 
-- Purpose: See whether feature engineering helps more than swapping models.
+### Demonstration checklist
 
-**Experiment 5 — Use cross-validation**
+- [ ] Evaluates multiple depths.
+- [ ] Reports train and test metrics.
+- [ ] Detects overfitting pattern.
 
-Instead of a single split, evaluate each model with cross-validation.
+### Quick check
 
-- Purpose: Get a more reliable comparison.
+Q: What indicates tree overfitting?
+A: Very high train score with much lower test score.
 
-### Common Mistakes
+### When to use / not use
 
-1. **Different splits per model** — Scores become unfair to compare. *Fix: Reuse the exact same split, or use the same cross-validation procedure for all models.*
-
-2. **No evaluation** — You do not know whether the model actually works. *Fix: Always record metrics on unseen data.*
-
-3. **Ignoring overfitting** — A high training score feels impressive but the model may fail on new data. *Fix: Always compare train and test performance.*
-
-4. **No feature engineering** — Weak inputs limit all models. *Fix: Try adding useful derived features and compare results again.*
-
-5. **Using SVM or logistic regression without scaling** — Performance can degrade because features are on very different scales. *Fix: Use feature scaling for sensitive models.*
-
-6. **Treating clustering like labeled classification** — Cluster IDs from KMeans are not true category labels. *Fix: Remember that clusters are discovered structure, not known ground truth labels.*
-
----
-
-## Final Understanding
-
-> Different ML models have different strengths, and performance depends on both data and features.
-
-> There is no single "best model" for every problem. Good ML practice means choosing models thoughtfully, comparing them fairly, and improving data and features — not just chasing scores.
+- Use: interpretable rule-based baseline.
+- Not use: when stability and smooth generalization are critical without ensembling.
 
 ---
 
-## Self Test
+## Module 4 - Random Forest
 
-### Questions
+Runnable script: [topic04_random_forest_baseline.py](src/stage-3/topic04_random_forest_baseline.py)
 
-1. What is linear regression used for?
-2. What is logistic regression used for?
-3. Why is logistic regression a classification model even though it has "regression" in the name?
-4. What does a decision tree do?
-5. Why do decision trees overfit easily?
-6. What is Random Forest?
-7. Why does Random Forest often generalize better than a single tree?
-8. What does SVM try to maximize?
-9. What are support vectors?
-10. What is the kernel trick?
-11. What is KMeans used for?
-12. Does KMeans need labels?
-13. Why must you choose K in KMeans?
-14. What is the difference between regression and classification?
-15. What is the difference between supervised and unsupervised learning?
-16. Why should all models use the same train/test split in comparison?
-17. Why can accuracy be misleading?
-18. Why are features so important?
-19. Which models are more sensitive to scaling?
-20. Which models are usually less sensitive to scaling?
-21. What is overfitting?
-22. What is underfitting?
-23. What is pruning?
-24. What is bagging?
-25. What does Random Forest combine at the end?
-26. Why should you compare train and test scores?
-27. What is a good first baseline for regression?
-28. What is a good first baseline for classification?
-29. Why is feature engineering important in model comparison?
-30. What is the main lesson of this stage?
+Progressive examples:
+- Simple: [topic04a_random_forest_simple.py](src/stage-3/topic04a_random_forest_simple.py)
+- Intermediate: [topic04_random_forest_baseline.py](src/stage-3/topic04_random_forest_baseline.py)
+- Advanced: [topic04c_random_forest_advanced.py](src/stage-3/topic04c_random_forest_advanced.py)
 
-### Answers
+Where complexity is in Topic 4:
 
-1. It is used for predicting continuous numerical values, such as price, demand, or temperature.
+- `Simple`: complexity is only ensemble training and one holdout metric.
+- `Intermediate`: complexity comes from train/test generalization checks plus feature-importance interpretation.
+- `Advanced`: complexity comes from OOB validation and permutation-importance diagnostics.
 
-2. It is used for classification problems, especially binary classification.
+### What it is
 
-3. Because it predicts class probabilities using a sigmoid function and then maps those probabilities to class labels.
+Random Forest combines many decision trees and aggregates predictions.
 
-4. It makes predictions by repeatedly splitting data using rule-based questions.
+### Why it matters
 
-5. Because they can keep splitting until they memorize small details and noise in the training data.
+Strong tabular-data baseline with reduced overfitting compared to one tree.
 
-6. Random Forest is an ensemble of many decision trees whose predictions are combined.
+### Data declaration
 
-7. Because combining many varied trees reduces variance and makes predictions more stable.
+- Data: Breast Cancer Wisconsin (`load_breast_cancer`)
+- Rows: 569
+- Features: 30 numeric features
+- Target: binary class
+- Type: Classification
 
-8. It tries to maximize the margin between classes.
+### Assumptions
 
-9. They are the important training points closest to the decision boundary that help define the SVM separator.
+- Ensemble diversity improves generalization.
 
-10. It is a method that allows SVM to model nonlinear boundaries without explicitly transforming data into higher-dimensional space.
+### Preprocessing requirements
 
-11. It is used for clustering similar points into groups.
+- Usually robust without strict scaling.
 
-12. No. KMeans is an unsupervised algorithm.
+### Complete example
 
-13. Because the algorithm needs to know how many clusters to form.
+```python
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import pandas as pd
 
-14. Regression predicts numbers. Classification predicts categories.
 
-15. Supervised learning uses labeled data. Unsupervised learning uses unlabeled data.
+def main():
+    data = load_breast_cancer(as_frame=True)
+    X, y = data.data, data.target
 
-16. Because otherwise the comparison is unfair: each model would be evaluated on different data.
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
 
-17. Because on imbalanced datasets, a model can get high accuracy while still failing on the most important class.
+    rf = RandomForestClassifier(
+        n_estimators=300,
+        max_depth=None,
+        random_state=42,
+        n_jobs=-1,
+    )
+    rf.fit(X_train, y_train)
 
-18. Because models can only learn from the information present in the features.
+    train_acc = accuracy_score(y_train, rf.predict(X_train))
+    test_acc = accuracy_score(y_test, rf.predict(X_test))
+    print("Train accuracy:", round(train_acc, 3))
+    print("Test accuracy:", round(test_acc, 3))
 
-19. SVM and logistic regression are often more sensitive to feature scaling.
+    importances = pd.Series(rf.feature_importances_, index=X.columns)
+    print("Top 5 features:")
+    print(importances.sort_values(ascending=False).head(5))
 
-20. Decision trees and Random Forest are usually less sensitive to scaling.
 
-21. Overfitting is when a model performs very well on training data but poorly on unseen data because it memorized too much detail.
+if __name__ == "__main__":
+    main()
+```
 
-22. Underfitting is when a model is too simple to capture important patterns in the data.
+### What this model gets wrong
 
-23. Pruning is the process of removing unnecessary branches from a decision tree to reduce overfitting.
+- Can hide interpretability.
+- May still fail with poor features or data leakage.
 
-24. Bagging is training multiple models on different random samples of the data and combining their predictions.
+### Common beginner mistake and fix
 
-25. It combines tree predictions using majority vote for classification or averaging for regression.
+- Mistake: assuming Random Forest removes need for feature quality.
+- Fix: audit data quality and leakage first.
 
-26. Because the gap between them helps you detect overfitting or underfitting.
+### Demonstration checklist
 
-27. Linear Regression is often a good first baseline for regression.
+- [ ] Reports train/test accuracy.
+- [ ] Reports top feature importances.
+- [ ] Compares to single-tree baseline.
 
-28. Logistic Regression is often a good first baseline for classification.
+### Quick check
 
-29. Because better features can improve many models and sometimes matter more than switching algorithms.
+Q: Why does Random Forest usually generalize better than one tree?
+A: Bagging and random feature subsampling reduce variance.
 
-30. Different models think differently, behave differently, and must be chosen and compared thoughtfully using the same data conditions and good features.
+### When to use / not use
+
+- Use: strong baseline on tabular data.
+- Not use: when strict interpretability is the top requirement.
 
 ---
 
-## What You Must Be Able To Do After Stage 3
+## Module 5 - SVM
 
-- [ ] Explain what each major classical ML algorithm does
-- [ ] Distinguish regression, classification, and clustering
-- [ ] Explain how linear regression, logistic regression, trees, forests, SVM, and KMeans work at a beginner level
-- [ ] Choose a reasonable baseline model for a problem
-- [ ] Compare models fairly on the same dataset split
-- [ ] Recognize overfitting from train/test results
-- [ ] Explain why preprocessing and features matter
-- [ ] Understand that model choice is about fit to the problem, not random trial and error
+Runnable script: [topic05_svm_tuning.py](src/stage-3/topic05_svm_tuning.py)
+
+Progressive examples:
+- Simple: [topic05a_svm_simple.py](src/stage-3/topic05a_svm_simple.py)
+- Intermediate: [topic05_svm_tuning.py](src/stage-3/topic05_svm_tuning.py)
+- Advanced: [topic05c_svm_advanced.py](src/stage-3/topic05c_svm_advanced.py)
+
+Where complexity is in Topic 5:
+
+- `Simple`: complexity is basic margin classifier with scaling.
+- `Intermediate`: complexity comes from `C/gamma` tuning and CV-vs-test consistency.
+- `Advanced`: complexity comes from multi-kernel search space and interpreting competing CV configurations.
+
+### What it is
+
+Support Vector Machine finds a margin-maximizing decision boundary.
+
+### Why it matters
+
+Can perform very well on medium-size datasets with clear margin structure.
+
+### Data declaration
+
+- Data: Iris (`load_iris`)
+- Rows: 150
+- Features: 4 numeric features
+- Target: 3 classes
+- Type: Classification
+
+### Assumptions
+
+- Classes can be separated in current or kernel-transformed space.
+
+### Preprocessing requirements
+
+- Scaling is usually required.
+
+### Complete example
+
+```python
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+
+
+def main():
+    data = load_iris(as_frame=True)
+    X, y = data.data, data.target
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    pipe = Pipeline([
+        ("scaler", StandardScaler()),
+        ("svm", SVC(kernel="rbf", random_state=42)),
+    ])
+
+    grid = GridSearchCV(
+        pipe,
+        param_grid={
+            "svm__C": [0.1, 1, 10, 100],
+            "svm__gamma": [0.01, 0.1, 1],
+        },
+        cv=5,
+        n_jobs=-1,
+    )
+
+    grid.fit(X_train, y_train)
+    y_pred = grid.predict(X_test)
+
+    print("Best params:", grid.best_params_)
+    print("CV score:", round(grid.best_score_, 3))
+    print("Test accuracy:", round(accuracy_score(y_test, y_pred), 3))
+
+
+if __name__ == "__main__":
+    main()
+```
+
+### What this model gets wrong
+
+- Can be sensitive to scale and hyperparameters (`C`, `gamma`).
+- Can be slower on large datasets.
+
+### Common beginner mistake and fix
+
+- Mistake: running SVM without scaling.
+- Fix: always use pipeline with `StandardScaler`.
+
+### Demonstration checklist
+
+- [ ] Uses scaling pipeline.
+- [ ] Tunes `C` and `gamma`.
+- [ ] Reports CV and test metrics.
+
+### Quick check
+
+Q: What does a larger `C` usually do?
+A: Penalizes misclassification more strongly and can reduce margin (risk overfit).
+
+### When to use / not use
+
+- Use: medium-size data with meaningful boundary geometry.
+- Not use: very large datasets requiring fast training.
+
+---
+
+## Module 6 - KMeans Clustering
+
+Runnable script: [topic06_kmeans_silhouette.py](src/stage-3/topic06_kmeans_silhouette.py)
+
+Progressive examples:
+- Simple: [topic06a_kmeans_simple.py](src/stage-3/topic06a_kmeans_simple.py)
+- Intermediate: [topic06_kmeans_silhouette.py](src/stage-3/topic06_kmeans_silhouette.py)
+- Advanced: [topic06c_kmeans_advanced.py](src/stage-3/topic06c_kmeans_advanced.py)
+
+Where complexity is in Topic 6:
+
+- `Simple`: complexity is fixed-`K` clustering and centroid interpretation.
+- `Intermediate`: complexity comes from selecting `K` via silhouette after proper scaling.
+- `Advanced`: complexity comes from multi-metric cluster validation (inertia/silhouette/ARI) and metric disagreement analysis.
+
+### What it is
+
+KMeans groups similar points into `K` clusters without labels.
+
+### Why it matters
+
+A practical first unsupervised method for segmentation tasks.
+
+### Data declaration
+
+- Data: Iris features only (`load_iris`)
+- Rows: 150
+- Features: 4 numeric features
+- Target: not used for training (unsupervised)
+- Type: Clustering
+
+### Assumptions
+
+- Cluster structure is roughly compact/spherical in feature space.
+
+### Preprocessing requirements
+
+- Scaling is recommended for distance-based methods.
+
+### Complete example
+
+```python
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+import numpy as np
+
+
+def main():
+    data = load_iris(as_frame=True)
+    X = data.data
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    best_k = None
+    best_score = -1.0
+
+    for k in range(2, 7):
+        km = KMeans(n_clusters=k, random_state=42, n_init=20)
+        labels = km.fit_predict(X_scaled)
+        score = silhouette_score(X_scaled, labels)
+        print(f"k={k}, silhouette={score:.3f}")
+
+        if score > best_score:
+            best_score = score
+            best_k = k
+
+    final = KMeans(n_clusters=best_k, random_state=42, n_init=20)
+    final_labels = final.fit_predict(X_scaled)
+    counts = np.bincount(final_labels)
+
+    print("Best k:", best_k)
+    print("Cluster sizes:", counts)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+### What this model gets wrong
+
+- Irregular cluster shapes.
+- Sensitive to initialization and scaling.
+
+### Common beginner mistake and fix
+
+- Mistake: using cluster IDs as if they are true class labels.
+- Fix: treat clusters as discovered structure, not ground truth categories.
+
+### Demonstration checklist
+
+- [ ] Tests multiple `k` values.
+- [ ] Uses silhouette score.
+- [ ] Uses scaling before distance-based clustering.
+
+### Quick check
+
+Q: Why does KMeans need `k` in advance?
+A: The objective optimizes assignment for a fixed number of centroids.
+
+### When to use / not use
+
+- Use: quick segmentation baseline with numeric features.
+- Not use: highly irregular/non-convex cluster structures.
+
+---
+
+## 8) Model Failure Patterns And Fix Playbook
+
+Runnable scripts:
+- [topic07_fair_model_comparison.py](src/stage-3/topic07_fair_model_comparison.py)
+- [topic08_failure_modes_overfit_leakage.py](src/stage-3/topic08_failure_modes_overfit_leakage.py)
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Train high, test low | Overfitting | regularization, simpler model, more data |
+| Train and test both low | Underfitting | richer features, less bias, tune hyperparameters |
+| Very high score unexpectedly | Leakage | audit preprocessing and target leakage |
+| SVM unstable | no scaling / bad `C,gamma` | pipeline scaling + CV search |
+| KMeans poor clusters | wrong scale / wrong `k` | scale features, silhouette analysis |
+
+---
+
+## 9) Three-Week Operable Roadmap (Week 4-6)
+
+### Week 4 - Algorithm foundations
+
+- Day 1: Linear Regression + residual thinking
+- Day 2: Logistic Regression + threshold/probability
+- Day 3: Decision Tree + depth control
+- Day 4: Random Forest + variance reduction intuition
+- Day 5: SVM + margin and scaling
+- Day 6: KMeans + cluster quality
+- Day 7: recap and concept checks
+
+### Week 5 - Evaluation and fairness
+
+- Day 8: metric selection
+- Day 9: cross-validation workflow
+- Day 10: leakage pitfalls
+- Day 11: fair benchmark setup
+- Day 12: compare models on same split
+- Day 13-14: write model comparison report
+
+### Week 6 - Project and readiness
+
+- Day 15-17: build model comparison lab
+- Day 18: error analysis
+- Day 19: feature iteration
+- Day 20: final report
+- Day 21: self-test and readiness scoring
+
+---
+
+## 10) Stage 3 Script Mapping (for `/red-book/src/stage-3`)
+
+Use this runnable script set:
+
+- Topic 1 ladder:
+  - [topic01a_linear_regression_simple.py](src/stage-3/topic01a_linear_regression_simple.py)
+  - [topic01_linear_regression.py](src/stage-3/topic01_linear_regression.py)
+  - [topic01c_linear_regression_advanced.py](src/stage-3/topic01c_linear_regression_advanced.py)
+- Topic 2 ladder:
+  - [topic02a_logistic_regression_simple.py](src/stage-3/topic02a_logistic_regression_simple.py)
+  - [topic02_logistic_regression.py](src/stage-3/topic02_logistic_regression.py)
+  - [topic02c_logistic_regression_advanced.py](src/stage-3/topic02c_logistic_regression_advanced.py)
+- Topic 3 ladder:
+  - [topic03a_decision_tree_simple.py](src/stage-3/topic03a_decision_tree_simple.py)
+  - [topic03_decision_tree_depth.py](src/stage-3/topic03_decision_tree_depth.py)
+  - [topic03c_decision_tree_advanced.py](src/stage-3/topic03c_decision_tree_advanced.py)
+- Topic 4 ladder:
+  - [topic04a_random_forest_simple.py](src/stage-3/topic04a_random_forest_simple.py)
+  - [topic04_random_forest_baseline.py](src/stage-3/topic04_random_forest_baseline.py)
+  - [topic04c_random_forest_advanced.py](src/stage-3/topic04c_random_forest_advanced.py)
+- Topic 5 ladder:
+  - [topic05a_svm_simple.py](src/stage-3/topic05a_svm_simple.py)
+  - [topic05_svm_tuning.py](src/stage-3/topic05_svm_tuning.py)
+  - [topic05c_svm_advanced.py](src/stage-3/topic05c_svm_advanced.py)
+- Topic 6 ladder:
+  - [topic06a_kmeans_simple.py](src/stage-3/topic06a_kmeans_simple.py)
+  - [topic06_kmeans_silhouette.py](src/stage-3/topic06_kmeans_silhouette.py)
+  - [topic06c_kmeans_advanced.py](src/stage-3/topic06c_kmeans_advanced.py)
+- [topic07_fair_model_comparison.py](src/stage-3/topic07_fair_model_comparison.py)
+- [topic08_failure_modes_overfit_leakage.py](src/stage-3/topic08_failure_modes_overfit_leakage.py)
+- [topic09a_pytorch_cuda_simple.py](src/stage-3/topic09a_pytorch_cuda_simple.py) (optional bridge simple)
+- [topic09_pytorch_cuda_bridge.py](src/stage-3/topic09_pytorch_cuda_bridge.py) (optional bridge intermediate)
+- [topic09c_pytorch_cuda_advanced.py](src/stage-3/topic09c_pytorch_cuda_advanced.py) (optional bridge advanced)
+- [run_all_stage3.ps1](src/stage-3/run_all_stage3.ps1)
+- [run_ladder_stage3.ps1](src/stage-3/run_ladder_stage3.ps1) (`-IncludeGpuBridge` for topic09 ladder)
+- [README.md](src/stage-3/README.md)
+- [requirements.txt](src/stage-3/requirements.txt)
+- [requirements-gpu.txt](src/stage-3/requirements-gpu.txt) (optional)
+
+Expected output style for each script:
+
+- Print data declaration summary
+- Print key metrics
+- Print short interpretation (1-2 lines)
+
+---
+
+## 11) Practice Project - Model Comparison Lab
+
+### Goal
+
+Compare multiple algorithms fairly and explain tradeoffs.
+
+### Required workflow
+
+1. Choose one project track and keep it fixed for the full lab.
+2. If you want the recommended track, use classification with `load_breast_cancer`.
+3. Declare dataset with this exact template before training: `source`, `rows`, `features`, `target`, `task type`.
+4. Fix one evaluation strategy for all models:
+5. Option A (recommended): `train_test_split(test_size=0.2, random_state=42, stratify=y)`.
+6. Option B: `StratifiedKFold(n_splits=5, shuffle=True, random_state=42)`.
+7. Train at least 4 models on the same data conditions:
+8. Recommended set for classification: LogisticRegression (scaled), DecisionTreeClassifier, RandomForestClassifier, SVC (scaled, `probability=True`).
+9. Use one shared evaluation function and mandatory metric set:
+10. Classification metrics: `accuracy`, `precision`, `recall`, `f1`, `roc_auc`.
+11. Regression metrics (if you choose regression track): `mse`, `mae`, `r2`.
+12. Record both train and test metrics for each model and compute a train-test gap.
+13. Add one explicit feature engineering change with formula (example: `radius_texture_ratio = mean radius / mean texture`).
+14. Rerun all models with the same split/CV and same metrics after feature engineering.
+15. Create a before-vs-after delta table and explain which model improved, degraded, and why.
+16. Choose one final model and write a short justification using performance + stability + interpretability tradeoffs.
+
+### Required deliverables
+
+- `results/model_comparison_before.csv`: one row per model with train/test metrics and train-test gap.
+- `results/model_comparison_after.csv`: same schema as before table, after feature engineering change.
+- `results/model_delta.csv`: per-model metric deltas (`after - before`) for the primary metric and at least one secondary metric.
+- `results/failure_diagnosis.md`: one concrete failure case (overfit, underfit, or leakage risk), evidence, and fix.
+- `results/feature_change.md`: exact feature formula, why it was added, and expected impact.
+- `results/final_model_selection.md`: chosen model, rejected models, and final rationale in 5-10 sentences.
+- `results/reproducibility.md`: dataset used, split/CV policy, random seed values, and run date.
+
+Minimum acceptance checks:
+
+- At least 4 models are compared in both before/after tables.
+- The split/CV strategy and random seed are identical across all models.
+- Before/after tables use the same metric set and same column names.
+- Feature engineering step is explicit and rerun evidence is present.
+
+---
+
+## 12) Debugging Checklist
+
+If results look wrong, check:
+
+- [ ] Task type is correct (regression/classification/clustering)
+- [ ] Target column is correct
+- [ ] No data leakage in preprocessing
+- [ ] Same split used across models
+- [ ] Metric choice matches problem
+- [ ] Train vs test gap inspected
+- [ ] Scaling applied where needed
+- [ ] Categorical encoding handled correctly
+- [ ] Dataset size and class balance reviewed
+
+---
+
+## 13) Optional Bridge - PyTorch And CUDA (Concept + Training Flow)
+
+Progressive examples:
+- Simple: [topic09a_pytorch_cuda_simple.py](src/stage-3/topic09a_pytorch_cuda_simple.py)
+- Intermediate: [topic09_pytorch_cuda_bridge.py](src/stage-3/topic09_pytorch_cuda_bridge.py)
+- Advanced: [topic09c_pytorch_cuda_advanced.py](src/stage-3/topic09c_pytorch_cuda_advanced.py)
+
+Classical scikit-learn algorithms in this chapter are mostly CPU path.
+This bridge helps connect classical ML training concepts to deep learning training loops.
+
+### Why This Section Feels Hard
+
+Beginners often mix up three things:
+
+- device placement (CPU/GPU)
+- autograd gradient calculation
+- optimizer parameter updates
+
+If these are mixed up, training appears \"mysterious\".  
+Use the 5-step loop below and verify each step with prints.
+
+### 5-Step Training Loop (Detailed Guide And Instructions)
+
+1. Move tensors to device (`cpu` or `cuda`).
+2. Forward pass computes prediction.
+3. Loss compares prediction vs target.
+4. Backward pass computes gradients.
+5. Optimizer updates parameters.
+
+#### Step 1 - Move tensors to device
+
+What to do:
+- select `device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")`
+- move both data and model: `x = x.to(device)`, `model = model.to(device)`
+
+Why it matters:
+- model parameters and tensors must be on the same device
+
+Debug check:
+- print `x.device` and first parameter device
+
+Common error:
+- `Expected all tensors to be on the same device`
+
+#### Step 2 - Forward pass
+
+What to do:
+- call model with input: `pred = model(x)`
+
+Why it matters:
+- this computes predicted values using current parameters
+
+Debug check:
+- print `pred.shape` and sample values
+
+Common error:
+- wrong input shape, especially missing batch dimension
+
+#### Step 3 - Compute loss
+
+What to do:
+- choose loss by task: `MSELoss` (regression), `CrossEntropyLoss` (classification)
+- `loss = loss_fn(pred, target)`
+
+Why it matters:
+- loss is the numeric training signal for optimization
+
+Debug check:
+- print initial loss; it should usually decrease over epochs
+
+Common error:
+- wrong target dtype/shape (for classification especially)
+
+#### Step 4 - Backward pass
+
+What to do:
+- `optimizer.zero_grad()`
+- `loss.backward()`
+
+Why it matters:
+- autograd computes `d(loss)/d(parameter)` and stores it in `parameter.grad`
+
+Debug check:
+- print gradient norm after backward
+
+Common error:
+- forgetting `zero_grad()` leads to gradient accumulation across steps
+
+#### Step 5 - Optimizer step
+
+What to do:
+- `optimizer.step()`
+
+Why it matters:
+- updates model weights to reduce loss
+
+Debug check:
+- print parameter values before/after one step
+
+Common error:
+- calling `step()` before `backward()`
+
+### Complexity Scale For This Bridge
+
+- `Simple`:
+  - one tiny tensor dataset
+  - one forward/backward/update step
+  - focus: understand parameter change
+- `Intermediate`:
+  - larger synthetic data
+  - multi-epoch training loop
+  - optional CPU vs CUDA timing
+- `Advanced`:
+  - mini-batch DataLoader
+  - train/validation loop
+  - gradient clipping + optional AMP on CUDA
+
+Where complexity is in Topic 09:
+
+- data complexity: tiny tensors -> large tensors -> mini-batch tabular tensors
+- loop complexity: one step -> full epochs -> full train/validation lifecycle
+- optimization complexity: plain SGD -> tuned optimizer flow -> clipping/AMP
+- evaluation complexity: print loss -> track first/final loss -> validation loss + R^2
+- system complexity: CPU fallback -> optional CUDA -> optional mixed precision path
+
+### Run Instructions (Operatable)
+
+CPU path:
+
+```powershell
+python topic09a_pytorch_cuda_simple.py
+python topic09_pytorch_cuda_bridge.py
+python topic09c_pytorch_cuda_advanced.py
+```
+
+With ladder runner:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run_ladder_stage3.ps1 -IncludeGpuBridge
+```
+
+If CUDA is available, scripts will automatically use it.
+If CUDA is unavailable, scripts run on CPU path with fallback messages.
+
+### Minimal bridge example
+
+```python
+import torch
+
+
+def main():
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print("Device:", device)
+
+    X = torch.tensor([[1.0], [2.0], [3.0], [4.0]], device=device)
+    y = torch.tensor([[2.0], [4.0], [6.0], [8.0]], device=device)
+
+    model = torch.nn.Linear(1, 1).to(device)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.05)
+    loss_fn = torch.nn.MSELoss()
+
+    for epoch in range(1, 301):
+        optimizer.zero_grad()
+        pred = model(X)
+        loss = loss_fn(pred, y)
+        loss.backward()
+        optimizer.step()
+
+        if epoch % 100 == 0:
+            print(f"epoch={epoch}, loss={loss.item():.6f}")
+
+    w = model.weight.item()
+    b = model.bias.item()
+    print(f"Learned line: y = {w:.3f}x + {b:.3f}")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## 14) Self-Test (Quick)
+
+1. When is linear regression a poor choice?
+2. Why can logistic regression be strong even when simple?
+3. What is the main overfitting signal for decision trees?
+4. Why does Random Forest usually reduce variance?
+5. Why is scaling critical for SVM?
+6. Why is KMeans not evaluated like classification?
+7. What makes a model comparison unfair?
+8. What is data leakage during preprocessing?
+9. Why compare train and test metrics together?
+10. Which step usually gives bigger gains first: model switching or feature quality?
+
+Scoring suggestion:
+
+- 8-10 correct: strong
+- 6-7 correct: acceptable, review weak modules
+- <=5 correct: rerun modules and debugging checklist
+
+---
+
+## 15) High-Quality Resources (Use In This Order)
+
+### Intuition-first
+
+- R2D3 Part 1: https://r2d3.us/visual-intro-to-machine-learning-part-1/
+- R2D3 Part 2: https://r2d3.us/visual-intro-to-machine-learning-part-2/
+
+### Official implementation
+
+- Google ML Crash Course: https://developers.google.com/machine-learning/crash-course
+- sklearn supervised learning: https://scikit-learn.org/stable/supervised_learning.html
+- sklearn unsupervised learning: https://scikit-learn.org/stable/unsupervised_learning.html
+- sklearn model evaluation: https://scikit-learn.org/stable/model_evaluation.html
+- sklearn cross-validation: https://scikit-learn.org/stable/modules/cross_validation.html
+- sklearn common pitfalls: https://scikit-learn.org/stable/common_pitfalls.html
+
+### Operatable examples
+
+- sklearn classifier comparison:
+  https://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html
+- sklearn tree structure:
+  https://scikit-learn.org/stable/auto_examples/tree/plot_unveil_tree_structure.html
+- sklearn forest importances:
+  https://scikit-learn.org/stable/auto_examples/ensemble/plot_forest_importances.html
+- sklearn RBF SVM params:
+  https://scikit-learn.org/stable/auto_examples/svm/plot_rbf_parameters.html
+- sklearn KMeans silhouette:
+  https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html
+- sklearn CV visualization:
+  https://scikit-learn.org/stable/auto_examples/model_selection/plot_cv_indices.html
+- sklearn underfit vs overfit:
+  https://scikit-learn.org/stable/auto_examples/model_selection/plot_underfitting_overfitting.html
+
+### Deeper theory
+
+- CS229 notes 1: https://cs229.stanford.edu/notes_archive/cs229-notes1.pdf
+- CS229 notes 3: https://cs229.stanford.edu/notes_archive/cs229-notes3.pdf
+- CS229 notes 7A: https://cs229.stanford.edu/notes_archive/cs229-notes7a.pdf
+- ISLP: https://www.statlearning.com/
+- ISLP labs: https://islp.readthedocs.io/en/latest/labs.html
+- ESL (free PDF from authors): https://hastie.su.domains/ElemStatLearn/main.html
+
+---
+
+## 16) What You Must Be Able To Do After Stage 3
+
+- [ ] Explain each core algorithm in plain language.
+- [ ] Declare data source and data structure for each experiment.
+- [ ] Run complete end-to-end workflow per algorithm.
+- [ ] Choose metrics correctly by task type.
+- [ ] Compare models fairly on same data conditions.
+- [ ] Diagnose overfitting, underfitting, and leakage.
+- [ ] Propose one data/feature improvement and validate impact.
+
+---
+
+## 17) What Comes After Stage 3
+
+Stage 4 will focus on deeper optimization, robust experiment design, and production-style ML workflow.
+The model behavior knowledge from Stage 3 becomes the foundation for tuning strategy, error analysis, and more advanced pipelines.
+Move to Stage 4 only when you can run and explain fair model comparisons without guessing.

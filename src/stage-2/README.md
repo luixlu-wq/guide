@@ -43,6 +43,7 @@ powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
 - `topic08_sklearn_pipeline_leakage.py`: wrong vs correct preprocessing order
 - `topic09_stage2_end_to_end_pipeline.py`: full tabular pipeline + metrics artifact
 - `topic10_pytorch_cuda_bridge.py` (optional): tensors/autograd/CUDA bridge
+- `topic11_linear_gradient_example.py`: concrete gradient math (manual vs autograd)
 
 ## Outputs Created by Scripts
 

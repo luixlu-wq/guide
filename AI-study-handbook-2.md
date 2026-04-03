@@ -775,6 +775,46 @@ for batch_x, batch_y in data_loader:
     optimizer.zero_grad()           # clear grads
 ```
 
+Concrete gradient example (linear regression):
+
+Model:
+
+```
+y_hat = w*x + b
+loss  = (1/n) * Σ (y_hat - y)^2
+```
+
+Parameter gradients:
+
+```
+d(loss)/dw = (2/n) * Σ (y_hat - y) * x
+d(loss)/db = (2/n) * Σ (y_hat - y)
+```
+
+Update step:
+
+```
+w_new = w_old - lr * d(loss)/dw
+b_new = b_old - lr * d(loss)/db
+```
+
+Tiny numeric intuition:
+
+- If prediction is too high (`y_hat > y`), error term is positive.
+- Then `d(loss)/dw` and/or `d(loss)/db` often become positive.
+- Subtracting a positive gradient moves parameters downward.
+- This usually lowers future predictions and reduces loss.
+
+In PyTorch autograd terms:
+
+- You define forward and loss.
+- `loss.backward()` computes these gradients automatically.
+- Optimizer step applies the same update rule without manual derivative coding.
+
+Runnable concrete script for this section:
+
+- `topic11_linear_gradient_example.py`
+
 CPU vs GPU in training:
 
 - **CPU**:
@@ -814,8 +854,10 @@ Detailed tutorial instructions:
 
 1. Run:
    - `python topic10_pytorch_cuda_bridge.py`
+   - `python topic11_linear_gradient_example.py`
 2. Verify:
    - torch version, CUDA availability, and autograd outputs are printed.
+   - manual and autograd gradients match in topic11 output
 3. Interpret:
    - if CUDA is `False`, explain why CPU fallback is still correct behavior.
 4. If CUDA is available:
