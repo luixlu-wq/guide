@@ -1,839 +1,903 @@
-# Stage 2 — Python for AI
+# Stage 2 - Python for AI Data Workflows
 
-*(Week 3)*
-
-## Goal
-
-Learn the Python ecosystem used in AI.
-
-You are **NOT** learning general Python.
-You are learning **data + computation tools for AI**.
-
-This stage is important because most AI work is not "just training models."
-A large part of real AI work is:
-
-- loading data
-- cleaning data
-- transforming data
-- visualizing data
-- building pipelines
-- preparing data for machine learning
-
-> A beginner should finish this stage understanding that:
-> **AI starts with clean, structured, computable data — not models first.**
+*(Week 3 core + optional extension week)*
 
 ---
 
-## Quick Summary
+## 0. How to Use This Handbook
 
-In AI engineering, Python is the main working language because it has strong libraries for:
+### Who This Stage Is For
 
-- numerical computation
-- data handling
-- visualization
-- machine learning
+This stage is for learners who completed Stage 1 and can run basic Python scripts.
 
-The four core libraries in this stage are:
-
-| Library | Purpose |
-|---|---|
-| **NumPy** | arrays and fast numerical computation |
-| **Pandas** | structured/tabular data handling |
-| **Matplotlib** | charts and plots |
-| **Scikit-learn** | preprocessing, models, and evaluation |
-
----
-
-## Study Materials
-
-**Python Data Science Handbook**
-https://jakevdp.github.io/PythonDataScienceHandbook/
-
-### Libraries to Learn
+You are not learning "all Python."
+You are learning the Python data stack used in real AI work:
 
 - NumPy
 - Pandas
 - Matplotlib
-- Scikit-learn
+- scikit-learn
+- optional PyTorch/CUDA bridge
+
+### Recommended Order
+
+1. Complete setup and verify scripts run.
+2. Follow the roadmap day by day.
+3. For each topic:
+   - read concept
+   - run script
+   - compare output to expected range
+   - write short interpretation
+   - answer quick check
+4. Complete project and self-test before moving on.
+
+### If You Get Stuck
+
+- Check script input shapes and column names first.
+- Re-run from a clean terminal session.
+- Use the debugging checklist in Section 7.
+- Revisit the mapped official docs in Study Materials.
 
 ---
 
-## Key Knowledge (Deep Understanding)
+## 1. Prerequisites and Environment Setup
 
-### 1. NumPy — Numerical Computation
+### Required Knowledge
 
-NumPy is used for:
+- Basic Python (variables, loops, functions, lists, dicts)
+- Ability to run `.py` scripts from terminal
 
-- fast numerical operations
-- vectorized computation
+### Required Software
 
-**Key idea:** Replace loops with vector operations
+- Python 3.10+
+- pip
+- PowerShell/bash terminal
 
-```python
-import numpy as np
+Check version:
 
-arr = np.array([1,2,3])
-print(arr * 2)
+```bash
+python --version
 ```
 
-#### Beginner Explanation
+### Setup (CPU Path)
 
-NumPy is the foundation for numerical work in Python.
+**Windows**
 
-A normal Python list can store values, but it is not optimized for fast math operations on large amounts of data.
-
-```python
-[1, 2, 3]   # Python list
+```bash
+cd red-book\src\stage-2
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-A NumPy array looks similar, but it is designed for:
+**Unix/macOS**
 
-- fast computation
-- efficient memory usage
-- array-wide operations
-
-```python
-np.array([1, 2, 3])   # NumPy array
+```bash
+cd red-book/src/stage-2
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Instead of writing a loop, you can do:
+### Optional GPU Bridge Setup (PyTorch + CUDA)
 
-```python
-arr * 2
+```bash
+pip install -r requirements-gpu.txt
 ```
 
-And NumPy multiplies every element for you.
+Verify CUDA:
 
-#### Why NumPy Matters in AI
-
-Most AI data eventually becomes numbers:
-
-- images → pixel arrays
-- text → token IDs or embeddings
-- stock data → numerical columns
-- audio → wave arrays
-
-NumPy gives you the tools to handle this numerical data efficiently.
-
-#### Step-by-Step Mental Model
-
-1. **Store numbers in arrays** — Place numbers into a NumPy array.
-2. **Perform operations on the whole array** — Instead of processing one item at a time, NumPy can process the whole array at once.
-3. **Use vectorized math** — This is faster and cleaner than Python loops.
-
-#### Key Concepts
-
-**Array** — A grid of numbers.
-
-- 1D array = vector
-- 2D array = matrix
-- 3D+ array = tensor-like structure
-
-**Shape** — The dimensions of the array.
-
-```python
-arr.shape
-# For a 2x3 matrix: (2, 3)
+```bash
+nvidia-smi
+python -c "import torch; print(torch.__version__); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'no cuda')"
 ```
 
-**Data Type (dtype)** — The type of numbers stored (int, float, bool).
+### Verify Stage 2 Setup
 
-*Why important: Different data types use different memory and can affect performance.*
-
-#### Key Algorithms / Core Mechanisms for NumPy
-
-**A. Vectorization**
-
-Vectorization means operating on whole arrays at once instead of writing loops.
-
-```python
-arr = np.array([1, 2, 3])
-arr + 5
-# Output: [6, 7, 8]
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1
 ```
 
-*Why important: This is the foundation of efficient AI preprocessing and numerical computation.*
+Optional GPU bridge:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
+```
 
 ---
 
-**B. Broadcasting**
+## 2. One-Week Core Roadmap (+ Optional Extension)
 
-Broadcasting lets NumPy apply operations between arrays of different shapes when the shapes are compatible.
+### Week 1 Core
 
-```python
-arr = np.array([1, 2, 3])
-arr + 10
-# The scalar 10 is automatically treated like [10, 10, 10]
-```
+| Day | Focus | Script(s) | Deliverable |
+|---|---|---|---|
+| 1 | NumPy vectorization and broadcasting | topic01, topic02 | Explain shape and vectorization speedup |
+| 2 | Pandas load and inspect | topic03 | Data inspection note (columns, dtypes, missing) |
+| 3 | Pandas clean and transform | topic04 | Before/after cleaning summary |
+| 4 | Feature engineering for time series | topic05 | Explain each engineered column |
+| 5 | Visualization for debugging | topic06 | Interpret line plot and histogram |
+| 6 | scikit-learn split, preprocessing, leakage | topic07, topic08 | Explain wrong vs correct workflow |
+| 7 | End-to-end tabular pipeline | topic09 | Save and interpret metrics artifact |
 
-*Why important: Lets you write less code and still do powerful array operations.*
+### Optional Extension Week
+
+| Day | Focus | Script(s) | Deliverable |
+|---|---|---|---|
+| 8 | Project expansion and additional features | topic05, topic09 | Updated feature list with rationale |
+| 9 | Error analysis and leakage audit | topic08, topic09 | Leakage prevention checklist |
+| 10 | Optional GPU bridge | topic10 | CPU vs GPU note (if CUDA available) |
+| 11 | Documentation and reproducibility | run_all_stage2 | Run log and environment note |
+| 12 | Self-test and weak-topic review | handbook self-test | Score + remediation plan |
+| 13-14 | Final polish and handoff | all | Stage completion checklist |
 
 ---
 
-**C. Matrix Operations**
+## 3. Study Materials
 
-Many ML formulas are based on vectors and matrices: dot product, matrix multiplication, transpose.
+### Must Complete
 
-```python
-a = np.array([[1, 2], [3, 4]])
-b = np.array([[5], [6]])
-print(a @ b)
+- NumPy Quickstart: https://numpy.org/doc/stable/user/quickstart.html
+- Pandas Getting Started: https://pandas.pydata.org/docs/getting_started/index.html
+- Matplotlib Tutorials: https://matplotlib.org/stable/tutorials/index.html
+- scikit-learn User Guide: https://scikit-learn.org/stable/user_guide.html
+- scikit-learn Common Pitfalls: https://scikit-learn.org/stable/common_pitfalls.html
+- Kaggle Pandas: https://www.kaggle.com/learn/pandas
+- Kaggle Data Visualization: https://www.kaggle.com/learn/data-visualization
+
+### Should Complete
+
+- Python Data Science Handbook: https://jakevdp.github.io/PythonDataScienceHandbook/
+- Kaggle Intro to ML: https://www.kaggle.com/learn/intro-to-machine-learning
+- handson-ml3 examples: https://github.com/ageron/handson-ml3
+
+### Optional Deepening
+
+- ISLP: https://www.statlearning.com/
+- D2L: https://d2l.ai/
+- PyTorch Tutorials: https://pytorch.org/tutorials/
+- PyTorch CUDA semantics: https://pytorch.org/docs/stable/notes/cuda.html
+
+---
+
+## 4. Learning Targets (With Pass Checks)
+
+### Target 1: NumPy vectorized computation
+
+- Run `topic01_numpy_vectorization.py`
+- Explain loop vs vectorized timing difference
+- Pass check: you can explain why vectorization is usually faster
+
+### Target 2: NumPy shapes and broadcasting
+
+- Run `topic02_numpy_shape_broadcasting.py`
+- Explain how row and column broadcasting works
+- Pass check: you can predict output shape before running
+
+### Target 3: Pandas load and inspect
+
+- Run `topic03_pandas_load_inspect.py`
+- Report shape, dtypes, missing values, column names
+- Pass check: you can identify at least one potential data issue
+
+### Target 4: Pandas cleaning and transformation
+
+- Run `topic04_pandas_clean_transform.py`
+- Explain all cleaning steps and why each is needed
+- Pass check: before/after missing values and row count are clearly interpreted
+
+### Target 5: Feature engineering
+
+- Run `topic05_feature_engineering_time_series.py`
+- Explain `return_1d`, `ma_5`, `ma_20`, `volatility_5`
+- Pass check: you can describe why rolling features create NaN rows
+
+### Target 6: Visualization as debugging
+
+- Run `topic06_matplotlib_data_debugging.py`
+- Explain what anomaly and distribution chart reveal
+- Pass check: saved plot files exist and are interpreted
+
+### Target 7: Proper split and preprocessing
+
+- Run `topic07_sklearn_split_preprocess.py`
+- Explain split order and scaler usage
+- Pass check: you can explain what happens if you fit scaler on all data
+
+### Target 8: Leakage prevention with pipeline
+
+- Run `topic08_sklearn_pipeline_leakage.py`
+- Compare wrong and correct workflow scores
+- Pass check: you can explain leakage risk in one sentence
+
+### Target 9: End-to-end pipeline
+
+- Run `topic09_stage2_end_to_end_pipeline.py`
+- Inspect saved metrics JSON
+- Pass check: you can explain R2, MAE, and MSE from output
+
+### Target 10 (Optional): PyTorch/CUDA bridge
+
+- Run `topic10_pytorch_cuda_bridge.py`
+- Explain tensor/autograd/device concepts
+- Pass check: you can explain CPU fallback when CUDA is unavailable
+
+---
+
+## 5. Operatable Examples for Stage 2
+
+All runnable files are in:
+
+- `red-book/src/stage-2/`
+
+### Quick Workflow
+
+**Windows**
+
+```bash
+cd red-book\src\stage-2
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1
 ```
 
-*Why important: Neural networks and many ML models are built on matrix math.*
+Optional GPU bridge:
 
-#### Common Beginner Problems with NumPy
+```bash
+pip install -r requirements-gpu.txt
+powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
+```
 
-| Problem | Why It Happens | Fix |
+**Unix/macOS**
+
+```bash
+cd red-book/src/stage-2
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pwsh -File ./run_all_stage2.ps1
+```
+
+### Script Reference and Expected Outputs
+
+| Script | Topic | Expected Output |
 |---|---|---|
-| Confusing list and array | Both look similar at first | list = general container; NumPy array = optimized numeric structure |
-| Not checking shape | Beginners focus on values, not dimensions | Always inspect `arr.shape` |
-| Using loops unnecessarily | People come from basic programming habits | Try array operations first |
+| `topic01_numpy_vectorization.py` | NumPy vectorization | vectorized time lower than loop time; equal outputs = True |
+| `topic02_numpy_shape_broadcasting.py` | Broadcasting | prints shapes and resulting matrices from row/column broadcast |
+| `topic03_pandas_load_inspect.py` | Load/inspect | shape `(120, 4)`, column list, info, missing-value summary |
+| `topic04_pandas_clean_transform.py` | Clean/transform | missing values reduce to zero; duplicates removed; cleaned head printed |
+| `topic05_feature_engineering_time_series.py` | Feature engineering | new feature columns created; post-dropna shape and summary stats printed |
+| `topic06_matplotlib_data_debugging.py` | Visualization | saves `topic06_line.png` and `topic06_hist.png` |
+| `topic07_sklearn_split_preprocess.py` | Split+preprocess | train/test shapes and strong test metrics printed |
+| `topic08_sklearn_pipeline_leakage.py` | Leakage | wrong vs correct accuracy with small but visible delta |
+| `topic09_stage2_end_to_end_pipeline.py` | End-to-end pipeline | prints `r2`, `mae`, `mse`; saves `results/topic09_metrics.json` |
+| `topic10_pytorch_cuda_bridge.py` | Optional GPU bridge | prints torch/cuda status, autograd demo, learned params near expected values |
+
+### Data Resource and Data Structure Declarations
+
+All Stage 2 scripts explicitly declare:
+
+- data source (built-in or synthetic)
+- row count
+- feature structure
+- target definition (if present)
+- task type
 
 ---
 
-### 2. Pandas — Data Handling
+## 6. Key Knowledge - Concept Modules
 
-Pandas is used for:
+Each module includes:
 
-- tabular data
-- CSV handling
-- data cleaning
+- what it is
+- why it matters
+- data declaration
+- worked example
+- common beginner mistake + fix
+- demonstration checklist
+- quick check
 
-**Data structure:** DataFrame (table)
+### How to Execute Each Module (Detailed Tutorial Loop)
 
-```python
-import pandas as pd
+For every module in this section, use this exact loop:
 
-df = pd.read_csv("data.csv")
-print(df.head())
+1. Read `What it is` and `Why it matters`.
+2. Copy the data declaration into your notes.
+3. Run the mapped script from `red-book/src/stage-2/`.
+4. Compare actual output with the expected behavior in Section 5.
+5. Write:
+   - what worked
+   - one confusion point
+   - one concrete takeaway
+6. Answer the quick check without looking at references.
+
+Use this note template:
+
+```
+Module:
+Script:
+Observed output:
+Interpretation:
+Common mistake to avoid:
+Quick-check answer:
 ```
 
-#### Beginner Explanation
+### Module 1: NumPy Vectorization
 
-Pandas is the main tool for handling structured data in Python.
+What it is:
+- Operating on full arrays without Python loops.
 
-If NumPy is for arrays of numbers, Pandas is for tables like spreadsheets or SQL query results.
+Why it matters:
+- Faster and cleaner numeric computation.
 
-A Pandas DataFrame is like:
-
-- an Excel sheet
-- a database result table
-- a structured CSV file in memory
-
-Example:
-
-| date | close | volume |
-|---|---|---|
-| 2025-01-01 | 100 | 10000 |
-| 2025-01-02 | 102 | 12000 |
-
-#### Why Pandas Matters in AI
-
-Most beginner AI projects start with structured data: CSV files, stock market data, customer records, logs, tabular business data.
-
-Before building a model, you usually need to:
-
-- inspect the data
-- clean missing values
-- rename columns
-- sort rows
-- create new features
-- filter useful subsets
-
-Pandas is built for exactly this.
-
-#### Step-by-Step Mental Model
-
-1. **Load data** — Read CSV, Excel, JSON, or database output into a DataFrame.
-2. **Inspect structure** — Check columns, data types, missing values, and sample rows.
-3. **Clean the data** — Fix wrong formats, missing values, duplicates, and bad column names.
-4. **Transform the data** — Create new columns and filter rows.
-5. **Export or pass to model** — Use the cleaned result for plotting or ML.
-
-#### Key Structures
-
-- **Series** — A single column.
-- **DataFrame** — A full table.
-- **Index** — The row labels. *Pandas aligns data by index, not only by row position.*
-
-#### Key Algorithms / Core Mechanisms for Pandas
-
-**A. Filtering** — Keep only rows that match a condition.
-
-```python
-df[df["close"] > 100]
+Data declaration:
+```
+Data: synthetic random float array
+Rows: 1,000,000
+Features: one numeric vector
+Target: none
+Type: numerical computation
 ```
 
-*How it works: Pandas creates a boolean mask and keeps rows where the condition is true.*
+Common mistake:
+- Writing loops for simple element-wise operations.
+
+Fix:
+- Use array expressions first (`x * 2 + 1`).
+
+Demo:
+- `topic01_numpy_vectorization.py`
+
+Quick check:
+- Why can vectorized code outperform loops even when operation is the same?
+
+Detailed tutorial instructions:
+
+1. Run:
+   - `python topic01_numpy_vectorization.py`
+2. Record:
+   - loop time
+   - vectorized time
+   - speedup
+3. Verify:
+   - `outputs equal` is `True`
+4. Interpret:
+   - explain why "same math, different implementation" changes runtime.
+5. Troubleshoot:
+   - if speedup seems small, increase data size and re-test.
 
 ---
 
-**B. GroupBy Aggregation** — Group rows and compute summaries.
+### Module 2: NumPy Shapes and Broadcasting
 
-```python
-df.groupby("sector")["close"].mean()
+What it is:
+- Shape-aware arithmetic between arrays of compatible dimensions.
+
+Why it matters:
+- Prevents shape bugs and reduces boilerplate code.
+
+Data declaration:
+```
+Data: synthetic matrix and vectors
+Rows: matrix 3x4
+Features: numeric matrix values
+Target: none
+Type: array operations
 ```
 
-How it works:
+Common mistake:
+- Ignoring shape before operation.
 
-1. Split rows into groups
-2. Apply an aggregation (mean, sum, count)
-3. Combine results
+Fix:
+- Print `.shape` and reason about broadcast alignment.
+
+Demo:
+- `topic02_numpy_shape_broadcasting.py`
+
+Quick check:
+- What is output shape of `(3,4) + (4,)`?
+
+Detailed tutorial instructions:
+
+1. Run:
+   - `python topic02_numpy_shape_broadcasting.py`
+2. Before reading output:
+   - predict output shape for each operation.
+3. Compare predictions with actual printed results.
+4. Interpret:
+   - explain why row vector broadcasts across rows.
+5. Troubleshoot:
+   - if output shape surprises you, draw dimensions on paper before rerunning.
 
 ---
 
-**C. Merge / Join** — Combine tables.
+### Module 3: Pandas Load and Inspect
 
-*Example: Merge stock prices with company metadata.*
+What it is:
+- Read CSV and inspect structure before transforming.
 
-How it works: Match rows using common keys.
+Why it matters:
+- Prevents downstream bugs from wrong dtypes/columns.
 
-*Why important: Real AI datasets often come from multiple sources.*
-
----
-
-**D. Rolling Window Computation** — Used for time series features.
-
-```python
-df["ma5"] = df["close"].rolling(5).mean()
+Data declaration:
+```
+Data: synthetic CSV table created by script
+Rows: 120
+Features: date, close, volume, sector
+Target: none
+Type: tabular inspection
 ```
 
-*How it works: Take a moving window of rows and compute a statistic.*
+Common mistake:
+- Start cleaning/modeling before checking `info()` and missing values.
 
-*Why important: Very useful for finance, sensor data, logs, and sequential data.*
+Fix:
+- Always inspect `shape`, `columns`, `dtypes`, `isna().sum()` first.
 
-#### Common Beginner Problems with Pandas
+Demo:
+- `topic03_pandas_load_inspect.py`
 
-| Problem | Why It Happens | Fix |
-|---|---|---|
-| Forgetting column data types | CSV reading may infer unexpected types | Always inspect `df.info()` |
-| Misunderstanding index behavior | Beginners assume rows are always simple numbered lists | Use `df.reset_index()` when needed |
-| Editing a copy instead of expected data | Pandas slicing can be tricky | Use clear assignment patterns and verify results |
+Quick check:
+- Why is `date` initially `object` after CSV load?
+
+Detailed tutorial instructions:
+
+1. Run:
+   - `python topic03_pandas_load_inspect.py`
+2. Verify:
+   - generated CSV exists (`topic03_data.csv`)
+   - column list and dtypes are printed
+3. Interpret:
+   - identify which columns should later be type-converted and why.
+4. Troubleshoot:
+   - if file path errors occur, run from `red-book/src/stage-2/`.
 
 ---
 
-### 3. Matplotlib — Visualization
+### Module 4: Pandas Clean and Transform
 
-Used for:
+What it is:
+- Normalize column names, parse dates, sort, deduplicate, fill missing values.
 
-- plotting trends
-- understanding data
+Why it matters:
+- Dirty data causes hidden failures in plots/features/models.
 
-```python
-import matplotlib.pyplot as plt
-
-df["Close"].plot()
-plt.show()
+Data declaration:
+```
+Data: synthetic dirty table
+Rows: 12
+Features: Date, Close Price, Volume
+Target: none
+Type: tabular cleaning
 ```
 
-#### Beginner Explanation
+Common mistake:
+- Filling missing values without understanding source pattern.
 
-Matplotlib is used to create plots and charts.
+Fix:
+- Print before/after missing summaries and explain chosen fill logic.
 
-Before using a model, you should try to **see** the data.
+Demo:
+- `topic04_pandas_clean_transform.py`
 
-Visualization helps you detect:
+Quick check:
+- Why sort by date before creating rolling features?
 
-- trends
-- outliers
-- missing periods
-- unusual spikes
-- bad preprocessing
+Detailed tutorial instructions:
 
-#### Why Visualization Matters in AI
-
-> A model can hide problems. A plot can reveal them immediately.
-
-*Example: If stock dates are unsorted, a line chart may look messy or broken. That visual clue tells you something is wrong.*
-
-#### Step-by-Step Mental Model
-
-1. **Choose what you want to understand** — trend over time, relationship between columns, distribution of values.
-2. **Pick a plot type** — line chart, histogram, scatter plot, bar chart.
-3. **Plot and inspect** — Use the plot to understand the data before modeling.
-
-#### Key Chart Types
-
-| Chart | Best For | How It Works |
-|---|---|---|
-| **Line Plot** | Trends over time | Connect data points with lines in order |
-| **Histogram** | Distributions | Split values into bins and count occurrences |
-| **Scatter Plot** | Relationships between two variables | Each point represents one row |
-| **Box Plot** | Outliers and spread | Shows median, quartiles, and extreme values |
-
-#### Common Beginner Problems with Visualization
-
-| Problem | Why It Happens | Fix |
-|---|---|---|
-| Plotting before cleaning | People are eager to see charts immediately | Clean dates, missing values, and sorting first |
-| Choosing the wrong chart | Using one chart type for everything | trend → line; distribution → histogram; relationship → scatter |
-| Reading the chart too quickly | A pretty chart can create false confidence | Ask: Is data sorted? Are there missing values? Are scales misleading? |
+1. Run:
+   - `python topic04_pandas_clean_transform.py`
+2. Verify:
+   - missing-value counts before and after cleaning
+   - row count change after deduplication
+3. Interpret:
+   - explain each transformation step and its purpose.
+4. Troubleshoot:
+   - if missing values remain, inspect fill strategy and column dtypes.
 
 ---
 
-### 4. Scikit-learn — ML Toolkit
+### Module 5: Feature Engineering
 
-Used for:
+What it is:
+- Deriving informative columns from raw data.
 
-- models
-- preprocessing
-- evaluation
+Why it matters:
+- Better features often improve model quality more than changing model type.
 
-#### Beginner Explanation
-
-Scikit-learn is the main beginner-friendly machine learning library in Python.
-
-It gives you ready-made tools for:
-
-- splitting data
-- scaling features
-- encoding labels
-- training models
-- evaluating performance
-
-#### Step-by-Step Mental Model
-
-1. **Prepare data** — Clean data, choose features, define target.
-2. **Split data** — Use train/test split.
-3. **Preprocess** — Scale numeric data or encode categories if needed.
-4. **Train model** — Use `.fit()`.
-5. **Predict** — Use `.predict()`.
-6. **Evaluate** — Use metrics like accuracy or MSE.
-
-#### Key Tools in Scikit-learn
-
-**A. Train/Test Split** — Separate training and testing data.
-
-*How it works: Randomly divides the dataset into two parts.*
-
----
-
-**B. StandardScaler** — Scale numeric features.
-
-Transforms each feature to have roughly:
-
-- mean = 0
-- standard deviation = 1
-
-*Why important: Some algorithms work better when features are scaled.*
-
----
-
-**C. Label Encoding / One-Hot Encoding** — Convert categories into numbers.
-
-*Why important: Most models need numerical input.*
-
----
-
-**D–G. Algorithms**
-
-| Algorithm | Type | Description |
-|---|---|---|
-| Linear Regression | Regression | Fits a line/hyperplane to minimize squared error |
-| Logistic Regression | Classification | Predicts class probability and label |
-| Decision Tree | Both | Learns rule-based splits |
-| Random Forest | Both | Combines many trees |
-
----
-
-**H. Metrics**
-
-| Task | Metrics |
-|---|---|
-| Regression | MSE, MAE, R² |
-| Classification | accuracy, precision, recall, F1 |
-
-#### Common Beginner Problems with Scikit-learn
-
-| Problem | Why It Happens | Fix |
-|---|---|---|
-| Using the wrong metric | Using whatever metric you see first | Choose metric based on problem type |
-| Fitting preprocessing on all data | Preprocessing before the split | Fit preprocessing on training data only, then apply to test |
-| Using model API mechanically | Easy to memorize `.fit()` without understanding | Always know what input, target, and metric mean |
-
----
-
-## Difficulty Points
-
-### 1. Confusing DataFrame vs array
-
-- NumPy → numbers only
-- Pandas → structured data
-
-**Why it matters:** Using the wrong structure makes operations harder.
-
-**Fix:** NumPy for numerical arrays and math; Pandas for tables and cleaning.
-
-### 2. Not understanding vectorization
-
-Loops are slow. Use:
-
-```python
-df["a"] + df["b"]
+Data declaration:
+```
+Data: synthetic close-price time series
+Rows: 180
+Features: close plus engineered return/MA/volatility columns
+Target: direction_up
+Type: feature engineering
 ```
 
-Instead of loops.
+Common mistake:
+- Forgetting rolling operations create NaN at start of series.
 
-**Fix:** Whenever you want to process a whole column, first ask: *"Can this be done as a column operation?"*
+Fix:
+- Explicitly drop or handle NaN rows after feature creation.
 
-### 3. Ignoring missing values
+Demo:
+- `topic05_feature_engineering_time_series.py`
 
-Most real data has missing values. They can break calculations, plots, and models.
+Quick check:
+- Why can MA20 not be computed for early rows?
 
-**Fix:** Always check:
+Detailed tutorial instructions:
 
-```python
-df.isna().sum()
+1. Run:
+   - `python topic05_feature_engineering_time_series.py`
+2. Verify:
+   - engineered columns exist
+   - shape decreases after `dropna()`
+3. Interpret:
+   - explain what each feature expresses (trend, momentum, variability).
+4. Troubleshoot:
+   - if NaN handling seems wrong, print first 25 rows before dropping.
+
+---
+
+### Module 6: Matplotlib for Data Debugging
+
+What it is:
+- Use charts to detect anomalies and distribution shifts.
+
+Why it matters:
+- Visual inspection catches pipeline problems quickly.
+
+Data declaration:
+```
+Data: synthetic time series with injected anomaly
+Rows: 160
+Features: date, close, ma_10, return_1d
+Target: none
+Type: visualization/debugging
 ```
 
-Then choose: drop rows, fill values, or investigate source quality.
+Common mistake:
+- Treat plots as decoration, not validation.
 
-### 4. Misusing indexes
+Fix:
+- Every plot should answer a concrete question.
 
-Pandas aligns by index labels, which can create unexpected behavior.
+Demo:
+- `topic06_matplotlib_data_debugging.py`
 
-**Fix:** Inspect indexes and reset when needed:
+Quick check:
+- What does a sudden spike in line plot suggest you should inspect?
 
-```python
-df = df.reset_index()
+Detailed tutorial instructions:
+
+1. Run:
+   - `python topic06_matplotlib_data_debugging.py`
+2. Verify:
+   - `topic06_line.png` and `topic06_hist.png` are created
+3. Inspect plots manually:
+   - point out anomaly location and distribution characteristics.
+4. Interpret:
+   - explain what checks you would run next in a real pipeline.
+5. Troubleshoot:
+   - if plots do not save, confirm write permission in the script directory.
+
+---
+
+### Module 7: Split and Preprocess in scikit-learn
+
+What it is:
+- Split data first, then fit preprocessing and model on training data.
+
+Why it matters:
+- Prevents leakage and preserves honest evaluation.
+
+Data declaration:
+```
+Data: Breast Cancer Wisconsin (sklearn built-in)
+Rows: 569
+Features: 30 numeric columns
+Target: diagnosis (binary)
+Type: classification
 ```
 
-### 5. Cleaning too late
+Common mistake:
+- Fitting scaler using full dataset before split.
 
-Dirty data causes confusing downstream errors.
+Fix:
+- Use pipeline with split-first workflow.
 
-**Fix:** Adopt this order: load → inspect → clean → transform → analyze/model.
+Demo:
+- `topic07_sklearn_split_preprocess.py`
 
-### 6. Treating plots as decoration
+Quick check:
+- Why is test set excluded from scaler fit?
 
-Charts are not just for presentation. They are debugging tools for data quality and patterns.
+Detailed tutorial instructions:
 
-**Fix:** Use plots to answer a question, not just to "make a graph."
+1. Run:
+   - `python topic07_sklearn_split_preprocess.py`
+2. Verify:
+   - train/test shapes and metrics are printed.
+3. Interpret:
+   - explain why split happens before preprocessing.
+4. Troubleshoot:
+   - if model fails to converge, increase `max_iter` and rerun.
 
-### 7. Copying code without understanding shape and columns
+---
 
-Your data may have different columns, types, or missing values than the example.
+### Module 8: Leakage and Pipeline Pattern
 
-**Fix:** Always inspect before modifying code:
+What it is:
+- Compare wrong preprocessing order with proper pipeline execution.
 
-```python
-df.head()
-df.info()
-df.columns
-df.shape
+Why it matters:
+- Leakage can make metrics look better than true generalization.
+
+Data declaration:
+```
+Data: synthetic high-dimensional classification data
+Rows: 900
+Features: 2000
+Target: binary label
+Type: leakage demonstration
 ```
 
----
+Common mistake:
+- Selecting features before train/test split.
 
-## Python for AI Workflow (Real World)
+Fix:
+- Wrap feature selection + scaling + model in one pipeline and fit only on train.
 
-1. Load data
-2. Inspect data
-3. Clean data
-4. Transform data
-5. Create features
-6. Visualize data
-7. Prepare ML-ready inputs
-8. Train/evaluate model
-9. Save outputs and findings
+Demo:
+- `topic08_sklearn_pipeline_leakage.py`
 
-### Beginner Explanation of Each Step
+Quick check:
+- Why can "wrong workflow" score be inflated?
 
-1. **Load data** — Read CSV, API data, JSON, or downloaded files.
-2. **Inspect data** — Look at sample rows and data types.
-3. **Clean data** — Fix missing values, duplicated rows, bad column names, wrong types.
-4. **Transform data** — Reformat columns, convert dates, sort rows.
-5. **Create features** — Add useful derived columns like returns or moving averages.
-6. **Visualize data** — Use plots to understand what is happening.
-7. **Prepare ML-ready inputs** — Separate features and target if modeling is needed.
-8. **Train/evaluate model** — Only after data is ready.
-9. **Save outputs and findings** — Store processed data, plots, and notes.
+Detailed tutorial instructions:
+
+1. Run:
+   - `python topic08_sklearn_pipeline_leakage.py`
+2. Verify:
+   - both wrong and correct workflow scores are printed.
+3. Interpret:
+   - explain why preprocessing on full data before split leaks information.
+4. Troubleshoot:
+   - if delta is small, rerun with different random seeds and compare trend.
 
 ---
 
-## Debugging Checklist for Stage 2
+### Module 9: End-to-End Tabular Pipeline
 
-If something goes wrong, check:
+What it is:
+- Full workflow from synthetic data generation to saved metrics artifact.
 
-- [ ] Did the file load correctly?
-- [ ] Are the column names what you expect?
-- [ ] Are dates really datetime objects?
-- [ ] Is the data sorted correctly?
-- [ ] Are there missing values?
-- [ ] Are you using the right structure: DataFrame or array?
-- [ ] Are plot axes using the correct columns?
-- [ ] Did you create NaN values during rolling calculations?
-- [ ] Are shapes compatible for NumPy operations?
-- [ ] Did preprocessing accidentally include test data?
+Why it matters:
+- Integrates all Stage 2 skills into one reproducible script.
 
----
-
-## Practice Project
-
-### Project: Stock Analysis Script
-
-**Goal:** Learn data download, preprocessing, feature creation, and visualization.
-
-> Also learn a real beginner AI engineering lesson:
-> **Before you train a model, you must be able to trust your data pipeline.**
-
-**Step 1 — Download data**
-
-```python
-import yfinance as yf
-
-df = yf.download("AAPL", period="1y")
-df.to_csv("data/raw/aapl.csv")
+Data declaration:
+```
+Data: synthetic house dataset with numeric + categorical features
+Rows: 500
+Features: area, rooms, age, zone
+Target: price
+Type: end-to-end regression pipeline
 ```
 
-*Why this step matters: You need a real dataset to practice loading, cleaning, and feature engineering. Downloaded market data often looks clean, but you should still inspect it carefully.*
+Common mistake:
+- Mixing preprocessing steps outside pipeline and losing reproducibility.
+
+Fix:
+- Use `ColumnTransformer` + `Pipeline` and save metrics to file.
+
+Demo:
+- `topic09_stage2_end_to_end_pipeline.py`
+
+Quick check:
+- Why is one-hot encoding required for `zone`?
+
+Detailed tutorial instructions:
+
+1. Run:
+   - `python topic09_stage2_end_to_end_pipeline.py`
+2. Verify:
+   - `results/topic09_metrics.json` is generated.
+3. Inspect:
+   - open JSON and explain R2, MAE, MSE in plain language.
+4. Interpret:
+   - explain why numeric and categorical preprocessing are separated.
+5. Troubleshoot:
+   - if JSON missing, verify `results/` path and script permissions.
 
 ---
 
-**Step 2 — Inspect**
+### Module 10 (Optional): PyTorch/CUDA Bridge
+
+What it is:
+- Intro to tensors, autograd, and device placement.
+
+Why it matters:
+- Bridges tabular Python workflows to model-training frameworks.
+
+Conceptual and theory guide:
+
+- **Tensor (PyTorch core object)**:
+  - A tensor is a multi-dimensional numeric container (generalization of scalar/vector/matrix).
+  - In training, tensors hold:
+    - model parameters (weights/bias)
+    - input batches
+    - model outputs
+    - gradients
+- **Computational graph**:
+  - During forward pass, PyTorch records operations as a graph when `requires_grad=True`.
+  - Each node represents an operation; edges represent data flow.
+- **Autograd (automatic differentiation)**:
+  - Uses chain rule to compute `d(loss)/d(parameter)` for each trainable parameter.
+  - Calling `loss.backward()` traverses graph in reverse and accumulates gradients in `.grad`.
+- **CUDA device model**:
+  - CPU and GPU have separate memory spaces.
+  - Tensors must be moved to same device as model parameters (`.to("cuda")`).
+  - GPU acceleration helps mostly for larger batch/matrix workloads due to transfer + kernel overhead.
+
+How model training works (theory -> execution):
+
+Training repeats this loop:
+
+1. **Forward pass**:
+   - Compute predictions from inputs and current parameters.
+   - Example linear model: `y_hat = XW + b`.
+2. **Loss computation**:
+   - Measure prediction error (e.g., MSE).
+3. **Backward pass**:
+   - `loss.backward()` computes gradients:
+   - `grad_W = d(loss)/dW`, `grad_b = d(loss)/db`.
+4. **Parameter update**:
+   - Gradient descent step:
+   - `W = W - lr * grad_W`, `b = b - lr * grad_b`.
+5. **Gradient reset**:
+   - Clear old gradients (`zero_grad`) before next iteration.
+
+Why this converges:
+
+- If learning rate is reasonable, updates move parameters toward lower loss.
+- Over many iterations, predictions align better with target patterns.
+
+Minimal training pseudo-structure:
 
 ```python
-print(df.head())
-print(df.info())
-print(df.shape)
-print(df.isna().sum())
-print(df.columns)
+for batch_x, batch_y in data_loader:
+    pred = model(batch_x)           # forward
+    loss = loss_fn(pred, batch_y)   # objective
+    loss.backward()                 # backward (autograd)
+    optimizer.step()                # update params
+    optimizer.zero_grad()           # clear grads
 ```
 
-*Why this step matters: You need to confirm what columns exist, whether the index is the date, whether there are missing values, and whether data types make sense.*
+CPU vs GPU in training:
 
----
+- **CPU**:
+  - Lower startup overhead, good for small models/datasets.
+- **GPU (CUDA)**:
+  - Massive parallelism for matrix-heavy operations.
+  - Usually faster for larger batch sizes and deeper models.
+  - Can be slower on tiny workloads due to transfer and launch overhead.
 
-**Step 3 — Clean data**
-
-```python
-df = df.reset_index()
-df.columns = [c.lower() for c in df.columns]
-df["date"] = pd.to_datetime(df["date"])
-df = df.sort_values("date")
+Data declaration:
+```
+Data: synthetic tensor regression data
+Rows: 30,000
+Features: x tensor [N,1]
+Target: y tensor [N,1]
+Type: optional GPU bridge
 ```
 
-*Why this step matters: This makes the data easier to work with consistently.*
+Common mistake:
+- Mixing CPU and CUDA tensors in one operation.
 
-Step-by-step explanation:
+Fix:
+- Keep all tensors/model on same device.
 
-- `reset_index()` turns the date index into a regular column
-- lowercase column names reduce naming mistakes
-- `to_datetime()` ensures date operations work correctly
-- sorting by date ensures time-series logic is correct
+Demo:
+- `topic10_pytorch_cuda_bridge.py`
 
----
+Quick check:
+- What should your script do if CUDA is unavailable?
 
-**Step 4 — Add indicators**
+Theory check:
+- Why do we call `optimizer.zero_grad()` every iteration?
+- What does `loss.backward()` compute conceptually?
+- Why can GPU show little or no speedup for very small matrices?
 
-```python
-df["return"] = df["close"].pct_change()
-df["ma5"] = df["close"].rolling(5).mean()
-df["ma20"] = df["close"].rolling(20).mean()
-```
+Detailed tutorial instructions:
 
-*Why this step matters: Raw price alone is often less useful than derived features.*
+1. Run:
+   - `python topic10_pytorch_cuda_bridge.py`
+2. Verify:
+   - torch version, CUDA availability, and autograd outputs are printed.
+3. Interpret:
+   - if CUDA is `False`, explain why CPU fallback is still correct behavior.
+4. If CUDA is available:
+   - compare CPU and GPU timing and write one sentence about workload size effects.
+5. Troubleshoot:
+   - if CUDA expected but unavailable, re-check PyTorch install build and `nvidia-smi`.
 
-Step-by-step explanation:
+Training-logic walkthrough (with this module's script):
 
-- `pct_change()` computes daily percentage return
-- `rolling(5).mean()` computes 5-day moving average
-- `rolling(20).mean()` computes 20-day moving average
-
-These are examples of **feature engineering**.
-
----
-
-**Step 5 — Handle missing values**
-
-```python
-df = df.dropna()
-```
-
-*Why this step matters: Rolling calculations create missing values at the beginning because there is not enough prior data yet. For a 20-day moving average, the first 19 rows cannot have a value — that is expected.*
-
----
-
-**Step 6 — Plot**
-
-```python
-import matplotlib.pyplot as plt
-
-df.plot(x="date", y=["close","ma5","ma20"])
-plt.show()
-```
-
-*Why this step matters: Plotting helps verify that dates are sorted, features were created correctly, and trends make sense visually.*
-
-### Deliverables
-
-- raw data
-- processed data
-- plots
-- script
-
-### Experiment Tasks
-
-**Experiment 1 — Do not sort dates**
-
-- Purpose: See how important time ordering is.
-- Expected result: Plots and time-based features may become misleading.
-- Lesson: Time-series data must be sorted correctly.
-
-**Experiment 2 — Keep NaN values and try plotting/modeling**
-
-- Purpose: See how missing values affect downstream work.
-- Lesson: Missing values must be handled intentionally.
-
-**Experiment 3 — Compute indicators with loops and with vectorized operations**
-
-- Purpose: Compare style and performance.
-- Lesson: Vectorized operations are cleaner and usually faster.
-
-**Experiment 4 — Add more features**
-
-Try: `high - low`, `close - open`, 10-day moving average, volume change.
-
-- Lesson: Feature engineering changes what the data can express.
-
-**Experiment 5 — Plot histogram of returns**
-
-```python
-df["return"].hist()
-plt.show()
-```
-
-- Lesson: Not all insights come from line charts; distributions matter too.
-
-### Common Mistakes
-
-1. **Unsorted dates** — Rolling features and line plots can become incorrect or misleading. *Fix: `df = df.sort_values("date")`*
-
-2. **Ignoring NaN** — Calculations, plots, and ML models may fail or silently behave badly. *Fix: `df.isna().sum()` then `df = df.dropna()` or use filling strategies.*
-
-3. **Using loops instead of vector ops** — Code becomes slower, longer, and harder to read. *Fix: Use Pandas/NumPy column operations when possible.*
-
-4. **Forgetting imports after moving code blocks** — Code fails in confusing ways. *Fix: Keep scripts runnable top to bottom; rerun from a clean kernel sometimes.*
-
-5. **Assuming downloaded data is already perfect** — Even official data can have gaps, bad types, or unexpected format changes. *Fix: Always inspect before trusting.*
+1. Identify trainable parameters:
+   - `w`, `b` tensors with `requires_grad=True`.
+2. Follow one epoch mentally:
+   - compute `pred = x @ w + b`
+   - compute MSE loss
+   - call backward to populate gradients
+   - update `w`, `b` with learning rate
+3. Validate learning:
+   - `w` should approach ~1.8 and `b` should approach ~-0.7.
+4. Relate output to theory:
+   - decreasing loss indicates gradients point in useful descent direction.
+5. Device reasoning:
+   - explain why both `x` and parameters must be on same device.
 
 ---
 
-## Final Understanding
+## 7. Debugging Checklist (Stage 2)
 
-> AI starts with clean, structured data — not models.
+If scripts fail or outputs look wrong:
 
----
-
-## Self Test
-
-### Questions
-
-1. What is NumPy mainly used for?
-2. Why are NumPy arrays better than plain Python lists for numerical work?
-3. What is vectorization?
-4. What is broadcasting in NumPy?
-5. What is a DataFrame?
-6. What is the difference between a Pandas DataFrame and a NumPy array?
-7. Why is `df.info()` important?
-8. Why do indexes matter in Pandas?
-9. Why should you check for missing values?
-10. What does `df.isna().sum()` tell you?
-11. Why do rolling calculations often create NaN values?
-12. What is feature engineering?
-13. Why is sorting by date important in time-series data?
-14. What is a moving average?
-15. Why do we visualize data before modeling?
-16. When should you use a line plot?
-17. When should you use a histogram?
-18. When should you use a scatter plot?
-19. What is Scikit-learn mainly used for?
-20. What does train/test split do?
-21. Why can preprocessing before the split be dangerous?
-22. What does StandardScaler do?
-23. Why is one-hot encoding needed?
-24. What is the difference between `.fit()` and `.predict()`?
-25. Why is using loops for column operations often a bad idea?
-26. What is the recommended workflow order for Python-for-AI data work?
-27. Why should plots be treated as debugging tools?
-28. What is the first thing you should check if a script fails on a CSV?
-29. Why should you inspect `df.columns`?
-30. What does this stage try to teach beyond syntax?
-
-### Answers
-
-1. NumPy is mainly used for fast numerical computation with arrays.
-
-2. Because they are optimized for efficient math operations, use memory more efficiently, and support vectorized computation.
-
-3. Vectorization means applying operations to whole arrays or columns at once instead of looping through items one by one.
-
-4. Broadcasting is NumPy's way of allowing operations between arrays of different but compatible shapes.
-
-5. A DataFrame is a table-like data structure in Pandas with rows and columns.
-
-6. A DataFrame is designed for labeled, structured tabular data. A NumPy array is designed for fast numerical computation.
-
-7. It shows column names, data types, non-null counts, and helps identify data issues early.
-
-8. Because Pandas aligns operations by index labels, which can affect filtering, merging, and assignments.
-
-9. Because missing values can break calculations, distort plots, and cause ML pipelines to fail or behave badly.
-
-10. It tells you how many missing values exist in each column.
-
-11. Because the first few rows do not have enough earlier values to compute the rolling statistic.
-
-12. Feature engineering is creating new useful input columns from existing data.
-
-13. Because time-based calculations and plots depend on correct chronological order.
-
-14. A moving average is the average of a value over a recent sliding window, such as the last 5 or 20 days.
-
-15. Because visualization helps reveal trends, anomalies, missing values, and preprocessing mistakes.
-
-16. Use a line plot to show trends over time or ordered sequences.
-
-17. Use a histogram to understand the distribution of one numerical variable.
-
-18. Use a scatter plot to examine the relationship between two numerical variables.
-
-19. Scikit-learn is used for preprocessing, model training, prediction, and evaluation in machine learning workflows.
-
-20. It separates data into training data for learning and test data for evaluation on unseen examples.
-
-21. Because it can leak information from the test set into the training process, making evaluation unrealistically optimistic.
-
-22. It scales numeric features so they have roughly mean 0 and standard deviation 1.
-
-23. Because most ML models require numeric input, so categorical values must be converted to numeric form.
-
-24. `.fit()` trains the model on data. `.predict()` uses the trained model to produce outputs for new inputs.
-
-25. Because loops are usually slower, longer, and less idiomatic than vectorized Pandas or NumPy operations.
-
-26. Load, inspect, clean, transform, create features, visualize, prepare ML-ready data, then train/evaluate if needed.
-
-27. Because they can reveal data quality problems and pattern issues that code output alone may hide.
-
-28. Check whether the file loaded correctly and whether the column names and data types match your assumptions.
-
-29. Because your code may fail if the actual column names differ from what you expect.
-
-30. It teaches data thinking: how to inspect, trust, clean, transform, and prepare data for real AI workflows.
+- [ ] Did file load succeed and path match?
+- [ ] Are columns exactly what your code expects?
+- [ ] Are datetime columns parsed and sorted?
+- [ ] Did cleaning reduce missing values as intended?
+- [ ] Are feature shapes compatible for model input?
+- [ ] Did preprocessing fit only on training data?
+- [ ] Are expected artifacts (png/json/csv) created?
+- [ ] Did you rerun from clean environment after dependency changes?
 
 ---
 
-## What You Must Be Able To Do After Stage 2
+## 8. Practice Project
 
-- [ ] Explain what NumPy is for
-- [ ] Explain what Pandas is for
-- [ ] Explain why vectorization matters
-- [ ] Load and inspect a dataset
-- [ ] Clean missing values and fix basic data issues
-- [ ] Create new features from raw columns
-- [ ] Visualize data for understanding and debugging
-- [ ] Explain why time-series data must be sorted
-- [ ] Use Scikit-learn tools in a simple workflow
-- [ ] Understand that reliable AI work begins with reliable data pipelines
+Project goal:
+- Build a reproducible data pipeline from raw-like tabular data to evaluated model metrics.
+
+Required outputs:
+- cleaned and transformed data summary
+- engineered feature summary
+- at least two plots
+- metrics JSON artifact
+- short interpretation note (what worked, what failed, what to improve)
+
+Quality gates:
+- script runs end-to-end from clean environment
+- no leakage pattern in pipeline
+- expected output artifacts are generated
+
+---
+
+## 9. Self-Test and Scoring Rubric
+
+Weighted rubric:
+
+- Data handling (NumPy + Pandas): 35%
+- Visualization and interpretation: 20%
+- scikit-learn preprocessing/evaluation: 30%
+- Debugging and leakage awareness: 15%
+
+Score bands:
+
+- >= 85: ready for next stage
+- 70-84: proceed with focused review
+- < 70: rerun weak-topic scripts and retake test
+
+---
+
+## 10. What Comes After Stage 2
+
+Stage 3 builds on Stage 2 by moving from "tool usage" to "system building."
+You will use these foundations to construct larger AI workflows, stronger model experiments, and reproducible project structures.
+
+Before moving on, you must be able to:
+- clean and inspect data confidently
+- engineer and validate features
+- run split/preprocess/train/evaluate workflow without leakage
