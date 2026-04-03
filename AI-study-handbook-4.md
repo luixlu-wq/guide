@@ -1,1078 +1,724 @@
-# Stage 4 — Deep Learning
+﻿# Stage 4 - Deep Learning
 
-*(Week 7–9)*
+*(Week 7-9)*
 
-## Goal
+## 0) If This Chapter Feels Hard
 
-Understand neural networks and how deep learning works.
+Do not read this chapter in one long pass.
+Use this 4-pass loop for each module:
 
-You are **NOT** just using libraries.
+1. Problem framing: what prediction task is being solved.
+2. Intuition: what the model learns at a high level.
+3. Mechanics: tensor shapes, loss, gradients, optimizer behavior.
+4. Operatable practice: run code, inspect outputs, explain one failure.
+
+If you are stuck, answer these before changing model architecture:
+
+- What is the input shape and target shape?
+- Is the task regression, classification, or next-token prediction?
+- Is the output layer paired with the correct loss?
+- Is the issue from data, optimization, or model capacity?
+
+---
+
+## 1) Stage Goal
+
+Understand deep learning as a trainable system, not a black box.
+
+You are not only learning `model(x)`.
 You are learning:
 
-- how neural networks compute
-- how training works
-- why models fail or succeed
+- how forward and backward passes work together
+- how gradients update parameters
+- how tensor shapes control correctness
+- how to debug unstable training
+- when MLP, CNN, RNN, or Transformer is the right choice
 
-This stage is where you move from:
+By the end of Stage 4, you should move from:
 
 > "I can run a PyTorch tutorial"
 
 to:
 
-> "I understand what a neural network is doing, how it learns, why training fails, and how to debug it."
+> "I can explain and debug a full training loop, compare architectures fairly, and justify improvements with evidence."
 
 ---
 
-## Quick Summary
+## 2) How To Use This Handbook
 
-Deep learning is a way to learn complex functions using many layers of computation.
+### Script-first study loop (recommended)
 
-A neural network:
+For each module:
 
-- takes input data
-- transforms it through layers
-- produces an output
-- compares output with the correct answer
-- computes error
-- updates weights to reduce that error
+1. Read "What it is" and "Why it matters".
+2. Read data and shape declaration blocks.
+3. Run the simple -> intermediate -> advanced scripts.
+4. Record:
+   - data source + shape
+   - train/validation behavior
+   - one failure and one fix
 
-A beginner should finish this stage understanding:
+### Time guide
 
-- what a neural network is
-- what a neuron does
-- what a forward pass is
-- what a loss function does
-- what backpropagation is
-- what an optimizer does
-- why GPUs matter
-- why shapes, gradients, and learning rates are so important
+- One concept module: 60-100 minutes
+- One architecture ladder: 90-150 minutes
+- Weekly commitment: 8-12 hours
 
----
+### If outputs look wrong
 
-## Study Materials
-
-**FastAI Course**
-https://course.fast.ai/
-
-**PyTorch Tutorial**
-https://pytorch.org/tutorials/
-
-### Topics
-
-- Neural Networks
-- Backpropagation
-- CNN
-- RNN
-- Transformers
+- Use Section 9 (Debugging Playbook).
+- Change one variable at a time.
+- Keep split, metric, and seed fixed while debugging.
 
 ---
 
-## Key Knowledge (Deep Understanding)
+## 3) Prerequisites And Environment Setup
 
-### 1. What is a Neural Network
+### Knowledge prerequisites
 
-A neural network is a function made of layers:
+- Stage 1-3 concepts
+- Python functions/loops
+- NumPy basics
+- Train/test split and metrics basics
 
-```
-input → hidden layers → output
+### Environment setup
+
+Windows:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -U pip
+pip install -r src/stage-4/requirements.txt
 ```
 
-Each layer:
+Optional CUDA bridge:
 
-- multiplies inputs by weights
-- adds bias
-- applies activation
-
-#### Beginner Explanation
-
-A neural network is just a more flexible function.
-
-In earlier ML, you saw models like:
-
-```
-y = wx + b
+```powershell
+pip install -r src/stage-4/requirements-gpu.txt
+python -c "import torch; print(torch.__version__); print(torch.cuda.is_available())"
 ```
 
-A neural network does something similar, but with many steps and many parameters.
+### Runtime presets (recommended)
 
-It takes input data, passes it through layers, and gradually transforms it into something useful for prediction.
+Stage 4 runners support two presets:
 
-| Input | Output |
-|---|---|
-| image | digit label |
-| text | sentiment |
-| stock features | prediction |
-| audio | transcription |
+- `full` (default): longer runtime, stronger training results
+- `quick`: shorter runtime for iteration and debugging
 
-**The key idea:** A neural network learns many small transformations that together create a powerful model.
+Examples:
 
-#### Step-by-Step Mental Model
-
-1. **Input enters the network** — an image, a vector of features, or a sequence of token IDs.
-2. **First layer transforms the input** — combines values using weights and bias.
-3. **Activation adds nonlinearity** — helps the model learn more than simple straight-line relationships.
-4. **More layers repeat the process** — each layer transforms the representation further.
-5. **Final layer produces output** — class scores, probability, next token, or numeric value.
-
-#### Why Deep Learning Matters
-
-Traditional ML often depends heavily on manual feature engineering.
-
-Deep learning can learn useful intermediate representations automatically.
-
-*Example: For images, instead of manually coding "edge detector," the network can learn edge-like features itself.*
-
-#### Key Algorithms / Mechanisms
-
-**A. Multilayer Perceptron (MLP)** — The standard fully connected neural network.
-
-How it works:
-
-1. Input enters the first layer
-2. Each neuron computes weighted sum + bias
-3. Activation is applied
-4. Result passes to the next layer
-5. Final layer produces prediction
-
-*Why important: This is the simplest deep learning architecture and the foundation for understanding deeper models.*
-
----
-
-**B. Feedforward Computation** — The basic computation pattern of many neural networks.
-
-*How it works: Data moves from input to output without looping backward in the computation graph during inference.*
-
-*Why important: This is how predictions are computed before learning happens.*
-
----
-
-**C. Layered Representation Learning** — Each layer learns a new representation of the input.
-
-Example in images:
-
-- early layers: edges
-- middle layers: shapes
-- later layers: object parts
-- final layers: object identity
-
-*Why important: This is one of the main powers of deep learning.*
-
----
-
-### 2. Neuron (Core Unit)
-
-```
-output = activation(weight * input + bias)
+```powershell
+powershell -ExecutionPolicy Bypass -File .\src\stage-4\run_all_stage4.ps1 -Preset quick
+powershell -ExecutionPolicy Bypass -File .\src\stage-4\run_all_stage4.ps1 -Preset full
+powershell -ExecutionPolicy Bypass -File .\src\stage-4\run_ladder_stage4.ps1 -Preset quick
 ```
 
-**Common activation:** ReLU
+### Reproducibility rules
 
-#### Beginner Explanation
-
-A neuron receives inputs, multiplies them by weights, adds them together, adds a bias, and passes the result through an activation function.
-
-With multiple inputs:
-
-```
-z = w1x1 + w2x2 + w3x3 + ... + b
-output = activation(z)
-```
-
-- **Weights** — determine how important each input is
-- **Bias** — shifts the result
-- **Activation function** — makes the network nonlinear
-
-#### Why Activation Matters
-
-Without activation functions, stacking layers would still behave like a simple linear model — making deep networks much less useful.
-
-Activation functions let networks learn curves, nonlinear boundaries, and complex patterns.
-
-#### Key Algorithms / Mechanisms
-
-**A. Weighted Sum**
-
-```
-z = Wx + b
-```
-
-*How it works: Each input is multiplied by a learned weight, then summed, then bias is added.*
-
-*Why important: This is the base mathematical transformation inside neural networks.*
+- Use fixed random seeds.
+- Keep split strategy fixed when comparing models.
+- Keep epoch budget and metric set fixed in before/after comparisons.
 
 ---
 
-**B. ReLU (Rectified Linear Unit)**
+## 4) Learning Targets (Weighted Rubric)
 
-```
-ReLU(x) = max(0, x)
-```
+| Target | Evidence | Weight |
+|---|---|---:|
+| Explain 5-step training loop | Written explanation + runnable demo | 15 |
+| Declare data source and tensor shapes | Present in each module log | 10 |
+| Run all architecture ladders | Scripts run with expected outputs | 20 |
+| Compare train/validation/test behavior | Gap interpretation per module | 15 |
+| Diagnose and fix failure modes | One failure + one fix evidence | 15 |
+| Execute project workflow with deliverables | Required files in `results/` | 15 |
+| Explain PyTorch/CUDA/AMP flow | Device-safe training explanation | 10 |
 
-- Negative values become 0
-- Positive values stay the same
+Total: 100
 
-*Why important: Simple, fast, and works very well in many deep networks.*
+Pass levels:
 
----
-
-**C. Sigmoid** — Maps values into 0–1.
-
-- Very negative → near 0
-- Very positive → near 1
-
-*Why important: Historically important and still useful for binary output probabilities.*
-
----
-
-**D. Tanh** — Maps values to -1 to 1.
-
-*Like sigmoid, but centered around zero. Historically used in older networks and sometimes still useful.*
+- 85-100: Ready for Stage 5
+- 70-84: Continue with targeted remediation
+- <70: Repeat modules 1, 2, 6, 9, and project lab
 
 ---
 
-### 3. Forward Pass
+## 5) Data Resources And Data Structure Declarations
 
-```
-input → layers → output
+Stage 4 examples use these data sources.
+
+| Dataset | Source | Rows | Input shape | Target shape | Task |
+|---|---|---:|---|---|---|
+| Digits | `sklearn.datasets.load_digits` | 1,797 | `(N, 64)` or `(N, 1, 8, 8)` | `(N,)` class 0..9 | Multiclass classification |
+| Synthetic regression | generated in script | configurable | `(N, d)` | `(N, 1)` | Regression |
+| Synthetic sequence | generated in script | configurable | `(N, T, F)` or `(N, T)` | `(N,)` or `(N, T)` | Sequence classification / next-token |
+
+Data declaration standard for every module and script:
+
+```text
+Data: <name and source>
+Rows/Samples: <count>
+Input shape: <tensor shape>
+Target: <name/type/classes>
+Split: <train/val/test or CV>
+Type: <task type>
 ```
 
-#### Beginner Explanation
+---
 
-The forward pass is the process of **making a prediction**.
+## 6) Example Complexity Scale (Used In All Modules)
 
-This happens before learning. No learning happens yet — learning comes later when the model compares its prediction with the correct answer.
+- `Simple`: one concept focus, tiny or clean data, minimal moving parts.
+- `Intermediate`: full train/validation workflow, mini-batching, split discipline, metric tracking.
+- `Advanced`: controlled model/optimization changes, stronger diagnostics, and tradeoff reasoning.
 
-#### Step-by-Step Example
+Complexity dimensions:
 
-Handwritten digit classification:
+- data complexity: noise, sequence length, dimensionality
+- pipeline complexity: batching, split policy, feature change policy
+- model complexity: depth, regularization, architecture variants
+- optimization complexity: LR schedule, clipping, AMP
+- evaluation complexity: train/val/test comparison and gap analysis
 
-1. **Input image** — A 28×28 image is given.
-2. **Flatten or process through layers** — The network converts raw pixels into intermediate values.
-3. **Hidden layers compute features** — The network transforms raw input into more useful internal representations.
-4. **Output layer produces scores** — For 10 digit classes (0–9), the model outputs 10 scores.
-5. **Prediction is chosen** — Usually the class with highest score is predicted.
+Where complexity is in Stage 4 topics:
 
-#### Key Algorithms / Mechanisms
-
-**A. Matrix Multiplication** — Most deep learning layers use matrix multiplication.
-
-*How it works: Input vectors are multiplied by weight matrices to produce outputs.*
-
-*Why important: This is why GPUs help so much.*
+- Topic 1: one-step loop -> full loop -> gradient diagnostics + scheduler
+- Topic 2: binary MLP -> multiclass split discipline -> regularization tradeoff
+- Topic 3: minimal CNN -> validation-controlled CNN -> augmentation comparison
+- Topic 4: basic RNN -> GRU with validation -> RNN/GRU/LSTM comparison
+- Topic 5: attention mechanics -> transformer classifier -> causal next-token modeling
+- Topic 6: device move basics -> CPU/GPU bridge -> AMP path with fallback
 
 ---
 
-**B. Activation Application** — After linear transformation, activation is applied element-wise.
+## 7) Concept Modules With Operatable Examples
 
-*Why important: Adds nonlinearity and expressive power.*
+## Module 1 - 5-Step Training Loop Anatomy
 
----
+Runnable scripts:
+- Simple: [topic01a_loop_anatomy_simple.py](src/stage-4/topic01a_loop_anatomy_simple.py)
+- Intermediate: [topic01_loop_anatomy.py](src/stage-4/topic01_loop_anatomy.py)
+- Advanced: [topic01c_loop_anatomy_advanced.py](src/stage-4/topic01c_loop_anatomy_advanced.py)
 
-**C. Softmax** — Common output function for multi-class classification.
+### What it is
 
-*How it works: Takes a vector of scores and converts them into probabilities that sum to 1.*
+A fixed learning loop:
 
-*Why important: Useful for interpreting class outputs.*
+1. Move data/model to device.
+2. Forward pass computes prediction.
+3. Loss computes error signal.
+4. Backward pass computes gradients.
+5. Optimizer updates parameters.
 
----
+### Why it matters
 
-### 4. Loss Function
+Every deep model uses this loop. If any step is wrong, training fails.
 
-Measures error between prediction and actual value.
+### Data and shape declaration
 
-| Task | Common Loss |
-|---|---|
-| Regression | MSE |
-| Multi-class classification | Cross-Entropy |
-| Binary classification | Binary Cross-Entropy |
+- Simple: synthetic regression, `(4,1) -> (4,1)`
+- Intermediate/advanced: synthetic tabular regression `(N,d) -> (N,1)`
 
-#### Beginner Explanation
+### Worked tutorial
 
-A loss function tells the model how wrong it is.
+- Run simple script and confirm parameter values change after `optimizer.step()`.
+- Run intermediate and verify validation MSE decreases over epochs.
+- Run advanced and inspect gradient norm + scheduler behavior.
 
-Without loss, the network has no idea whether its prediction was good or bad. **Loss is the signal that drives learning.**
+### Assumptions and limits
 
-- If the model predicts "cat" but the correct answer is "dog" → loss should be high.
-- If the prediction is correct and confident → loss should be lower.
+- Loss must match task type.
+- Data and model must be on the same device.
 
-> Training is basically: keep changing weights to reduce loss.
+### Common beginner mistake and fix
 
-#### Key Algorithms / Mechanisms
+- Mistake: forgetting `optimizer.zero_grad()`.
+- Fix: clear gradients each step before `loss.backward()`.
 
-**A. Mean Squared Error (MSE)** — Used for regression.
+### Demonstration checklist
 
-1. Subtract prediction from actual value
-2. Square the difference
-3. Average over examples
+- [ ] Can explain each of the 5 steps in one sentence.
+- [ ] Can print and verify tensor shapes and devices.
+- [ ] Can explain why loss decreases or fails to decrease.
 
-*Why important: Penalizes large numeric errors strongly.*
+### Quick check
 
----
+Q: What is the minimum signal required for learning?
+A: A valid loss and its gradients.
 
-**B. Cross-Entropy Loss** — Used for classification.
+### When to use / not use
 
-- Compares predicted probabilities to the true class
-- Heavily penalizes confident wrong predictions
-
-*Why important: Standard for training classifiers.*
-
----
-
-**C. Binary Cross-Entropy** — Used for binary classification.
-
-*Measures error for yes/no probability output. Common for tasks like spam detection or fraud detection.*
-
----
-
-### 5. Backpropagation
-
-**Core idea:** Adjust weights to reduce loss.
-
-Steps:
-
-1. Compute loss
-2. Compute gradients
-3. Update weights
-
-#### Beginner Explanation
-
-Backpropagation tells each weight how much it contributed to the error, then weights are adjusted.
-
-This is not magic. It is **chain-rule-based gradient computation** through the network.
-
-#### Step-by-Step Mental Model
-
-1. **Do a forward pass** — Compute the prediction.
-2. **Compute the loss** — Compare prediction with truth.
-3. **Compute gradients** — Figure out how changing each weight would change the loss.
-4. **Send gradient information backward** — Start from the output and propagate sensitivity backward through the network.
-5. **Use gradients to update weights** — Optimizer changes parameters in a direction that reduces error.
-
-#### Why Backpropagation Matters
-
-Without backpropagation, deep networks would not know how to improve internal layers. It lets even very deep models learn from output error.
-
-#### Key Algorithms / Mechanisms
-
-**A. Chain Rule** — The math foundation of backpropagation.
-
-*How it works: If A affects B and B affects C, then A affects C through B.*
-
-*Why important: Lets gradients flow through many layers.*
+- Use: every trainable deep model.
+- Not use: pure rule-based inference without training.
 
 ---
 
-**B. Gradient Computation** — The derivative tells how much loss changes if a weight changes slightly.
+## Module 2 - MLP (Tabular or Flattened Features)
 
-*Why important: This gives the direction for weight updates.*
+Runnable scripts:
+- Simple: [topic02a_mlp_simple.py](src/stage-4/topic02a_mlp_simple.py)
+- Intermediate: [topic02_mlp_intermediate.py](src/stage-4/topic02_mlp_intermediate.py)
+- Advanced: [topic02c_mlp_advanced.py](src/stage-4/topic02c_mlp_advanced.py)
 
----
+### What it is
 
-**C. Automatic Differentiation** — Modern frameworks like PyTorch compute gradients automatically.
+A feedforward network using fully connected layers.
 
-*How it works: They record operations during the forward pass and then compute derivatives during backward pass.*
+### Why it matters
 
-*Why important: You do not manually derive gradients for every model.*
+Strong baseline for tabular data and flattened features.
 
----
+### Data and shape declaration
 
-### 6. Optimizer
+- Digits flat input: `(N,64)`
+- Target: class labels `(N,)`, classes `0..9`
 
-Controls how weights update.
+### Worked tutorial
 
-| Optimizer | Description |
-|---|---|
-| SGD | Simple, foundational |
-| Adam | Adaptive, popular default |
+- Start with binary subset (0 vs 1).
+- Upgrade to full 10-class workflow with train/val/test.
+- Add dropout + weight decay and compare train-val gap.
 
-#### Beginner Explanation
+### Assumptions and limits
 
-The optimizer is the rule for updating parameters after gradients are computed.
+- Ignores spatial locality unless features encode it.
+- Can overfit quickly without regularization.
 
-- **Gradients** = information about slope
-- **Optimizer** = movement strategy
+### Common beginner mistake and fix
 
-#### Key Algorithms / Mechanisms
+- Mistake: using accuracy only.
+- Fix: inspect train/val gap and test accuracy together.
 
-**A. SGD (Stochastic Gradient Descent)** — Simple optimizer.
+### Demonstration checklist
 
-*How it works: Update parameters a little in the negative gradient direction.*
+- [ ] Uses fixed split and seed.
+- [ ] Reports train, val, and test metrics.
+- [ ] Compares baseline vs improved configuration.
 
-*Why important: The basic foundation of optimization in deep learning.*
+### Quick check
 
----
+Q: Why does dropout usually lower train accuracy but improve generalization?
+A: It regularizes co-adaptation and can reduce overfitting.
 
-**B. Momentum** — Enhancement to SGD.
+### When to use / not use
 
-*How it works: Keeps some memory of past updates to smooth movement and speed training.*
-
-*Why important: Helps avoid zig-zagging and can accelerate convergence.*
-
----
-
-**C. Adam** — Very popular optimizer.
-
-*How it works: Combines momentum-like behavior with adaptive learning rates per parameter.*
-
-*Why important: Usually works well out of the box for many problems.*
+- Use: tabular features, baseline classification.
+- Not use: tasks where spatial or sequential structure is dominant.
 
 ---
 
-**D. Learning Rate** — The most important optimizer setting.
+## Module 3 - CNN (Image Structure)
 
-*Controls step size of parameter updates.*
+Runnable scripts:
+- Simple: [topic03a_cnn_simple.py](src/stage-4/topic03a_cnn_simple.py)
+- Intermediate: [topic03_cnn_intermediate.py](src/stage-4/topic03_cnn_intermediate.py)
+- Advanced: [topic03c_cnn_advanced.py](src/stage-4/topic03c_cnn_advanced.py)
 
-| Setting | Effect |
-|---|---|
-| Too large | Unstable training |
-| Too small | Very slow learning |
+### What it is
 
----
+Convolutional model that learns local patterns and hierarchical image features.
 
-### 7. Why GPU is Needed
+### Why it matters
 
-Deep learning uses large matrices and parallel operations. GPUs accelerate matrix multiplication.
+CNNs usually outperform plain MLPs on image-like inputs.
 
-#### Beginner Explanation
+### Data and shape declaration
 
-- **CPUs** — General-purpose, great for many tasks.
-- **GPUs** — Built to do many similar numeric operations in parallel.
+- Digits image input: `(N,1,8,8)`
+- Target: class labels `(N,)`
 
-Neural networks do many operations in parallel: matrix multiplication, convolution, batched computation. GPUs are much faster for this.
+### Worked tutorial
 
-#### Key Mechanisms
+- Simple: one Conv + pooling path.
+- Intermediate: BatchNorm + deeper conv stack with validation tracking.
+- Advanced: controlled augmentation and regularization comparison.
 
-**A. Parallel Matrix Math** — Neural networks are built around large batches of matrix operations.
+### Assumptions and limits
 
-*Why important: GPUs are optimized for this exact pattern.*
+- Best for grid-like data.
+- May still overfit without regularization.
 
----
+### Common beginner mistake and fix
 
-**B. Batch Processing** — Training often processes many examples at once.
+- Mistake: flattening too early and losing local structure.
+- Fix: keep convolutional feature extraction before dense head.
 
-*Why important: GPUs can apply the same computation to many examples in parallel.*
+### Demonstration checklist
 
----
+- [ ] Input shape includes channel dimension.
+- [ ] Reports train-val behavior by epoch.
+- [ ] Explains impact of controlled augmentation.
 
-**C. Tensor Operations** — Frameworks represent data as tensors and run fast tensor operations on GPUs.
+### Quick check
 
-*Why important: Modern deep learning performance depends heavily on efficient tensor math.*
+Q: Why is weight sharing useful in CNN?
+A: Same feature detector can be reused across positions.
 
----
+### When to use / not use
 
-### 8. CNN (Convolutional Neural Networks)
-
-Designed especially for **grid-like data** such as images.
-
-#### Beginner Explanation
-
-Instead of connecting every input pixel to every neuron immediately, CNNs use filters that slide across the image.
-
-This helps the network learn local patterns such as edges, corners, textures, and shapes.
-
-#### Step-by-Step Mental Model
-
-1. **Input image enters the network** — e.g., handwritten digit image.
-2. **Convolution filters scan across image** — Each filter detects a certain visual pattern.
-3. **Activation is applied** — Useful signals are kept and transformed.
-4. **Pooling may reduce size** — Compresses information while keeping important patterns.
-5. **Deeper layers learn more complex features** — Early layers detect edges, later layers detect shapes or objects.
-6. **Final classifier predicts label** — The learned visual features are used to classify the image.
-
-#### Key Algorithms / Mechanisms
-
-**A. Convolution** — Core CNN operation.
-
-*How it works: A small filter slides across the image and computes local weighted sums.*
-
-*Why important: Lets the model detect local patterns efficiently.*
+- Use: image and spatial signals.
+- Not use: purely tabular tasks without spatial structure.
 
 ---
 
-**B. Pooling**
+## Module 4 - RNN/GRU/LSTM (Sequence Learning)
 
-- Max pooling
-- Average pooling
+Runnable scripts:
+- Simple: [topic04a_rnn_simple.py](src/stage-4/topic04a_rnn_simple.py)
+- Intermediate: [topic04_rnn_intermediate.py](src/stage-4/topic04_rnn_intermediate.py)
+- Advanced: [topic04c_rnn_advanced.py](src/stage-4/topic04c_rnn_advanced.py)
 
-*How it works: Reduces spatial size by summarizing local areas.*
+### What it is
 
-*Why important: Makes computation cheaper and helps create some spatial robustness.*
+Sequence models that summarize time-ordered inputs into hidden states.
 
----
+### Why it matters
 
-**C. Shared Weights** — The same filter is reused across different image locations.
+Introduces temporal dependency modeling before transformers.
 
-*Why important: Greatly reduces parameter count and helps detect the same feature anywhere in the image.*
+### Data and shape declaration
 
----
+- Synthetic sequence input: `(N,T,F)`
+- Target: sequence-level class `(N,)`
 
-### 9. RNN (Recurrent Neural Networks)
+### Worked tutorial
 
-Designed for **sequence data**.
+- Start with simple binary sequence rule.
+- Train GRU with validation checkpoints.
+- Compare RNN vs GRU vs LSTM under fixed conditions.
 
-#### Beginner Explanation
+### Assumptions and limits
 
-RNNs process input one step at a time and keep a **hidden state** that carries information forward — giving them a kind of memory across sequence positions.
+- Long dependencies can still be difficult for vanilla RNN.
+- Sequence length impacts optimization stability.
 
-Used for: text, time series, speech.
+### Common beginner mistake and fix
 
-#### Step-by-Step Mental Model
+- Mistake: wrong input shape ordering.
+- Fix: keep `(batch, time, feature)` when using `batch_first=True`.
 
-1. **Read first element** — e.g., first word in a sentence.
-2. **Update hidden state** — The model stores information from what it has seen so far.
-3. **Read next element** — Combines new input with previous hidden state.
-4. **Repeat** — Information flows through the sequence.
+### Demonstration checklist
 
-#### Key Algorithms / Mechanisms
+- [ ] Confirms `(N,T,F)` input shape.
+- [ ] Uses fixed split and same epoch budget for architecture comparison.
+- [ ] Explains train-val gap and architecture tradeoff.
 
-**A. Hidden State Update** — The model keeps an internal state over time.
+### Quick check
 
-*Why important: This is how it remembers previous inputs.*
+Q: Why add gradient clipping in recurrent models?
+A: It reduces exploding-gradient instability.
 
----
+### When to use / not use
 
-**B. Vanilla RNN** — Basic recurrent architecture.
-
-*Conceptually simple, but struggles with long dependencies.*
-
----
-
-**C. LSTM (Long Short-Term Memory)** — Uses gates to control what to remember, forget, and output.
-
-*Why important: Helps solve vanishing-gradient problems better than vanilla RNN.*
-
----
-
-**D. GRU (Gated Recurrent Unit)** — A simpler gated recurrent architecture than LSTM.
-
-*Why important: Often performs well with less complexity.*
+- Use: compact sequential tasks and recurrent baselines.
+- Not use: long-context tasks where transformer attention is preferred.
 
 ---
 
-### 10. Transformers
+## Module 5 - Transformer Basics To Causal Modeling
 
-The **dominant** deep learning architecture for language and many other modalities.
+Runnable scripts:
+- Simple: [topic05a_transformer_simple.py](src/stage-4/topic05a_transformer_simple.py)
+- Intermediate: [topic05_transformer_intermediate.py](src/stage-4/topic05_transformer_intermediate.py)
+- Advanced: [topic05c_transformer_advanced.py](src/stage-4/topic05c_transformer_advanced.py)
 
-#### Beginner Explanation
+### What it is
 
-Transformers replaced RNNs for many tasks because they:
+Attention-first sequence architecture using token interaction instead of recurrence.
 
-- handle long-range relationships better
-- train more efficiently in parallel
+### Why it matters
 
-Instead of reading tokens one by one with a hidden state, transformers use **attention** to let each token look at other relevant tokens directly.
+Core architecture behind modern language and multimodal models.
 
-*Example:*
+### Data and shape declaration
 
-> "The animal didn't cross the street because **it** was too tired."
+- Simple mechanics: tiny embedding tensor `(1,4,4)`
+- Intermediate: token ids `(N,T)` -> class labels `(N,)`
+- Advanced: token ids `(N,T)` -> next-token targets `(N,T)`
 
-The word "it" should relate to "animal," not "street." Attention helps the model learn this connection.
+### Worked tutorial
 
-#### Step-by-Step Mental Model
+- Simple: compute scaled dot-product attention weights.
+- Intermediate: train transformer encoder classifier.
+- Advanced: causal mask and next-token prediction with perplexity.
 
-1. **Convert tokens into embeddings** — Words become vectors.
-2. **Add positional information** — The model needs to know token order.
-3. **Compute attention** — Each token compares itself with others to decide what matters.
-4. **Mix information across tokens** — Relevant token information is combined.
-5. **Pass through feed-forward layers** — Representations are refined.
-6. **Repeat through many layers** — The model builds richer contextual understanding.
+### Assumptions and limits
 
-#### Key Algorithms / Mechanisms
+- Requires positional information.
+- Attention cost can grow with sequence length.
 
-**A. Self-Attention** — Core transformer operation.
+### Common beginner mistake and fix
 
-*How it works: Each token computes relationships with other tokens and weighs them by importance.*
+- Mistake: forgetting causal mask in autoregressive setup.
+- Fix: use upper-triangular mask to block future tokens.
 
-*Why important: Lets the model capture long-range dependencies directly.*
+### Demonstration checklist
 
----
+- [ ] Can explain query/key/value at concept level.
+- [ ] Can describe why positional encoding is required.
+- [ ] Can explain token accuracy and perplexity meaning.
 
-**B. Query, Key, Value (QKV)** — The internal mechanism of attention.
+### Quick check
 
-- **Query** — asks: what am I looking for?
-- **Key** — says: what information do I contain?
-- **Value** — says: what information should be passed along?
+Q: What is the effect of missing causal mask in next-token training?
+A: Data leakage from future tokens, producing invalid learning behavior.
 
-*Why important: This is how attention scores are computed and used.*
+### When to use / not use
 
----
-
-**C. Multi-Head Attention** — Uses multiple attention mechanisms in parallel.
-
-*Why important: Different heads can focus on different types of relationships.*
-
----
-
-**D. Positional Encoding** — Adds order information to token representations.
-
-*Why important: Attention alone does not know token order unless position is added.*
+- Use: sequence modeling with long-range dependencies.
+- Not use: tiny tabular problems where simpler models are enough.
 
 ---
 
-## Difficulty Points
+## Module 6 - PyTorch + CUDA + AMP (Detailed Guide)
 
-### 1. Understanding backpropagation
+Runnable scripts:
+- Simple: [topic06a_cuda_simple.py](src/stage-4/topic06a_cuda_simple.py)
+- Intermediate: [topic06_cuda_intermediate.py](src/stage-4/topic06_cuda_intermediate.py)
+- Advanced: [topic06c_cuda_amp_advanced.py](src/stage-4/topic06c_cuda_amp_advanced.py)
 
-**Why it happens:** Gradients are abstract and involve derivatives across many layers.
+### Why this module is hard
 
-**Why it is a problem:** If you treat backpropagation as magic, debugging becomes much harder.
+Beginners often mix up:
 
-**Fix strategy:** Use this mental model:
+- device placement
+- autograd steps
+- optimizer updates
+- mixed precision conditions
 
-- forward pass = prediction
-- loss = how wrong
-- backward pass = who caused the error and by how much
+### Step-by-step instruction
 
-Start with intuition, then later learn derivatives more deeply.
-
-### 2. Debugging training
-
-**Why it happens:** Many parts can fail — data, labels, shape, learning rate, optimizer, bad loss, wrong output activation.
-
-**Fix strategy:** Check in this order:
-
-1. data loads correctly
-2. labels are correct
-3. shapes are correct
-4. loss decreases
-5. gradients are nonzero
-6. model can overfit a tiny batch
-7. evaluation code is correct
-
-### 3. Shape mismatch errors
-
-**Why it happens:** Deep learning uses tensors with dimensions like batch, channels, height, width, sequence length, embedding dim. Beginners lose track of tensor shapes.
-
-**Why it is a problem:** The code crashes or silently behaves incorrectly.
-
-**Fix strategy:** Always print and verify input shape, output shape, and label shape. Keep a notebook of expected tensor shapes for each layer.
-
-### 4. Overfitting in neural networks
-
-**Why it happens:** Neural networks often have many parameters and strong capacity.
-
-**Fix strategy:** Use more data, data augmentation, regularization, dropout, early stopping, a smaller model, or validation monitoring.
-
-### 5. Learning rate problems
-
-| Setting | Effect |
-|---|---|
-| Too high | Unstable |
-| Too low | Slow learning |
-
-**Fix strategy:** Try smaller or larger learning rates, learning-rate schedules, Adam as a practical baseline, and plot loss curves to observe instability.
-
-### 6. Forgetting training vs evaluation mode
-
-**Why it happens:** Beginners focus on model definition and training loop, but forget mode switching.
-
-**Why it is a problem:** Layers like dropout and batch norm behave differently in training and evaluation.
-
-**Fix strategy:**
+1. Select device:
 
 ```python
-model.train()   # during training
-model.eval()    # during evaluation
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ```
 
-### 7. Not monitoring loss and metrics over time
+2. Move both model and tensors to same device.
+3. Run forward pass and compute task-appropriate loss.
+4. Clear grads, run backward, then optimizer step.
+5. If using CUDA AMP:
+   - wrap forward/loss in `autocast`
+   - use `GradScaler` for scaled backward + step
 
-**Why it happens:** People only look at the final result.
+### Required debug checks
 
-**Why it is a problem:** You miss signs of divergence, overfitting, stagnation, or unstable training.
+- Print selected device.
+- Print tensor and model device to confirm match.
+- Print loss trend over epochs.
+- Verify CPU fallback path message if CUDA unavailable.
 
-**Fix strategy:** Track train loss, validation loss, train metric, and validation metric — per epoch.
+### AMP conceptual note
 
----
+- AMP reduces memory and can increase throughput on supported GPUs.
+- AMP does not replace correct optimization; it changes numeric precision policy.
 
-## Deep Learning Workflow (Real World)
+### Ladder complexity in this module
 
-1. Define task
-2. Prepare dataset
-3. Build Dataset and DataLoader
-4. Define model
-5. Define loss
-6. Define optimizer
-7. Train in epochs
-8. Validate regularly
-9. Track metrics and curves
-10. Tune and improve
-11. Save checkpoints
-12. Test final model
-
-### Beginner Explanation of Each Step
-
-1. **Define task** — image classification, text classification, sequence prediction, regression.
-2. **Prepare dataset** — Make sure inputs and labels are correct.
-3. **Build Dataset and DataLoader** — These feed batches of data into training.
-4. **Define model** — Choose architecture appropriate for the task.
-5. **Define loss** — Pick a loss that matches the problem.
-6. **Define optimizer** — Choose how parameters will update.
-7. **Train in epochs** — Repeat over the full dataset many times.
-8. **Validate regularly** — Check performance on held-out data.
-9. **Track metrics and curves** — Use them to understand training behavior.
-10. **Tune and improve** — Adjust architecture, learning rate, batch size, etc.
-11. **Save checkpoints** — Do not lose progress.
-12. **Test final model** — Evaluate after training is finalized.
+- `Simple`: one-step CPU/CUDA consistency check.
+- `Intermediate`: full device-aware training loop + timing.
+- `Advanced`: mixed precision path + fallback-safe training.
 
 ---
 
-## Debugging Checklist for Stage 4
+## 8) Deep Learning Failure Modes And Fix Playbook
 
-If your network is not learning, check:
+Runnable script:
+- [topic07_failure_modes.py](src/stage-4/topic07_failure_modes.py)
 
-- [ ] Does the dataset load correctly?
-- [ ] Are labels correct?
-- [ ] Are input and target shapes correct?
-- [ ] Is the output layer compatible with the loss?
-- [ ] Is loss decreasing at all?
-- [ ] Did you call `optimizer.zero_grad()`?
-- [ ] Did you call `loss.backward()`?
-- [ ] Did you call `optimizer.step()`?
-- [ ] Are gradients exploding or vanishing?
-- [ ] Is learning rate too high or too low?
-- [ ] Did you switch between `train()` and `eval()` correctly?
-- [ ] Can the model overfit a tiny subset?
+| Symptom | Likely cause | First fix |
+|---|---|---|
+| Loss unstable or diverges | learning rate too high | lower LR, retry fixed seed |
+| Accuracy unexpectedly weak | wrong output-loss pairing | verify logits/loss compatibility |
+| Validation unstable with dropout | forgot `model.eval()` | switch modes correctly |
+| Runtime device error | tensor/model on different devices | move both to same device |
+| No learning signal | missing backward/step order | verify `zero_grad -> backward -> step` |
 
 ---
 
-## Example Code
+## 9) Debugging Checklist (Run In Order)
 
-```python
-import torch
-import torch.nn as nn
-
-model = nn.Sequential(
-    nn.Linear(10, 20),
-    nn.ReLU(),
-    nn.Linear(20, 1)
-)
-```
-
-**Beginner Walkthrough:**
-
-- `nn.Linear(10, 20)` — takes 10 input features and produces 20 learned hidden values
-- `nn.ReLU()` — applies a nonlinear activation
-- `nn.Linear(20, 1)` — maps the 20 hidden values to 1 output
-
-This is a very small feedforward neural network. It can be used for a simple regression task if paired with the right loss.
+- [ ] Data source, shape, and target are declared.
+- [ ] Output layer and loss are correctly paired.
+- [ ] Model and data are on same device.
+- [ ] Training order is correct: forward -> loss -> zero_grad -> backward -> step.
+- [ ] Train/validation metrics are logged per epoch.
+- [ ] `model.train()` and `model.eval()` are used in correct phases.
+- [ ] Learning rate is in a stable range.
+- [ ] Model can overfit a tiny subset (sanity test).
 
 ---
 
-## Practice Project
+## 10) Three-Week Operable Roadmap (Week 7-9)
 
-### Project: Neural Network Training Lab
+### Week 7 - Foundations and loop control
 
-**Goal:** Train a neural network on a simple dataset (MNIST).
+- Day 1: tensors, devices, shapes
+- Day 2: 5-step loop anatomy
+- Day 3: autograd and gradient interpretation
+- Day 4: optimizer and LR behavior
+- Day 5: train/eval mode and metrics logging
+- Day 6: failure-mode drills
+- Day 7: recap + written checks
 
-You are not only trying to "make it run." You are learning:
+### Week 8 - Architecture ladders
 
-- data loading
-- batching
-- model definition
-- loss selection
-- optimizer setup
-- training loop mechanics
-- evaluation
-- debugging
+- Day 8: MLP ladder
+- Day 9: CNN ladder
+- Day 10: RNN/GRU/LSTM ladder
+- Day 11: Transformer ladder
+- Day 12: architecture comparison on fixed setup
+- Day 13-14: error analysis and summary notes
 
-**Step 1 — Load dataset**
+### Week 9 - Project and performance
 
-```python
-from torchvision import datasets, transforms
-
-dataset = datasets.MNIST(root="data", download=True, transform=transforms.ToTensor())
-```
-
-*Why this step matters: MNIST is a beginner-friendly dataset of handwritten digits, simple enough to learn the training workflow without too much complexity.*
-
-*`ToTensor()` converts image data into PyTorch tensors and scales pixel values into a model-friendly format.*
-
----
-
-**Step 2 — DataLoader**
-
-```python
-from torch.utils.data import DataLoader
-
-loader = DataLoader(dataset, batch_size=64, shuffle=True)
-```
-
-- `batch_size=64` — the model processes 64 examples at a time
-- `shuffle=True` — helps training by mixing the order of examples
+- Day 15-17: project baseline and before metrics
+- Day 18: feature engineering change and after metrics
+- Day 19: analysis docs and model selection rationale
+- Day 20: reproducibility and final cleanup
+- Day 21: self-test and Stage 5 readiness decision
 
 ---
 
-**Step 3 — Build model**
+## 11) Stage 4 Script Mapping (`src/stage-4`)
 
-```python
-model = nn.Sequential(
-    nn.Flatten(),
-    nn.Linear(28*28, 128),
-    nn.ReLU(),
-    nn.Linear(128, 10)
-)
-```
+Core runners:
+- [run_all_stage4.ps1](src/stage-4/run_all_stage4.ps1)
+- [run_ladder_stage4.ps1](src/stage-4/run_ladder_stage4.ps1)
+- [README.md](src/stage-4/README.md)
+- [requirements.txt](src/stage-4/requirements.txt)
+- [requirements-gpu.txt](src/stage-4/requirements-gpu.txt)
 
-- `nn.Flatten()` — turns a 28×28 image into a 784-length vector
-- First linear layer learns hidden features
-- `ReLU` adds nonlinearity
-- Final layer outputs 10 scores, one for each digit class
+Topic ladders:
+- Topic 1: [topic01a_loop_anatomy_simple.py](src/stage-4/topic01a_loop_anatomy_simple.py), [topic01_loop_anatomy.py](src/stage-4/topic01_loop_anatomy.py), [topic01c_loop_anatomy_advanced.py](src/stage-4/topic01c_loop_anatomy_advanced.py)
+- Topic 2: [topic02a_mlp_simple.py](src/stage-4/topic02a_mlp_simple.py), [topic02_mlp_intermediate.py](src/stage-4/topic02_mlp_intermediate.py), [topic02c_mlp_advanced.py](src/stage-4/topic02c_mlp_advanced.py)
+- Topic 3: [topic03a_cnn_simple.py](src/stage-4/topic03a_cnn_simple.py), [topic03_cnn_intermediate.py](src/stage-4/topic03_cnn_intermediate.py), [topic03c_cnn_advanced.py](src/stage-4/topic03c_cnn_advanced.py)
+- Topic 4: [topic04a_rnn_simple.py](src/stage-4/topic04a_rnn_simple.py), [topic04_rnn_intermediate.py](src/stage-4/topic04_rnn_intermediate.py), [topic04c_rnn_advanced.py](src/stage-4/topic04c_rnn_advanced.py)
+- Topic 5: [topic05a_transformer_simple.py](src/stage-4/topic05a_transformer_simple.py), [topic05_transformer_intermediate.py](src/stage-4/topic05_transformer_intermediate.py), [topic05c_transformer_advanced.py](src/stage-4/topic05c_transformer_advanced.py)
+- Topic 6 (optional GPU bridge): [topic06a_cuda_simple.py](src/stage-4/topic06a_cuda_simple.py), [topic06_cuda_intermediate.py](src/stage-4/topic06_cuda_intermediate.py), [topic06c_cuda_amp_advanced.py](src/stage-4/topic06c_cuda_amp_advanced.py)
+- Diagnostics: [topic07_failure_modes.py](src/stage-4/topic07_failure_modes.py)
+- Practice project baseline: [topic08_project_baseline.py](src/stage-4/topic08_project_baseline.py)
 
----
+Expected output style for each script:
 
-**Step 4 — Loss and optimizer**
-
-```python
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-```
-
-- `CrossEntropyLoss()` — appropriate for multi-class classification
-- `Adam` — practical default optimizer
-- `lr=0.001` — learning rate
+- Print data declaration summary
+- Print key metrics
+- Print short interpretation (1-2 lines)
 
 ---
 
-**Step 5 — Training loop**
+## 12) Practice Project Lab (Clear, Operatable)
 
-```python
-for data, target in loader:
-    output = model(data)
-    loss = criterion(output, target)
+Runnable baseline:
+- [topic08_project_baseline.py](src/stage-4/topic08_project_baseline.py)
 
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-```
+### Project goal
 
-Step-by-step:
+Train and compare at least two deep models on one fixed dataset and justify the final model with evidence.
 
-| Line | Action |
-|---|---|
-| `output = model(data)` | Do a forward pass |
-| `loss = criterion(output, target)` | Compute the error |
-| `optimizer.zero_grad()` | Clear old gradients |
-| `loss.backward()` | Compute new gradients |
-| `optimizer.step()` | Update the weights |
+### Required workflow
 
----
+1. Use fixed dataset and split policy from the baseline script.
+2. Declare data source and structure before training:
+   - source
+   - rows
+   - input shape
+   - target shape/classes
+3. Train two models under same epoch budget:
+   - `ShallowMLP`
+   - `DeepMLP`
+4. Record before-change metrics (`train`, `val`, `test`, and `train_val_gap`).
+5. Apply one explicit feature engineering change:
+   - append squared features `x^2`
+6. Retrain both models with same split and epoch budget.
+7. Record after-change metrics.
+8. Compare before vs after and write final model choice rationale.
 
-**Step 6 — Evaluate**
+### Required deliverables (file-based)
 
-During evaluation: switch to eval mode, disable gradient tracking, and compute accuracy over the test set.
+The script must generate these files in `src/stage-4/results/`:
 
-```python
-model.eval()
-correct = 0
-total = 0
+- `metrics_before.csv`
+- `metrics_after.csv`
+- `learning_curves.csv`
+- `learning_curves.png`
+- `error_analysis.md`
+- `final_choice.md`
+- `reproducibility.md`
 
-with torch.no_grad():
-    for data, target in test_loader:
-        output = model(data)
-        preds = output.argmax(dim=1)
-        correct += (preds == target).sum().item()
-        total += target.size(0)
+### Minimum acceptance checks
 
-accuracy = correct / total
-print(accuracy)
-```
-
-### Deliverables
-
-- model code
-- training loop
-- loss tracking
-- results
-
-### Experiment Tasks
-
-**Experiment 1 — Change learning rate**
-
-Try: `0.1`, `0.001`, `0.0001`
-
-- Purpose: See how training stability changes.
-
-**Experiment 2 — Overfit a tiny subset**
-
-Train on a very small number of samples.
-
-- Purpose: Check whether the model and training loop can learn at all.
-
-**Experiment 3 — Remove ReLU**
-
-- Purpose: See how lack of nonlinearity hurts expressiveness.
-
-**Experiment 4 — Compare optimizers**
-
-Try: SGD, Adam.
-
-- Purpose: See how optimization strategy changes learning behavior.
-
-**Experiment 5 — Add validation loss tracking**
-
-- Purpose: Observe overfitting and training progress more clearly.
-
-**Experiment 6 — Increase model size**
-
-Try a larger hidden layer.
-
-- Purpose: See how capacity affects training and overfitting.
-
-### Common Mistakes
-
-1. **Forgetting `zero_grad()`** — Gradients accumulate by default in PyTorch, making updates incorrect. *Fix: Call `optimizer.zero_grad()` before `loss.backward()`.*
-
-2. **Wrong tensor shapes** — Different layers expect specific tensor dimensions, causing runtime errors or incorrect behavior. *Fix: Print tensor shapes often and understand expected layer input/output sizes.*
-
-3. **No evaluation** — You do not know whether the model generalizes. *Fix: Always evaluate on separate data.*
-
-4. **Ignoring loss trends** — You miss unstable learning, stagnation, or divergence. *Fix: Record and plot loss over epochs.*
-
-5. **Wrong loss-output pairing** — Training can fail or behave strangely. *Fix: Know common pairings:*
-
-   | Task | Output + Loss |
-   |---|---|
-   | Regression | Linear output + MSE |
-   | Multi-class classification | Raw logits + CrossEntropyLoss |
-   | Binary classification | Sigmoid-style setup + BCE-type loss |
-
-6. **Training forever without validation** — The model may start overfitting. *Fix: Use validation tracking and early stopping logic if needed.*
+- At least two models compared in before and after tables.
+- Same split/seed policy across compared runs.
+- Explicit feature engineering change is declared and applied.
+- Final choice is justified with metric evidence.
 
 ---
 
-## Final Understanding
+## 13) Self-Test (Quick)
 
-> Deep learning trains layered functions using gradient-based optimization to minimize error.
+1. Why must model and tensors be on the same device?
+2. What exactly happens between `loss.backward()` and `optimizer.step()`?
+3. How do you recognize overfitting from train/validation behavior?
+4. Why can a wrong loss-output pairing damage training?
+5. Where does complexity increase from simple to advanced in CNN modules?
+6. Why is gradient clipping used in recurrent and transformer advanced scripts?
+7. What does a causal mask prevent?
+8. When should you use AMP?
+9. Why keep split and epoch budget fixed during comparisons?
+10. What evidence is required to justify a final model choice?
 
-> A neural network is not magic. It is a stack of differentiable computations trained through loss, gradients, and optimization.
+Scoring suggestion:
 
----
-
-## Self Test
-
-### Questions
-
-1. What is a neural network?
-2. What does a neuron compute?
-3. Why is an activation function needed?
-4. What does ReLU do?
-5. What is a forward pass?
-6. What does a loss function measure?
-7. Why does a model need a loss function?
-8. What is backpropagation?
-9. What is a gradient?
-10. Why is the chain rule important in deep learning?
-11. What does an optimizer do?
-12. What is SGD?
-13. What is Adam?
-14. What does learning rate control?
-15. Why can a learning rate be too high or too low?
-16. Why are GPUs useful for deep learning?
-17. What is a tensor?
-18. Why do tensor shapes matter?
-19. What does `optimizer.zero_grad()` do?
-20. What does `loss.backward()` do?
-21. What does `optimizer.step()` do?
-22. Why must you evaluate on separate data?
-23. What is overfitting in deep learning?
-24. What is a CNN mainly used for?
-25. What does convolution do?
-26. What is pooling?
-27. What is an RNN used for?
-28. What problem do LSTMs help with?
-29. What is a transformer's core idea?
-30. What does self-attention do?
-31. Why is positional encoding needed in transformers?
-32. Why should you track loss curves?
-33. What does `model.train()` do?
-34. What does `model.eval()` do?
-35. What is the main lesson of this stage?
-
-### Answers
-
-1. A neural network is a layered function that transforms input data into predictions using learned weights, biases, and activations.
-
-2. A neuron computes a weighted sum of inputs, adds a bias, and applies an activation function.
-
-3. Because without it, the network would behave like a simple linear model even if it had many layers.
-
-4. ReLU outputs 0 for negative values and keeps positive values unchanged.
-
-5. A forward pass is the process of sending input through the network to produce an output prediction.
-
-6. It measures how wrong the model's prediction is compared with the true answer.
-
-7. Because loss gives the model a training objective and tells it what it should reduce.
-
-8. Backpropagation is the process of computing how each parameter contributed to the loss so the model can update them.
-
-9. A gradient tells how much the loss changes when a parameter changes slightly.
-
-10. Because it allows gradients to be computed through many connected layers.
-
-11. An optimizer updates the model parameters using gradients.
-
-12. SGD is an optimizer that updates parameters in the direction that reduces loss, often using small batches of data.
-
-13. Adam is an adaptive optimizer that combines momentum-like behavior with per-parameter learning-rate adjustment.
-
-14. It controls how large each parameter update step is.
-
-15. Too high can make training unstable or diverge. Too low can make learning extremely slow.
-
-16. Because they can perform large numbers of parallel matrix and tensor operations much faster than CPUs.
-
-17. A tensor is a multidimensional array used to represent data in deep learning.
-
-18. Because layers expect specific dimensions, and wrong shapes cause errors or incorrect computations.
-
-19. It clears old gradients before computing new ones.
-
-20. It computes gradients of the loss with respect to model parameters.
-
-21. It updates model parameters using the gradients.
-
-22. To measure whether the model generalizes beyond the training set.
-
-23. It is when the model learns the training data too specifically and performs poorly on unseen data.
-
-24. CNNs are mainly used for image and grid-like data.
-
-25. It applies a small filter across input regions to detect local patterns.
-
-26. Pooling reduces spatial size by summarizing local regions, helping make models more efficient and somewhat more robust.
-
-27. RNNs are used for sequence data such as text, time series, and speech.
-
-28. They help handle long-range dependencies better than vanilla RNNs and reduce vanishing-gradient issues.
-
-29. Its core idea is attention: letting each token directly focus on other relevant tokens.
-
-30. It computes how strongly each token should attend to other tokens in the same sequence.
-
-31. Because attention alone does not contain sequence order information.
-
-32. Because they reveal whether training is improving, stagnating, diverging, or overfitting.
-
-33. It switches the model into training mode, affecting layers like dropout and batch normalization.
-
-34. It switches the model into evaluation mode so inference behaves correctly.
-
-35. Deep learning is a structured learning system built from layers, loss, gradients, and optimization — and it must be understood and debugged, not treated as magic.
+- 8-10 correct: strong
+- 6-7 correct: acceptable, review weak modules
+- <=5 correct: rerun Module 1, 6, 8, and project lab
 
 ---
 
-## What You Must Be Able To Do After Stage 4
+## 14) High-Quality Resources (Use In This Order)
 
-- [ ] Explain what a neural network is in plain English
-- [ ] Explain what a neuron computes
-- [ ] Explain why activation functions matter
-- [ ] Explain forward pass, loss, backpropagation, and optimizer
-- [ ] Explain how SGD and Adam differ at a high level
-- [ ] Understand why GPUs accelerate deep learning
-- [ ] Distinguish MLP, CNN, RNN/LSTM/GRU, and Transformer at a beginner level
-- [ ] Build and train a simple PyTorch model
-- [ ] Debug basic training issues
-- [ ] Recognize overfitting, bad learning rate, and shape errors
-- [ ] Understand that deep learning is trainable differentiable computation, not magic
+### Core path
+
+- FastAI course: https://course.fast.ai/
+- Google ML Crash Course (Neural Networks): https://developers.google.com/machine-learning/crash-course/neural-networks
+- PyTorch basics index: https://docs.pytorch.org/tutorials/beginner/basics/index.html
+- PyTorch quickstart: https://docs.pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
+- PyTorch autograd tutorial: https://docs.pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html
+- PyTorch optimization tutorial: https://docs.pytorch.org/tutorials/beginner/basics/optimization_tutorial.html
+
+### Official implementation references
+
+- CUDA semantics: https://docs.pytorch.org/docs/stable/notes/cuda.html
+- AMP recipe: https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+- Performance tuning guide: https://docs.pytorch.org/tutorials/recipes/recipes/tuning_guide.html
+- Deep Learning tuning playbook: https://developers.google.com/machine-learning/guides/deep-learning-tuning-playbook
+
+### Deeper theory and architecture
+
+- Dive into Deep Learning: https://d2l.ai/
+- CS231n: https://cs231n.stanford.edu/
+- Attention Is All You Need: https://arxiv.org/abs/1706.03762
+- Adam paper: https://arxiv.org/abs/1412.6980
+- BatchNorm paper: https://arxiv.org/abs/1502.03167
+- Dropout paper: https://arxiv.org/abs/1207.0580
+
+---
+
+## 15) What You Must Be Able To Do After Stage 4
+
+- [ ] Explain and run the 5-step training loop clearly.
+- [ ] Declare data source and tensor shapes for every experiment.
+- [ ] Train and compare MLP, CNN, RNN-family, and Transformer examples.
+- [ ] Diagnose at least three common training failures.
+- [ ] Use CPU/CUDA path safely and explain AMP conditions.
+- [ ] Complete the project workflow and produce all required deliverables.
+
+---
+
+## 16) What Comes After Stage 4
+
+Stage 5 should focus on robust experiment design, larger-scale data pipelines, and production-quality training/evaluation loops.
+The architecture and debugging skills from Stage 4 become the base for hyperparameter strategy, model governance, and deployment-oriented workflows.
+Move to Stage 5 only when you can explain model behavior using evidence, not guesses.

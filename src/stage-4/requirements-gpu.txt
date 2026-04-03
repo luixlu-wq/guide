@@ -1,0 +1,4 @@
+﻿-r requirements.txt
+
+# If you need a CUDA build, install the matching wheel from:
+# https://pytorch.org/get-started/locally/
