@@ -1,0 +1,3 @@
+problem_class,option,quality_impact,latency_impact,risk,chosen
+accuracy + latency,feature cleanup + retrain,high,positive,low,yes
+accuracy + latency,prompt-only tweaks,low,neutral,medium,no

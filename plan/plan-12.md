@@ -702,3 +702,125 @@ Each major pattern module must cite at least:
 - safety/governance gates pass before release recommendation
 - pattern comparison uses fixed dataset/prompt/evaluation protocol
 - all improvements have before/after artifacts
+
+---
+
+## 28) Expert-Tier Interoperability and Blackwell Addendum (2026-04-04, Additive-Only)
+
+This addendum is additive and does not remove prior requirements.
+It closes Stage 12 gaps for 2026 production architecture work on:
+
+- Blackwell-class local hardware (`RTX 5090`)
+- multi-agent interoperability (`A2A`, `MCP`)
+- domain-specific GIS/Tourism reliability drills
+- OWASP LLM Top 10 (2026) governance controls
+
+### 28.1 Blackwell NVFP4 and Sub-50ms Agentic Loop Optimization (Mandatory)
+
+Stage 12 must include a hardware tutorial beyond generic CUDA:
+
+- benchmark `bf16` vs `nvfp4` on fixed architecture-eval set
+- track quality delta, not throughput only
+- teach prefix caching and prompt reordering for loop latency reduction
+
+Prefix-caching rule:
+
+- keep static system/tool instructions in stable prefix
+- place dynamic tool outputs near prompt tail
+- measure latency reduction in iterative loops
+
+Required artifacts:
+
+- `results/stage12/nvfp4_throughput_quality.csv`
+- `results/stage12/prefix_cache_latency_profile.csv`
+- `results/stage12/agent_loop_latency_report.md`
+
+### 28.2 A2A and MCP Interoperability Standard (Mandatory)
+
+Stage 12 must explicitly teach cross-agent interoperability:
+
+- A2A protocol basics and handoff lifecycle
+- Agent Cards (discovery metadata, capabilities, trust boundary)
+- MCP tool contract standardization for reusable tools
+
+Required operatable outputs:
+
+- `results/stage12/agent_card_registry.json`
+- `results/stage12/a2a_handoff_trace.jsonl`
+- `results/stage12/mcp_tool_contracts.md`
+
+Hard rule:
+
+- architecture recommendation is incomplete if cross-agent handoff contract is missing.
+
+### 28.3 Domain-Specific Lab Upgrades (Ontario GIS + MapToGo)
+
+Replace generic-only drills with project-relevant scenarios:
+
+- Lab 2 must include coordinate/projection drift validation drill
+  - example failure: NAD83 vs WGS84 mismatch
+  - include validation-agent check before final response
+- Lab 4 must include reasoning-loop circuit breaker for tool-call spirals
+  - prevent repeated tourism/API lookups draining budget/latency
+
+Required artifacts:
+
+- `results/stage12/coordinate_projection_validation_report.md`
+- `results/stage12/geojson_schema_guard_failures.csv`
+- `results/stage12/loop_breaker_events.jsonl`
+- `results/stage12/mobile_latency_guard_report.md`
+
+### 28.4 OWASP LLM Top 10 (2026) Security Drills (Mandatory)
+
+Safety/governance must move from checklist to drills:
+
+- indirect prompt injection test (retrieved content attempts tool/policy override)
+- unbounded consumption test (token/runtime escalation under loop pressure)
+- explicit containment and fallback behavior
+
+Required artifacts:
+
+- `results/stage12/owasp_llm_v2_redteam_report.md`
+- `results/stage12/indirect_injection_case_log.jsonl`
+- `results/stage12/unbounded_consumption_guard.csv`
+
+### 28.5 ADR Y-Statement Format (Mandatory for Final Decision)
+
+Final architecture decision must include Y-Statement format:
+
+> In the context of `<project>`, we decided to use `<choice>` to handle `<problem>`, because `<reasoning>`, and `<measured outcome>`.
+
+Required outputs:
+
+- `results/stage12/architecture_decision_y_statement.md`
+- `results/stage12/adr_scorecard_with_thresholds.csv`
+
+Hard rule:
+
+- no `promote` decision without a Y-Statement linked to measured evidence.
+
+### 28.6 Script and Lab Mapping Additions
+
+Additive script expectations:
+
+- `topic08*_a2a_mcp_interop_*`
+- `topic09*_blackwell_nvfp4_prefix_cache_*`
+- `topic10*_owasp_llm_v2_security_*`
+
+Additive labs:
+
+- `lab05_a2a_mcp_interoperability.py`
+- `lab06_blackwell_nvfp4_prefix_caching.py`
+- `lab07_owasp_llm_v2_redteam.py`
+- `lab08_gis_projection_and_loop_breaker.py`
+
+### 28.7 Updated Acceptance Gate Extension (Stage 12)
+
+Promotion is allowed only when all are true:
+
+1. existing Stage 12 gates pass
+2. A2A/MCP interoperability artifacts exist and validate handoff/tool contracts
+3. NVFP4 and prefix-cache evidence shows acceptable quality-performance tradeoff
+4. GIS projection and loop-breaker drills pass
+5. OWASP 2026 red-team drill has documented containment
+6. ADR Y-Statement is present and evidence-linked

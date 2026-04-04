@@ -1,0 +1,2 @@
+{"timestamp": "2026-04-04T10:00:00", "gpu_compute_utilization_ratio": 0.58, "vram_fragmentation_ratio": 0.41, "sm_clock_throttle_events": 3}
+{"timestamp": "2026-04-04T10:05:00", "gpu_compute_utilization_ratio": 0.74, "vram_fragmentation_ratio": 0.31, "sm_clock_throttle_events": 1}

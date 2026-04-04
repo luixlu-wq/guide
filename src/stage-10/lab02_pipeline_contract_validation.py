@@ -39,6 +39,14 @@ def main() -> None:
     ]
     write_rows_csv(RESULTS_DIR / "lab2_contract_checks.csv", checks)
 
+    # Updated contract-failure table required by Stage 10 handbook.
+    # Each failed case includes owner and severity to improve incident routing.
+    failure_rows = [
+        {"failure_case": "missing_probability_field", "layer": "llm", "severity": "high", "owner": "reasoning_module"},
+        {"failure_case": "trace_id_drop", "layer": "ops", "severity": "high", "owner": "orchestration_module"},
+    ]
+    write_rows_csv(RESULTS_DIR / "lab2_failure_cases.csv", failure_rows)
+
     failures = [
         "# Lab 2 Contract Failures",
         "",
@@ -51,11 +59,28 @@ def main() -> None:
     ]
     write_text(RESULTS_DIR / "lab2_contract_failures.md", "\n".join(failures))
 
+    fix_report = [
+        "# Lab 2 Contract Fix Report",
+        "",
+        "Implemented fixes:",
+        "- Added `pred_prob_up` as required field in LLM payload contract.",
+        "- Enforced trace propagation from API ingress to retrieval and generation steps.",
+        "",
+        "OpenTelemetry GenAI contract checks:",
+        "- trace_id: required and propagated",
+        "- gen_ai.usage.input_tokens: required",
+        "- gen_ai.usage.output_tokens: required",
+        "- gen_ai.response.model: required",
+        "- gen_ai.finish_reason: required",
+    ]
+    write_text(RESULTS_DIR / "lab2_contract_fix_report.md", "\n".join(fix_report))
+
     print("[INFO] Lab 2 outputs written:")
     print("- results/lab2_contract_checks.csv")
     print("- results/lab2_contract_failures.md")
+    print("- results/lab2_failure_cases.csv")
+    print("- results/lab2_contract_fix_report.md")
 
 
 if __name__ == "__main__":
     main()
-

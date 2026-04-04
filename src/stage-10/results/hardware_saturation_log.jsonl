@@ -1,0 +1,2 @@
+{"timestamp": "2026-04-04T14:30:00", "gpu_compute_utilization_ratio": 0.73, "vram_used_gb": 21.6, "vram_fragmentation_ratio": 0.34, "quantization_mode": "bf16", "quantization_error_delta": 0.0, "sm_clock_throttle_events": 2}
+{"timestamp": "2026-04-04T14:40:00", "gpu_compute_utilization_ratio": 0.84, "vram_used_gb": 16.2, "vram_fragmentation_ratio": 0.28, "quantization_mode": "nvfp4", "quantization_error_delta": 0.011, "sm_clock_throttle_events": 1}

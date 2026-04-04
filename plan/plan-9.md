@@ -342,6 +342,39 @@ Core ladders (simple -> intermediate -> advanced):
 - `lab04_scaling_and_observability_incident_lab.py`
 - `lab05_architecture_project_baseline_to_production.py`
 
+Extension ladders (compound-system operations, recommended):
+
+10. Dynamic adapter routing (Multi-LoRA / LoRAX-style patterns)
+- `topic09a_multi_lora_routing_simple.py`
+- `topic09_dynamic_adapter_routing_intermediate.py`
+- `topic09c_adapter_swap_vs_full_load_advanced.py`
+
+11. Extreme inference optimization (vLLM vs TensorRT-LLM)
+- `topic10a_inference_engine_baseline_simple.py`
+- `topic10_vllm_pagedattention_intermediate.py`
+- `topic10c_tensorrt_fp8_fp4_benchmark_advanced.py`
+
+12. Trace-level observability and semantic drift
+- `topic11a_trace_schema_simple.py`
+- `topic11_semantic_drift_monitoring_intermediate.py`
+- `topic11c_failure_root_cause_tracing_advanced.py`
+
+13. Blue-green vector index lifecycle
+- `topic12a_blue_green_index_basics_simple.py`
+- `topic12_blue_green_swap_intermediate.py`
+- `topic12c_index_canary_gate_advanced.py`
+
+14. Concurrency and OOM resilience
+- `topic13a_concurrency_guardrails_simple.py`
+- `topic13_inflight_batching_intermediate.py`
+- `topic13c_kv_cache_paging_advanced.py`
+
+Extension labs (recommended):
+- `lab06_compound_ai_orchestration_routing.py`
+- `lab07_trt_vs_vllm_serving_benchmark.py`
+- `lab08_blue_green_index_rollout.py`
+- `lab09_concurrency_oom_battle_drill.py`
+
 Script requirements:
 
 - all scripts must include very detailed, clear, functional comments
@@ -772,6 +805,104 @@ If a plan already uses another path, keep it and add a path mapping note in stag
 ## Global Key Request Addendum (2026-04-04)
 
 - Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
+
+---
+
+## Review-Driven Addendum (2026-04-04, Compound AI Serving)
+
+This addendum is additive. Do not remove prior requirements or file names.
+
+### A) Compound AI Orchestration Layer (Mandatory Upgrade)
+
+- Stage 9 must teach serving as a compound system:
+  - base model runtime
+  - adapter routing layer
+  - retrieval/index layer
+  - tool/orchestration layer
+  - observability/control layer
+- Add dynamic adapter routing requirement (Multi-LoRA / LoRAX-style):
+  - compare adapter hot-swap latency vs full-model load latency
+  - require deterministic benchmark cases and fixed payload sizes
+- Decision criterion:
+  - if adapter routing meets latency and quality gates, promote routing design
+  - else hold or rollback to simpler serving topology
+
+### B) Extreme Inference Optimization (RTX 5090 Focus)
+
+- Upgrade PyTorch/CUDA requirement to include compiled serving path benchmarks:
+  - vLLM baseline
+  - TensorRT-LLM path (where environment supports it)
+- Include quantization and precision comparison:
+  - FP16/BF16 baseline
+  - FP8 and lower-precision path where supported
+- Mandatory metrics:
+  - TTFT (time to first token)
+  - TPS (tokens per second)
+  - p50/p95 latency
+  - peak VRAM usage
+
+### C) Observability vs Monitoring (Semantic Reliability)
+
+- Health checks alone are insufficient.
+- For each production-like request, log:
+  - retrieval context/chunk ids
+  - raw prompt or prompt hash + template id
+  - final response
+  - grounding/faithfulness score
+  - failure class label (if any)
+- Add semantic drift checks:
+  - detect quality decay even when API health is green
+  - classify root cause (`data_drift`, `retrieval_miss`, `tool_failure`, `prompt_regression`)
+
+### D) Blue-Green Lifecycle for Vector Index/Data
+
+- Add zero-downtime index swap tutorial:
+  - serve from `Index_A` while building `Index_B`
+  - run fixed gold-set checks on `Index_B`
+  - switch pointer only if gates pass
+- Include Ontario GIS-style structured data case in examples:
+  - schema integrity checks
+  - retrieval parity checks before swap
+
+### E) Concurrency and OOM Battle Drill
+
+- Add mandatory load test with mixed traffic:
+  - multiple concurrent requests
+  - at least one long-context/heavy request profile
+- Must demonstrate:
+  - in-flight batching or queued admission control
+  - backpressure policy
+  - graceful OOM handling (degrade/queue/retry), not crash
+
+### F) Mandatory Stage-9 Artifacts (Added)
+
+Add these artifacts under `results/stage9/`:
+
+- `throughput_vllm_vs_trt.csv`
+  - benchmark matrix for runtime/precision with TTFT/TPS/latency/VRAM
+- `canary_eval_report.md`
+  - quality-gate evidence for new model or new data before rollout
+- `trace_sample_analysis.jsonl`
+  - at least 5 failure traces with root-cause labels and verified fix decision
+
+### G) Updated Failure Labels for Stage 9
+
+In addition to global taxonomy, Stage 9 must explicitly use:
+
+- `adapter_routing_error`
+- `semantic_drift`
+- `index_swap_regression`
+- `concurrency_oom`
+- `kv_cache_pressure`
+
+### H) MapToGo / Ontario GIS Alignment Requirement
+
+Stage 9 examples should include at least one realistic scenario aligned to local project needs:
+
+- structured Ontario GIS retrieval path
+- index refresh and blue-green swap
+- compound query path using retrieval + adapter-routed serving
+- incident drill using trace evidence and release decision (`promote`/`hold`/`rollback`)
 
 
 

@@ -1,0 +1,5 @@
+factor,correlation
+SPY_beta_proxy,0.29
+XLK_tech_proxy,0.33
+XLE_energy_proxy,-0.21
+XLF_financial_proxy,0.08

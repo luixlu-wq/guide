@@ -1,0 +1,3 @@
+option,expected_latency_delta,expected_error_delta,cost_impact,chosen
+queue backpressure + min replica increase,-290.0,-0.022,medium,yes
+timeout increase only,-70.0,0.005,low,no

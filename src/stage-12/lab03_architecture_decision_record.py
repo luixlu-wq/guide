@@ -35,6 +35,17 @@ def main() -> None:
         {"option": "multi_agent", "quality": 0.84, "latency": 0.54, "cost": 0.58, "risk": 0.60, "weighted_score": 0.69},
     ]
     write_rows_csv(RESULTS_DIR / "lab3_decision_scores.csv", scores)
+    # Compatibility alias for runbook naming.
+    write_rows_csv(RESULTS_DIR / "scorecard.csv", scores)
+
+    # Expert-tier threshold-aware scorecard for release governance.
+    threshold_scorecard = [
+        {"option": "llm_app", "weighted_score": 0.80, "pass_threshold_0_80": True, "rollback_trigger_defined": True},
+        {"option": "rag", "weighted_score": 0.82, "pass_threshold_0_80": True, "rollback_trigger_defined": True},
+        {"option": "agent", "weighted_score": 0.73, "pass_threshold_0_80": False, "rollback_trigger_defined": True},
+        {"option": "multi_agent", "weighted_score": 0.69, "pass_threshold_0_80": False, "rollback_trigger_defined": True},
+    ]
+    write_rows_csv(RESULTS_DIR / "adr_scorecard_with_thresholds.csv", threshold_scorecard)
 
     adr = [
         "# ADR-001: Pattern Choice for Knowledge Assistant",
@@ -65,12 +76,27 @@ def main() -> None:
         "- incident drill monthly",
     ]
     write_text(RESULTS_DIR / "lab3_adr.md", "\n".join(adr))
+    # Compatibility alias for runbook naming.
+    write_text(RESULTS_DIR / "final_adr.md", "\n".join(adr))
+
+    y_statement = [
+        "# Architecture Decision Y-Statement",
+        "",
+        "In the context of MapToGo + Ontario GIS support workflows,",
+        "we decided to use RAG to handle grounded, freshness-sensitive knowledge requests,",
+        "because it outperformed alternatives on weighted quality-risk score and remains operationally simpler than full multi-agent routing,",
+        "and measured p95 latency stayed within the defined release budget.",
+    ]
+    write_text(RESULTS_DIR / "architecture_decision_y_statement.md", "\n".join(y_statement))
 
     print("[INFO] Lab 3 outputs written:")
     print("- results/lab3_decision_scores.csv")
     print("- results/lab3_adr.md")
+    print("- results/scorecard.csv")
+    print("- results/final_adr.md")
+    print("- results/adr_scorecard_with_thresholds.csv")
+    print("- results/architecture_decision_y_statement.md")
 
 
 if __name__ == "__main__":
     main()
-

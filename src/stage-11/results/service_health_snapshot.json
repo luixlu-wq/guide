@@ -1,0 +1,16 @@
+{
+  "services": [
+    {
+      "name": "model_runtime",
+      "status": "healthy"
+    },
+    {
+      "name": "qdrant",
+      "status": "healthy"
+    },
+    {
+      "name": "otel_collector",
+      "status": "healthy"
+    }
+  ]
+}

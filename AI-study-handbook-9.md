@@ -35,6 +35,10 @@ After this stage, you must be able to:
 - troubleshoot production failures with evidence-based workflows
 - make architecture decisions with explicit tradeoffs
 
+Target application context for this chapter:
+
+- local compound AI serving for MapToGo and Ontario GIS-style retrieval workloads
+
 ---
 
 ## 2) Prerequisites and Environment
@@ -89,6 +93,14 @@ Standard request lifecycle:
 7. telemetry emit (logs, metrics, traces)
 
 If one step is weak, user quality drops even with a strong model.
+
+### Production request flow (diagram placeholder)
+
+Use this as the mental map for final architecture integration:
+
+`client -> API ingress -> schema gate -> adapter router -> retrieval (Qdrant) -> model runtime (vLLM/TensorRT path) -> postprocess/citation gate -> response -> trace/metrics logs`
+
+When debugging, always mark which hop failed first before changing model weights or prompts.
 
 ---
 
@@ -180,6 +192,21 @@ Type: retrieval
 6. tune chunking/filtering/embedding strategy
 7. rerun same eval set and compare deltas
 
+### Blue-Green index lifecycle (Ontario GIS pattern)
+
+For live data refresh (for example updated Ontario subdivision records), use zero-downtime swap:
+
+1. keep serving traffic from `Index_A` (blue)
+2. build `Index_B` (green) in background from new data snapshot
+3. run fixed retrieval eval set on `Index_B`
+4. run canary queries against both indexes and compare hit quality
+5. if gates pass, switch active pointer to `Index_B`
+6. if gates fail, keep `Index_A` and open incident
+
+Required evidence:
+
+- `results/stage9/canary_eval_report.md`
+
 ### Typical failure patterns
 
 - high similarity but low relevance
@@ -214,6 +241,43 @@ A model that works in notebook can fail under concurrency and real traffic.
 - local/simple: `Ollama`
 - high-throughput GPU: `vLLM`
 - orchestration and scaling: `Ray Serve`
+
+### High-throughput serving for RTX 5090 (vLLM + PagedAttention)
+
+This is mandatory for production-readiness in this chapter:
+
+1. serve one fixed model through `vLLM` OpenAI-compatible server
+2. run fixed concurrent load (`10 concurrent users`) with fixed prompt set
+3. capture:
+  - `TTFT` (time to first token)
+  - `TPS` (tokens per second)
+  - `p50/p95 latency`
+  - GPU memory usage
+4. compare with one baseline runtime path (PyTorch or Ollama baseline)
+5. export benchmark artifact:
+  - `results/stage9/throughput_vllm_vs_trt.csv`
+
+### Compound serving: multi-adapter routing (Multi-LoRA / LoRAX pattern)
+
+For specialized workloads (for example Ontario GIS + general chat), do not load separate full models per request.
+
+Use one base model + multiple LoRA adapters, then route by request header/classifier:
+
+1. classify request intent (`gis`, `tourism`, `general`)
+2. select adapter id
+3. hot-swap adapter
+4. run inference
+5. log adapter id and latency
+
+Required comparison:
+
+- adapter hot-swap latency
+- full model reload latency
+
+Decision rule:
+
+- if hot-swap meets quality and latency gates -> `promote`
+- else -> `hold` or `rollback`
 
 ### Required serving checks
 
@@ -333,6 +397,26 @@ Instrumentation that makes system behavior visible and diagnosable.
   - p50/p95/p99 latency, throughput, error rate, queue depth
 - traces:
   - per-component span timings
+  - retrieval chunk ids and similarity scores
+  - adapter id / runtime id
+  - prompt template id or prompt hash
+
+### Semantic drift monitoring (mandatory)
+
+Health checks (`200 OK`) are not enough for LLM systems.
+
+Add a trace-level quality monitor:
+
+1. sample production traces (example: 5% traffic)
+2. score each sample for:
+  - faithfulness
+  - relevance
+  - grounding quality
+3. store drift evidence in:
+  - `results/stage9/hallucination_drift_log.jsonl`
+4. add root-cause labels (`retrieval_miss`, `tool_failure`, `data_drift`, `prompt_regression`)
+5. produce a small failure analysis set:
+  - `results/stage9/trace_sample_analysis.jsonl`
 
 ### Why it matters
 
@@ -366,6 +450,19 @@ Without observability, troubleshooting becomes guesswork.
 - max context and timeout caps
 - abuse/rate limits
 - safe fallback response when dependencies fail
+
+### OOM-killer battle drill (mandatory)
+
+Simulate concurrency stress with mixed workloads:
+
+1. run 5+ concurrent requests
+2. include at least one long-context heavy request
+3. enforce queueing/admission control
+4. verify the service behavior under pressure:
+  - returns `503 Service Unavailable` with retry hint, or
+  - queues request safely
+  - does not crash GPU process
+5. log queue depth, OOM events, and decision path in incident trace artifact
 
 ### Industry pain point
 
@@ -422,6 +519,14 @@ Core topics:
 - `topic07*` deployment/canary/rollback ladders
 - `topic08*` architecture decision ladders
 
+Compound-system extension tracks:
+
+- `topic09*` dynamic adapter routing ladders
+- `topic10*` vLLM vs TensorRT serving benchmark ladders
+- `topic11*` trace-level semantic drift ladders
+- `topic12*` blue-green vector index swap ladders
+- `topic13*` concurrency and KV-cache/OOM resilience ladders
+
 Labs:
 
 - `lab01_modular_ai_backend.py`
@@ -429,6 +534,10 @@ Labs:
 - `lab03_serving_stack_comparison.py`
 - `lab04_scaling_and_observability_incident_lab.py`
 - `lab05_architecture_project_baseline_to_production.py`
+- `lab06_compound_ai_orchestration_routing.py`
+- `lab07_trt_vs_vllm_serving_benchmark.py`
+- `lab08_blue_green_index_rollout.py`
+- `lab09_concurrency_oom_battle_drill.py`
 
 All scripts must:
 
@@ -460,6 +569,8 @@ Build and improve a retrieval + model-serving backend from baseline to productio
 8. rerun same eval/load tests
 9. report before/after deltas
 10. make final decision: `promote`, `hold`, or `rollback`
+11. run canary gate for either model/runtime/index change
+12. record release decision evidence in stage artifact paths
 
 ### Fixed required deliverables
 
@@ -470,6 +581,15 @@ Build and improve a retrieval + model-serving backend from baseline to productio
 - `results/lab5_incident_or_risk_log.md`
 - `results/lab5_rollback_plan.md`
 - `results/lab5_production_readiness.md`
+
+### Stage 9 mandatory artifacts (production evidence)
+
+- `results/stage9/throughput_vllm_vs_trt.csv`
+  - runtime/precision benchmark with TTFT, TPS, latency, VRAM
+- `results/stage9/canary_eval_report.md`
+  - decision evidence for model/runtime/index swap
+- `results/stage9/trace_sample_analysis.jsonl`
+  - at least 5 failure traces with root-cause labels and verified fix decision
 
 ### Minimum acceptance thresholds (example)
 
@@ -524,6 +644,10 @@ If RAG answer quality is poor:
 | PyTorch/CUDA ops | OOM/device mismatch | weak device guards | fallback + memory telemetry + policy | `topic04c_cuda_oom_recovery_advanced.py` |
 | Observability | slow incident triage | weak logs/metrics/traces | unified telemetry schema | `topic05c_incident_triage_advanced.py` |
 | Change control | fixes cause regressions | no fixed eval gates | one-change reruns + hard gates | `lab05_architecture_project_baseline_to_production.py` |
+| Adapter routing | specialized tasks regress under one static route | no intent-to-adapter mapping | dynamic adapter routing + gate checks | `topic09_dynamic_adapter_routing_intermediate.py` |
+| Index lifecycle | new data deployment breaks retrieval | no blue-green validation | blue-green index swap + canary eval | `lab08_blue_green_index_rollout.py` |
+| Semantic drift | API healthy but answer quality decays | no trace-level quality scoring | judge-based drift monitor + trace review | `topic11_semantic_drift_monitoring_intermediate.py` |
+| Concurrency OOM | GPU process crash during mixed load | no queueing, no admission control | in-flight batching + backpressure + 503 policy | `lab09_concurrency_oom_battle_drill.py` |
 
 ---
 
@@ -554,8 +678,12 @@ If you cannot answer at least 6/8 with concrete workflows, rerun labs 2, 4, and 
   - https://qdrant.tech/documentation/
 - vLLM serving docs:
   - https://docs.vllm.ai/en/stable/serving/openai_compatible_server/
+- vLLM engine + PagedAttention overview:
+  - https://docs.vllm.ai/
 - Ray Serve docs:
   - https://docs.ray.io/en/latest/serve/
+- TensorRT-LLM docs:
+  - https://nvidia.github.io/TensorRT-LLM/
 - Kubernetes autoscaling:
   - https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/
 - PyTorch CUDA semantics:

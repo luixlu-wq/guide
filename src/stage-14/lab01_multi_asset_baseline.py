@@ -14,7 +14,12 @@ THIS_DIR = Path(__file__).resolve().parent
 if str(THIS_DIR) not in sys.path:
     sys.path.insert(0, str(THIS_DIR))
 
-from stage14_utils import RESULTS_DIR, print_data_declaration, write_rows_csv
+from stage14_utils import (
+    print_data_declaration,
+    write_rows_csv_dual,
+    write_text_dual,
+    build_pit_integrity_report,
+)
 
 
 def main() -> None:
@@ -33,21 +38,24 @@ def main() -> None:
         {"metric": "max_drawdown", "value": -0.09},
         {"metric": "sharpe_proxy", "value": 1.12},
     ]
-    write_rows_csv(RESULTS_DIR / "lab1_multi_asset_baseline_metrics.csv", metrics)
+    write_rows_csv_dual("lab1_multi_asset_baseline_metrics.csv", metrics)
 
     signals = [
         {"asset": "NVDA", "signal_strength": 0.71},
         {"asset": "MSFT", "signal_strength": 0.62},
         {"asset": "GOOG", "signal_strength": 0.58},
     ]
-    write_rows_csv(RESULTS_DIR / "lab1_signal_summary.csv", signals)
+    write_rows_csv_dual("lab1_signal_summary.csv", signals)
 
     weights = [
         {"asset": "NVDA", "weight": 0.38},
         {"asset": "MSFT", "weight": 0.34},
         {"asset": "GOOG", "weight": 0.28},
     ]
-    write_rows_csv(RESULTS_DIR / "lab1_portfolio_weights.csv", weights)
+    write_rows_csv_dual("lab1_portfolio_weights.csv", weights)
+
+    # New expert-tier artifact: PIT integrity proof (no T+1 leakage).
+    write_text_dual("pit_integrity_report.md", build_pit_integrity_report())
 
 
 if __name__ == "__main__":

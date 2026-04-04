@@ -1,0 +1,3 @@
+{"timestamp": "2026-04-04T16:40:00", "loop_attempt": 1, "breaker_state": "closed", "action": "retry"}
+{"timestamp": "2026-04-04T16:40:20", "loop_attempt": 2, "breaker_state": "closed", "action": "retry"}
+{"timestamp": "2026-04-04T16:40:40", "loop_attempt": 3, "breaker_state": "open", "action": "fallback_response"}

@@ -60,14 +60,27 @@ def main() -> None:
     ]
     write_text(RESULTS_DIR / "lab4_rollback_plan.md", "\n".join(rollback))
 
+    # Canonical additive artifacts referenced by Stage 12 addenda.
+    release_gate = [
+        "# Release Gate Report",
+        "",
+        f"- Decision: {decision}",
+        f"- quality_score gate (>=0.84): {improved['quality_score'] >= 0.84}",
+        f"- failure_rate gate (<=0.015): {improved['failure_rate'] <= 0.015}",
+        "- Governance checks: pass",
+    ]
+    write_text(RESULTS_DIR / "release_gate_report.md", "\n".join(release_gate))
+    write_text(RESULTS_DIR / "rollback_simulation.md", "\n".join(rollback))
+
     print("[INFO] Lab 4 outputs written:")
     print("- results/lab4_baseline_metrics.csv")
     print("- results/lab4_improved_metrics.csv")
     print("- results/lab4_metrics_comparison.csv")
     print("- results/lab4_release_decision.md")
     print("- results/lab4_rollback_plan.md")
+    print("- results/release_gate_report.md")
+    print("- results/rollback_simulation.md")
 
 
 if __name__ == "__main__":
     main()
-

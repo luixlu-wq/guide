@@ -697,3 +697,117 @@ Each capstone module must cite at least:
 - one full incident simulation completed with postmortem quality check
 - final go/no-go includes rollback proof and owner signoff
 - all claims are traceable to before/after evidence
+
+## 28) Stage 13 Expert-Tier Capstone Addendum (Review Closure)
+
+This section is additive-only and closes the remaining expert-tier gaps identified in the Stage 13 review.
+
+### 28.1 Hardware Profiling Gate (Mandatory Deliverable)
+
+Stage 13 capstone must be treated as a hardware-bound service, not only a software artifact.
+
+Required:
+- run a concurrent-load profile on local GPU environment
+- capture VRAM/power/temperature saturation behavior
+- prove capstone remains within declared runtime envelope
+
+Mandatory artifact:
+- `results/stage13/hardware_saturation_profile.jsonl`
+
+Minimum required fields per record:
+- `timestamp`
+- `run_id`
+- `device_name`
+- `gpu_memory_used_mb`
+- `gpu_memory_total_mb`
+- `gpu_utilization_percent`
+- `gpu_temperature_c`
+- `power_draw_w`
+- `active_request_count`
+- `decision` (`promote` / `hold` / `rollback`)
+
+Release gate:
+- capstone fails release if runtime envelope is exceeded and no mitigation evidence exists.
+
+### 28.2 Domain-Specific Capstone Rule (Ontario GIS / MapToGo)
+
+Generic toy capstones are not sufficient for Stage 13 completion.
+
+Required domain declaration in Lab 1:
+- chosen domain: `ontario_gis` or `maptogo_tour_guide` (or explicitly declared equivalent real project)
+- data source, schema, and target task must be domain-realistic
+
+Lab binding rules:
+- `lab01_capstone_baseline.py`: must ingest declared domain data (for GIS: GeoJSON/administrative boundary records; for tourism: destination POI/tour content)
+- `lab02_capstone_improvement_cycle.py`: must improve one domain-relevant objective with before/after evidence (for GIS: retrieval correctness/projection validation; for tourism: grounded itinerary answer quality/format reliability)
+
+Mandatory artifact:
+- `results/stage13/domain_scope_and_metric_contract.md`
+
+### 28.3 Local-First CI/CD Requirement (WSL2 + Local GPU)
+
+If capstone depends on local GPU inference, cloud-only CI is insufficient.
+
+Required:
+- define a local-first CI/CD pathway using self-hosted runner in WSL2
+- ensure integration tests that require local inference can run automatically
+- include trigger rules for smoke, regression, and release-candidate pipelines
+
+Mandatory artifacts:
+- `results/stage13/local_ci_cd_runner_setup.md`
+- `results/stage13/local_ci_pipeline_run_report.md`
+
+Minimum checks in CI pipeline report:
+- schema/contract validation
+- integration regression
+- capstone inference smoke test on local environment
+- artifact generation check for required stage outputs
+
+### 28.4 AI-Specific Incident Drill (Semantic Drift Required)
+
+Lab 3 incident cannot be only API timeout or crash simulation.
+
+Required incident scenario:
+- semantic drift caused by data/index/chunking change
+- degraded retrieval grounding or increased hallucination rate
+- evidence-based diagnosis using traces/metrics and rollback decision
+
+Mandatory artifacts:
+- `results/stage13/semantic_drift_incident_report.md`
+- `results/stage13/semantic_drift_before_after.csv`
+
+Lab 3 pass condition:
+- failure class identified as AI-system quality failure (not only transport/runtime)
+- root cause hypothesis tested with controlled rerun
+- mitigation validated on same eval set
+
+### 28.5 ADR Reconciliation Gate (Design vs Reality)
+
+Stage 13 final review must reconcile planned architecture vs delivered architecture.
+
+Required:
+- document architecture pivots with reasons and tradeoffs
+- include constraint evidence (latency/cost/hardware/operational risk)
+- explicitly sign off final architecture decision
+
+Mandatory artifact:
+- `results/stage13/adr_design_vs_reality.md`
+
+Required ADR fields:
+- `planned_architecture`
+- `delivered_architecture`
+- `why_changed`
+- `evidence`
+- `impact_on_quality_latency_cost`
+- `final_decision`
+- `owner_signoff`
+
+### 28.6 Stage 13 Final Hard Gates (Expanded)
+
+Stage 13 is not complete unless all below pass:
+
+- hardware profiling gate completed with valid evidence
+- domain-specific capstone baseline and improvement cycle completed
+- local-first CI/CD runner and pipeline evidence completed
+- semantic-drift incident drill completed with verified mitigation
+- ADR design-vs-reality reconciliation signed

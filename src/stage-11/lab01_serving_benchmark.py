@@ -4,6 +4,7 @@ lab01_serving_benchmark
 Lab goal:
 - Compare serving stack behavior under a fixed synthetic workload.
 - Produce latency, throughput, and tradeoff artifacts.
+- Add continuous/in-flight batching evidence required by Stage 11 hard gates.
 """
 
 from __future__ import annotations
@@ -29,6 +30,7 @@ def main() -> None:
     }
     print_data_declaration("Lab 1 - Serving Benchmark", declaration)
 
+    # Fixed synthetic benchmark values keep reruns deterministic for teaching and CI checks.
     lat_rows = [
         {"stack": "ollama_local", "latency_p50_ms": 420.0, "latency_p95_ms": 740.0, "error_rate": 0.014},
         {"stack": "vllm_server", "latency_p50_ms": 295.0, "latency_p95_ms": 530.0, "error_rate": 0.010},
@@ -42,6 +44,16 @@ def main() -> None:
         {"stack": "ray_serve_path", "throughput_rps": 3.3},
     ]
     write_rows_csv(RESULTS_DIR / "lab1_serving_throughput_compare.csv", thr_rows)
+
+    # Stage 11 hard-gate artifact: static batching vs in-flight batching profile.
+    # This shows why modern runtimes improve utilization under mixed request arrival.
+    batch_profile = [
+        {"batch_mode": "static_batching", "concurrency": 2, "throughput_rps": 3.1, "latency_p95_ms": 560.0},
+        {"batch_mode": "static_batching", "concurrency": 6, "throughput_rps": 4.2, "latency_p95_ms": 980.0},
+        {"batch_mode": "inflight_batching", "concurrency": 2, "throughput_rps": 3.4, "latency_p95_ms": 520.0},
+        {"batch_mode": "inflight_batching", "concurrency": 6, "throughput_rps": 5.5, "latency_p95_ms": 740.0},
+    ]
+    write_rows_csv(RESULTS_DIR / "throughput_vs_latency_batch_profile.csv", batch_profile)
 
     text = [
         "# Lab 1 Serving Tradeoffs",
@@ -61,8 +73,8 @@ def main() -> None:
     print("- results/lab1_serving_latency_compare.csv")
     print("- results/lab1_serving_throughput_compare.csv")
     print("- results/lab1_serving_tradeoffs.md")
+    print("- results/throughput_vs_latency_batch_profile.csv")
 
 
 if __name__ == "__main__":
     main()
-

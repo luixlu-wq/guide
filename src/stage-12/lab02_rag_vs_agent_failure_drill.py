@@ -15,7 +15,7 @@ THIS_DIR = Path(__file__).resolve().parent
 if str(THIS_DIR) not in sys.path:
     sys.path.insert(0, str(THIS_DIR))
 
-from stage12_utils import RESULTS_DIR, print_data_declaration, write_rows_csv
+from stage12_utils import RESULTS_DIR, print_data_declaration, write_rows_csv, write_text
 
 
 def main() -> None:
@@ -36,12 +36,24 @@ def main() -> None:
         {"pattern": "agent", "failure_type": "unsafe_tool_choice", "symptom": "invalid action route"},
     ]
     write_rows_csv(RESULTS_DIR / "lab2_failure_cases.csv", failures)
+    # Compatibility alias for runbook naming.
+    trace_lines = [
+        "# Failure Trace",
+        "",
+        "- rag: stale_retrieval -> outdated citation",
+        "- rag: filter_miss -> wrong doc scope",
+        "- agent: tool_loop -> repeated calls",
+        "- agent: unsafe_tool_choice -> invalid action route",
+    ]
+    write_text(RESULTS_DIR / "failure_trace.md", "\n".join(trace_lines))
 
     options = [
         {"pattern": "rag", "option": "freshness gate + reindex policy", "expected_quality_delta": 0.08, "expected_latency_delta": 18.0, "chosen": "yes"},
         {"pattern": "agent", "option": "tool schema constraints + step cap", "expected_quality_delta": 0.06, "expected_latency_delta": 10.0, "chosen": "yes"},
     ]
     write_rows_csv(RESULTS_DIR / "lab2_solution_options.csv", options)
+    # Compatibility alias for runbook naming.
+    write_rows_csv(RESULTS_DIR / "option_compare.csv", options)
 
     verify = [
         {"metric": "rag_grounding_score", "before": 0.71, "after": 0.82, "delta": 0.11},
@@ -54,8 +66,9 @@ def main() -> None:
     print("- results/lab2_failure_cases.csv")
     print("- results/lab2_solution_options.csv")
     print("- results/lab2_verification_rerun.csv")
+    print("- results/failure_trace.md")
+    print("- results/option_compare.csv")
 
 
 if __name__ == "__main__":
     main()
-

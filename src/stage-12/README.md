@@ -62,6 +62,8 @@ Lab 3:
 
 - `results/lab3_decision_scores.csv`
 - `results/lab3_adr.md`
+- `results/adr_scorecard_with_thresholds.csv`
+- `results/architecture_decision_y_statement.md`
 
 Lab 4:
 
@@ -70,6 +72,33 @@ Lab 4:
 - `results/lab4_metrics_comparison.csv`
 - `results/lab4_release_decision.md`
 - `results/lab4_rollback_plan.md`
+- `results/release_gate_report.md`
+- `results/rollback_simulation.md`
+
+Lab 5:
+
+- `results/agent_card_registry.json`
+- `results/a2a_handoff_trace.jsonl`
+- `results/mcp_tool_contracts.md`
+
+Lab 6:
+
+- `results/nvfp4_throughput_quality.csv`
+- `results/prefix_cache_latency_profile.csv`
+- `results/agent_loop_latency_report.md`
+
+Lab 7:
+
+- `results/indirect_injection_case_log.jsonl`
+- `results/unbounded_consumption_guard.csv`
+- `results/owasp_llm_v2_redteam_report.md`
+
+Lab 8:
+
+- `results/geojson_schema_guard_failures.csv`
+- `results/loop_breaker_events.jsonl`
+- `results/coordinate_projection_validation_report.md`
+- `results/mobile_latency_guard_report.md`
 
 ---
 
@@ -109,6 +138,10 @@ Canonical artifacts required by cross-plan standard:
 - `pwsh .\run_all_stage12.ps1 -Lab lab02_rag_vs_agent_failure_drill`
 - `pwsh .\run_all_stage12.ps1 -Lab lab03_architecture_decision_record`
 - `pwsh .\run_all_stage12.ps1 -Lab lab04_pattern_to_production`
+- `pwsh .\run_all_stage12.ps1 -Lab lab05_a2a_mcp_interoperability`
+- `pwsh .\run_all_stage12.ps1 -Lab lab06_blackwell_nvfp4_prefix_caching`
+- `pwsh .\run_all_stage12.ps1 -Lab lab07_owasp_llm_v2_redteam`
+- `pwsh .\run_all_stage12.ps1 -Lab lab08_gis_projection_and_loop_breaker`
 
 If the runner does not accept `-Lab`, run the corresponding lab Python file directly.
 

@@ -39,6 +39,25 @@ By the end of Stage 10, you must be able to:
 - troubleshoot using `identify -> compare -> verify`
 - decide `promote`, `hold`, or `rollback` using gates
 
+Stage-10 production context:
+
+- hardware profile: RTX 5090 (Blackwell-class local ops)
+- data profile: Ontario GIS + multi-source retrieval data
+- system profile: compound AI workflow (contracts + retrieval + LLM + API + ops)
+
+### Five strategic production pillars (mandatory)
+
+1. Observability:
+  - OpenTelemetry GenAI-aligned tracing and token/model metadata.
+2. Hardware operations:
+  - Blackwell-aware telemetry and quantization tradeoff tracking.
+3. Reliability:
+  - stateful circuit breakers for agent/tool failure loops.
+4. Data integrity:
+  - vector distribution drift detection for retrieval/index lifecycle.
+5. Evaluation:
+  - persistent evaluation store and judge-based quality trend checks.
+
 ---
 
 ## 2) Prerequisites and Environment
@@ -249,6 +268,17 @@ This layer is the disciplined numeric signal engine.
 - accuracy/F1/AUC or MAE/RMSE
 - calibration score
 - segment-level error analysis
+- p99 latency impact from model path (when model inference is inline)
+- judge-aligned quality trend in integrated pipeline path
+
+### GIS multi-tenancy and ACL integration (required)
+
+For Ontario GIS-style workflows, prediction outputs must preserve tenant/scope boundaries:
+
+1. tag predictions with tenant scope (`division`, `subdivision`, `global`)
+2. enforce ACL checks before downstream retrieval/LLM usage
+3. reject cross-tenant feature joins unless explicitly authorized
+4. log ACL decision outcome in telemetry (`allow`, `deny`, `escalate`)
 
 ### Related scripts
 
@@ -272,6 +302,7 @@ Weak retrieval quality appears as LLM hallucination in final output.
 2. log retrieval latency and relevance@k
 3. enforce freshness policy
 4. track metadata filter effectiveness
+5. enforce scoped retrieval using metadata ACL filters
 
 ### Typical issues
 
@@ -284,6 +315,26 @@ Weak retrieval quality appears as LLM hallucination in final output.
 - inspect top-k retrieved snippets for failed cases
 - rerun with fixed queries
 - compare chunk/filter strategy options
+
+### Scoped retrieval and vector drift monitoring (required)
+
+Scoped retrieval (Ontario GIS example):
+
+1. include metadata keys such as `division_id`, `subdivision_id`, `data_version`
+2. apply metadata filters before vector ranking
+3. verify retrieval output does not cross unauthorized scope
+
+Vector drift monitoring:
+
+1. compute baseline embedding centroid for current production index
+2. compute centroid for candidate ingestion batch/index
+3. compare centroid distance ratio
+4. if shift > 10% (chapter threshold), raise `vector_drift_alert`
+5. if shift > 15% (ops threshold), block promotion and trigger review
+
+Required evidence artifact:
+
+- `results/stage10/vector_drift_analysis.md`
 
 ### Metrics
 
@@ -354,6 +405,8 @@ A model is not usable in production without stable interface and observability.
 2. implement timeout/retry policy
 3. emit logs/metrics/traces with run ID
 4. define release and rollback gates
+5. propagate trace ID across retrieval and completion spans
+6. attach GenAI usage metadata to trace spans
 
 ### Typical issues
 
@@ -367,11 +420,55 @@ A model is not usable in production without stable interface and observability.
 - trace failing requests across layers
 - run controlled rollback drill
 
+### OpenTelemetry GenAI standards (required)
+
+Minimum trace fields for Stage 10 production operations:
+
+- `trace_id`
+- `gen_ai.usage.input_tokens`
+- `gen_ai.usage.output_tokens`
+- `gen_ai.response.model`
+- `gen_ai.finish_reason`
+
+Propagation rule:
+
+- one request trace must connect:
+  - API ingress
+  - retrieval call(s)
+  - model completion
+  - postprocess/response
+
+### Agentic circuit breaker pattern (required)
+
+Policy gates handle static rules; circuit breakers handle repeated runtime failures.
+
+Circuit breaker example:
+
+1. if tool output (for example GeoJSON) fails schema parse 3 times in 60 seconds
+2. trip breaker to `open`
+3. stop further tool calls for cooldown window
+4. return deterministic fallback response
+5. log breaker state transition and recovery decision
+
+### Blackwell hardware risk telemetry (required)
+
+In addition to memory, capture:
+
+- `gpu_compute_utilization_ratio`
+- SM clock throttle reason (if available)
+- quantization mode marker (`fp16`, `bf16`, `nvfp4`)
+- `quantization_error_delta` vs baseline precision
+
+If throttle or saturation risk is detected, emit `hardware_latency_risk`.
+
 ### Metrics
 
 - p50/p95 latency
+- p99 latency
 - error rate
 - availability
+- cost per 1k tokens (or equivalent local compute cost proxy)
+- cache hit rate (semantic/exact retrieval cache)
 
 ### Related scripts
 
@@ -392,6 +489,20 @@ Even in hybrid ML + LLM systems, runtime behavior (device, memory, throughput) a
 2. capture p50/p95 inference latency
 3. test OOM handling and fallback path
 4. compare CPU vs CUDA cost/performance profile
+5. compare baseline precision vs NVFP4/quantized path quality deltas
+6. log hardware saturation during high concurrency
+
+### Blackwell quantization tradeoff instruction (required)
+
+If using 4-bit/low-bit runtime paths:
+
+1. run fixed eval set on baseline precision
+2. run same eval set on quantized path
+3. record:
+  - throughput improvement
+  - faithfulness/format delta
+  - latency and p99 behavior
+4. block promotion if quality delta exceeds declared tolerance
 
 ### Stage mapping
 
@@ -438,6 +549,12 @@ Labs:
 - `lab02_pipeline_contract_validation.py`
 - `lab03_incident_diagnosis_and_fix.py`
 - `lab04_baseline_to_production_integration.py`
+- `lab05_observability_genai_and_trace_contract.py`
+- `lab06_hardware_saturation_and_quantization.py`
+- `lab07_eval_store_and_feedback_loop.py`
+- `lab08_circuit_breaker_incident_response.py`
+- `lab09_vector_drift_and_index_refresh.py`
+- `lab10_model_regression_rollback_drill.py`
 
 All scripts must:
 
@@ -494,6 +611,21 @@ Required outputs:
 - `results/lab3_verification_rerun.csv`
 - `results/lab3_decision.md`
 
+### Lab 3.1: Judge-as-a-Judge alignment drill (required)
+
+Goal:
+
+- evaluate local candidate outputs with a stronger judge path and store alignment evidence.
+
+Required outputs:
+
+- `results/stage10/judge_alignment_report.md`
+- `results/stage10/production_eval_store.jsonl`
+
+Acceptance condition:
+
+- alignment evidence includes faithfulness and relevance scores on fixed sample set.
+
 ## Lab 4: Baseline to Production Integration
 
 Goal:
@@ -508,6 +640,25 @@ Required outputs:
 - `results/lab4_solution_options.csv`
 - `results/lab4_verification_report.md`
 - `results/lab4_production_readiness.md`
+
+### Lab 4.1: One-click rollback drill (required)
+
+Goal:
+
+- prove rollback speed and correctness when quality gate fails.
+
+Required trigger:
+
+- if `faithfulness_score < 0.8` on canary sample, execute rollback immediately.
+
+Required outputs:
+
+- `results/stage10/incident_postmortem_drill.md`
+- `results/stage10/rollback_drill.md`
+
+Acceptance condition:
+
+- rollback to baseline completes in under 60 seconds in local drill environment.
 
 ---
 
@@ -544,6 +695,8 @@ Required run log fields:
 | LLM reasoning | fluent but unfaithful output | weak prompt constraints | schema validation and grounding checks | `topic05*_llm_reasoning_*` |
 | API ops | latency and timeout storms | no backpressure or tracing | timeout/retry policy plus tracing | `topic06*_api_serving_*` |
 | Release decisions | regressions after release | no fixed rerun gate | baseline/improved gate policy | `lab04_baseline_to_production_integration.py` |
+| Agent tools | runaway malformed tool calls | no stateful breaker, weak fallback | circuit-breaker + deterministic fallback mode | `lab03_incident_diagnosis_and_fix.py` |
+| Vector index lifecycle | quality drops after fresh ingest | embedding distribution drift | centroid-shift monitor + promotion gate | `lab04_baseline_to_production_integration.py` |
 
 ---
 
@@ -663,6 +816,19 @@ Mandatory additions for this chapter:
 - Observability: OpenTelemetry + Prometheus + Grafana
 - Runtime behavior: PyTorch CUDA notes
 
+Mandatory 2026 production resources (additive):
+
+1. Observability:
+  - OpenTelemetry GenAI semantic conventions (spec path in OTel docs)
+  - Elastic + OTel GenAI observability trend guidance (team-curated reference)
+2. Hardware:
+  - NVIDIA DCGM User Guide for Blackwell telemetry workflows
+  - NVML / hardware utilization monitoring references
+3. Agent governance:
+  - Circuit-breaker patterns for AI agents (NeuralTrust and similar security guidance)
+4. RAG operations:
+  - Production RAG infrastructure guidance covering drift and low-latency retrieval ops (Introl-style references)
+
 Requirement: each Stage 10 module tutorial must cite at least one resource above as required reading.
 
 ## 24) Stage 10 Production Review Rubric (Hard Gates)
@@ -671,7 +837,16 @@ A Stage 10 improvement can be promoted only if all gates pass:
 - `contract_pass_rate >= 99%`
 - `quality_regression <= 2%` vs baseline
 - `p95_latency <= 2.5s` under declared load profile
+- `p99_latency` is stable within declared budget
+- `faithfulness_score >= 0.8` on canary judge set
 - rollback drill completed before final decision
 - all claims have before/after evidence artifacts
 
 If any hard gate fails: default decision is `hold` or `rollback`, never `promote`.
+
+## 25) Post-Stage Capability Checklist (Production Layer)
+
+- [ ] I can explain the difference between a system gate and an agent circuit breaker.
+- [ ] I can monitor NVFP4/quantized throughput on RTX 5090 and justify quality tradeoffs.
+- [ ] I can detect vector drift in Ontario GIS data using centroid analysis and act on thresholds.
+- [ ] I can produce promote/hold/rollback decisions backed by trace evidence.

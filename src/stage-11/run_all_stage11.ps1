@@ -15,7 +15,10 @@ $scripts = @(
     "topic05_monitoring_alerting_intermediate.py",
     "topic06_capacity_cost_intermediate.py",
     "topic07_incident_response_intermediate.py",
-    "lab01_serving_benchmark.py"
+    "lab01_serving_benchmark.py",
+    "lab02_gpu_utilization_tuning.py",
+    "lab03_vector_db_scale_diagnostics.py",
+    "lab04_infra_incident_recovery.py"
 )
 
 Write-Host "Stage 11 fail-fast runner" -ForegroundColor Cyan
@@ -38,4 +41,3 @@ foreach ($name in $scripts) {
 
 Write-Host ""
 Write-Host "All Stage 11 fail-fast scripts completed successfully." -ForegroundColor Green
-

@@ -1,0 +1,4 @@
+hnsw_m,ef_construct,quantization,recall_at_10,latency_p95_ms,memory_mb
+16,128,none,0.912,142.0,5200.0
+32,256,none,0.936,173.0,6900.0
+32,256,int8,0.928,167.0,1820.0

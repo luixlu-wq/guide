@@ -574,3 +574,156 @@ Requirement: each Stage 11 module must cite at least one source from this list.
 - all improvements include before/after evidence artifacts
 
 If any hard gate fails: decision cannot be `promote`.
+
+---
+
+## 24) Expert-Tier Addendum (Blackwell + WSL2 + Production Reliability)
+
+This addendum makes Stage 11 production-ready for local high-end infrastructure (`RTX 5090`, `WSL2`, local vector DB + model serving).
+
+### 24.1) Blackwell-Specific Serving and GPU Operations
+
+Required additions:
+
+- add `NVFP4/MXFP4` serving comparison in runtime benchmark
+- track semantic-quality delta when switching precision mode
+- monitor VRAM fragmentation, not only total allocated memory
+
+Mandatory comparison:
+
+- baseline precision path (`bf16` or `fp16`)
+- Blackwell-optimized path (`fp4` where supported)
+- evaluate throughput (`tokens/sec`), `p95 latency`, and quality delta on fixed GIS/RAG query set
+
+Minimum guidance:
+
+1. run fixed workload on baseline precision
+2. run same workload on FP4 path
+3. compare `throughput` vs `semantic_accuracy`
+4. select precision policy by evidence, not raw speed only
+
+Required artifact:
+
+- `results/stage11/fp4_throughput_quality_tradeoff.csv`
+
+### 24.2) WSL2 Production Hardening
+
+Operational requirements:
+
+- keep model weights and vector index inside WSL filesystem (avoid `/mnt/c/...` for hot paths)
+- document `.wslconfig` networking mode for telemetry pipelines
+- verify service-to-dashboard trace flow before load test
+
+Hardening checklist:
+
+1. verify storage path for model/index data
+2. run baseline I/O read test
+3. apply WSL2 path hardening
+4. rerun same test and compare latency
+5. verify observability transport still works
+
+Required artifacts:
+
+- `results/stage11/wsl_io_before_after.csv`
+- `results/stage11/wsl_network_trace_check.md`
+
+### 24.3) High-Availability Controls for Local RAG
+
+Add infrastructure circuit-breaker policy:
+
+- if `gpu_temp_c > 85` or `vram_used_ratio > 0.95`, trip circuit breaker
+- fallback strategy: route to lightweight CPU path or return controlled `503` with retry guidance
+- never keep retrying full GPU path when breaker is open
+
+Vector DB durability requirement:
+
+- enable and validate Qdrant persistence/WAL policy
+- include restart drill proving index survives process restart
+
+Required artifacts:
+
+- `results/stage11/circuit_breaker_events.jsonl`
+- `results/stage11/qdrant_persistence_recovery.md`
+
+### 24.4) Streaming Infrastructure (SSE) as First-Class Pattern
+
+Mandatory streaming guidance:
+
+- support SSE token streaming for user-facing endpoints
+- track `TTFT` (time to first token) as primary UX metric
+- detect client disconnect and cancel generation to reclaim compute/VRAM
+
+Operational checks:
+
+1. run streaming endpoint baseline
+2. capture `TTFT`, full latency, and cancellation behavior
+3. inject client disconnect and verify generation stops early
+
+Required artifacts:
+
+- `results/stage11/sse_ttft_metrics.csv`
+- `results/stage11/sse_disconnect_recovery.md`
+
+### 24.5) Infrastructure-as-Code (One-Command Local Stack)
+
+Stage 11 environment must be reproducible.
+
+Required local stack:
+
+- model serving runtime (`ollama` or `vllm`)
+- vector DB (`qdrant`)
+- telemetry collector (`opentelemetry-collector`)
+
+Minimum standard:
+
+- one-command startup via `docker compose`
+- documented health checks per service
+- documented shutdown and cleanup commands
+
+Required artifacts:
+
+- `results/stage11/local_stack_boot_report.md`
+- `results/stage11/service_health_snapshot.json`
+
+### 24.6) Go/No-Go Release Evidence Schema (Mandatory)
+
+Every lab and integrated run must feed a unified release decision file:
+
+- `results/stage11/release_readiness.json`
+
+Required fields:
+
+```json
+{
+  "p95_latency_ms": 0,
+  "token_throughput_per_sec": 0,
+  "error_rate_by_class": {
+    "boundary": 0.0,
+    "hardware": 0.0,
+    "model": 0.0,
+    "retrieval": 0.0,
+    "operations": 0.0
+  },
+  "decision": "promote|hold|rollback",
+  "evidence_refs": []
+}
+```
+
+Decision rule:
+
+- `promote` allowed only when SLO and hard gates pass with complete evidence links
+- if any core metric is missing, decision defaults to `hold`
+
+### 24.7) Module-Level Missing Item Closure (Required)
+
+Add these missing module outcomes to Stage 11 delivery:
+
+- **Module 3: High-Performance Serving**
+  - include continuous/in-flight batching benchmark for Blackwell-class GPUs
+  - output: `results/stage11/throughput_vs_latency_batch_profile.csv`
+- **Module 5: Observability with OTel**
+  - trace one GIS query path end-to-end (`API -> retrieval -> generation`)
+  - output: `results/stage11/otel_trace_path_validation.md`
+- **Module 7: Failure Recovery Drills**
+  - simulate VRAM leak symptom, execute controlled recovery, verify no data loss
+  - output: `results/stage11/incident_postmortem_infra.md`

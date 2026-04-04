@@ -37,6 +37,21 @@ Stage metadata:
 | `verification_report.md` | `results/lab4_verification_rerun.csv` | `mapped` | Auto-mapped from existing stage output (2026-04-04). |
 | `decision_log.md` | `results/lab4_release_decision.md` | `mapped` | Auto-mapped from existing stage output (2026-04-04). |
 | `reproducibility.md` | `results/reproducibility.md` | `mapped` | Alias placeholder created automatically on 2026-04-04; replace TODO content with stage-specific evidence. |
+| `throughput_vs_latency_batch_profile.csv` | `results/throughput_vs_latency_batch_profile.csv` | `mapped` | Stage 11 expert-tier batching evidence. |
+| `fp4_throughput_quality_tradeoff.csv` | `results/fp4_throughput_quality_tradeoff.csv` | `mapped` | Blackwell precision tradeoff evidence. |
+| `hardware_saturation_profile.jsonl` | `results/hardware_saturation_profile.jsonl` | `mapped` | GPU saturation timeline for incident analysis. |
+| `wsl_io_before_after.csv` | `results/wsl_io_before_after.csv` | `mapped` | WSL2 storage-path hardening evidence. |
+| `vector_recall_vs_latency_matrix.csv` | `results/vector_recall_vs_latency_matrix.csv` | `mapped` | HNSW/quantization tradeoff evidence. |
+| `qdrant_persistence_recovery.md` | `results/qdrant_persistence_recovery.md` | `mapped` | Vector DB persistence recovery drill. |
+| `circuit_breaker_events.jsonl` | `results/circuit_breaker_events.jsonl` | `mapped` | Stateful infrastructure protection evidence. |
+| `sse_ttft_metrics.csv` | `results/sse_ttft_metrics.csv` | `mapped` | Streaming TTFT benchmark evidence. |
+| `sse_disconnect_recovery.md` | `results/sse_disconnect_recovery.md` | `mapped` | Streaming disconnect recovery drill evidence. |
+| `otel_trace_path_validation.md` | `results/otel_trace_path_validation.md` | `mapped` | End-to-end OTel trace validation evidence. |
+| `wsl_network_trace_check.md` | `results/wsl_network_trace_check.md` | `mapped` | WSL networking/trace transport validation. |
+| `incident_postmortem_infra.md` | `results/incident_postmortem_infra.md` | `mapped` | Infra-specific incident postmortem artifact. |
+| `local_stack_boot_report.md` | `results/local_stack_boot_report.md` | `mapped` | IaC one-command stack startup evidence. |
+| `service_health_snapshot.json` | `results/service_health_snapshot.json` | `mapped` | Local stack service health snapshot. |
+| `release_readiness.json` | `results/release_readiness.json` | `mapped` | Mandatory Stage 11 go/no-go decision schema. |
 
 ## Optional alias files (recommended)
 

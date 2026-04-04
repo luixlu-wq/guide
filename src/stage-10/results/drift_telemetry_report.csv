@@ -1,0 +1,5 @@
+window,centroid_distance_ratio,freshness_age_h,drift_status
+w1,0.06,4,stable
+w2,0.09,8,stable
+w3,0.13,12,warning
+w4,0.17,20,block

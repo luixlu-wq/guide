@@ -12,15 +12,22 @@ $required = @(
     'lab1_multi_asset_baseline_metrics.csv',
     'lab1_signal_summary.csv',
     'lab1_portfolio_weights.csv',
+    'stage14/pit_integrity_report.md',
     'lab2_risk_before_after.csv',
     'lab2_constraint_changes.csv',
     'lab2_risk_decision.md',
+    'stage14/s2_filternegative_decision_log.csv',
+    'stage14/lab2_130_30_exposure_checks.csv',
+    'stage14/lstm_kernel_profile.csv',
     'lab3_execution_cost_profile.csv',
     'lab3_slippage_scenarios.csv',
     'lab3_execution_findings.md',
+    'stage14/slippage_decomposition.csv',
     'lab4_stress_results.csv',
     'lab4_recovery_actions.csv',
-    'lab4_release_recommendation.md'
+    'lab4_release_recommendation.md',
+    'stage14/factor_exposure_report.csv',
+    'stage14/factor_neutrality_decision.md'
 )
 
 $missing = New-Object System.Collections.Generic.List[string]

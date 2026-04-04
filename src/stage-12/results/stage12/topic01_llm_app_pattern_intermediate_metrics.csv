@@ -1,0 +1,3 @@
+topic_id,pattern,run_type,quality_score,latency_p95_ms,cost_index,failure_rate
+topic01_llm_app_pattern_intermediate,llm_app,baseline,0.74,380.0,1.0,0.023
+topic01_llm_app_pattern_intermediate,llm_app,improved,0.777,342.0,1.0,0.012

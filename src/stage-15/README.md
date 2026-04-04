@@ -13,6 +13,28 @@ powershell -ExecutionPolicy Bypass -File .\run_ladder_stage15.ps1 -IncludeLabs
 powershell -ExecutionPolicy Bypass -File .\verify_stage15_outputs.ps1
 ```
 
+Run one specific lab:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run_all_stage15.ps1 -Lab lab03_rag_retrieval_failure
+```
+
+Optional context controls:
+
+```powershell
+$env:STAGE15_PROJECT = "MapToGo"  # or "Ontario_GIS" / "LSTM_Trading"
+```
+
+## Required Stage 15 Expert Artifacts
+
+- `results/stage15/icv_protocol_report.md`
+- `results/stage15/lab01_wsl_cuda_contention_report.md`
+- `results/stage15/lab01_gpu_telemetry_log.csv`
+- `results/stage15/lab02_prompt_regression.md`
+- `results/stage15/lab03_gis_boundary_failure_report.md`
+- `results/stage15/lab03_projection_vs_topk_compare.csv`
+- `results/stage15/lab04_final_y_statement.md`
+
 ---
 
 ## 2) Plan Alignment Addendum (2026-04-04)

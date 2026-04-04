@@ -1,0 +1,3 @@
+path_class,sample_path,avg_read_latency_ms,throughput_mb_s,pass_or_fail
+native_linux,/home/user/data/ontario.geojson,18.0,420.0,pass
+windows_mount,/mnt/c/ontario/geo/ontario.geojson,58.0,130.0,fail

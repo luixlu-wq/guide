@@ -38,20 +38,40 @@ Ladder + labs:
 powershell -ExecutionPolicy Bypass -File .\run_ladder_stage13.ps1 -IncludeLabs
 ```
 
+Run one specific lab:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run_all_stage13.ps1 -Lab lab01_capstone_baseline
+```
+
+Domain selector for Lab 1/Lab 4:
+
+```powershell
+$env:STAGE13_DOMAIN = "ontario_gis"      # or "maptogo_tour_guide"
+```
+
 ## 3) Required Lab Outputs
 
 - `results/lab1_capstone_baseline_metrics.csv`
 - `results/lab1_capstone_layer_outputs.jsonl`
 - `results/lab1_capstone_contract_status.csv`
+- `results/stage13/hardware_saturation_log.jsonl`
+- `results/stage13/wsl_boundary_performance.csv`
+- `results/stage13/contract_definitions.json`
+- `results/stage13/domain_baseline_checks.md`
 - `results/lab2_solution_options.csv`
 - `results/lab2_before_after_delta.csv`
 - `results/lab2_improvement_decision.md`
 - `results/lab3_incident_timeline.csv`
 - `results/lab3_root_cause_analysis.md`
 - `results/lab3_verification_rerun.csv`
+- `results/stage13/semantic_drift_incident_report.md`
+- `results/stage13/semantic_drift_trace_evidence.md`
 - `results/lab4_release_gate_checklist.csv`
 - `results/lab4_release_decision.md`
 - `results/lab4_rollback_plan.md`
+- `results/stage13/final_release_review.md`
+- `results/stage13/rollback_drill.md`
 
 ## 4) One-Command Verification
 

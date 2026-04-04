@@ -1,0 +1,3 @@
+option,expected_relevance_delta,expected_freshness_delta
+metadata_filter_tighten,0.08,
+daily_reindex_policy,,0.17

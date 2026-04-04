@@ -50,11 +50,14 @@ Lab 1:
 
 - `results/lab1_layer_metrics.csv`
 - `results/lab1_baseline_outputs.jsonl`
+- `results/lab1_system_metrics.csv`
 
 Lab 2:
 
 - `results/lab2_contract_checks.csv`
 - `results/lab2_contract_failures.md`
+- `results/lab2_failure_cases.csv`
+- `results/lab2_contract_fix_report.md`
 
 Lab 3:
 
@@ -62,6 +65,7 @@ Lab 3:
 - `results/lab3_solution_options.csv`
 - `results/lab3_verification_rerun.csv`
 - `results/lab3_verification_notes.md`
+- `results/lab3_decision.md`
 
 Lab 4:
 
@@ -72,6 +76,40 @@ Lab 4:
 - `results/lab4_metrics_comparison.csv`
 - `results/lab4_verification_report.md`
 - `results/lab4_production_readiness.md`
+
+Lab 5:
+
+- `results/trace_sample_analysis.jsonl`
+- `results/otel_trace_contract_report.md`
+
+Lab 6:
+
+- `results/throughput_vllm_vs_trt.csv`
+- `results/hardware_saturation_log.jsonl`
+- `results/hardware_quantization_report.md`
+
+Lab 7:
+
+- `results/production_eval_store.jsonl`
+- `results/hallucination_drift_log.jsonl`
+- `results/judge_alignment_report.md`
+
+Lab 8:
+
+- `results/circuit_breaker_incident_log.jsonl`
+- `results/incident_postmortem_drill.md`
+
+Lab 9:
+
+- `results/drift_telemetry_report.csv`
+- `results/vector_drift_analysis.md`
+
+Lab 10:
+
+- `results/canary_eval_windows.csv`
+- `results/rollback_drill.md`
+- `results/release_decision.md`
+- `results/canary_eval_report.md`
 
 ---
 

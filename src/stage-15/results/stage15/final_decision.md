@@ -1,0 +1,1 @@
+Decision: promote (option B). Evidence: quality up, latency down, failure rate down under fixed rerun profile.

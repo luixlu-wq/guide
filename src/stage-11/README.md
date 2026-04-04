@@ -71,6 +71,24 @@ Lab 4:
 - `results/lab4_verification_rerun.csv`
 - `results/lab4_release_decision.md`
 
+Expert-tier Stage 11 hard-gate outputs:
+
+- `results/throughput_vs_latency_batch_profile.csv`
+- `results/fp4_throughput_quality_tradeoff.csv`
+- `results/hardware_saturation_profile.jsonl`
+- `results/wsl_io_before_after.csv`
+- `results/vector_recall_vs_latency_matrix.csv`
+- `results/qdrant_persistence_recovery.md`
+- `results/circuit_breaker_events.jsonl`
+- `results/sse_ttft_metrics.csv`
+- `results/sse_disconnect_recovery.md`
+- `results/otel_trace_path_validation.md`
+- `results/wsl_network_trace_check.md`
+- `results/incident_postmortem_infra.md`
+- `results/local_stack_boot_report.md`
+- `results/service_health_snapshot.json`
+- `results/release_readiness.json`
+
 ---
 
 ## 4) One-Command Verification

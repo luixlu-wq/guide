@@ -1,0 +1,5 @@
+option,weighted_score,pass_threshold_0_80,rollback_trigger_defined
+llm_app,0.8,True,True
+rag,0.82,True,True
+agent,0.73,False,True
+multi_agent,0.69,False,True

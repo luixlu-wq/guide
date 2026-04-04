@@ -18,10 +18,12 @@ import numpy as np
 
 THIS_DIR = Path(__file__).resolve().parent
 RESULTS_DIR = THIS_DIR / "results"
+CANONICAL_RESULTS_DIR = RESULTS_DIR / "stage12"
 
 
 def ensure_results_dir() -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    CANONICAL_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def set_seed(seed: int = 42) -> None:
@@ -40,6 +42,8 @@ def write_rows_csv(path: Path, rows: Sequence[Dict[str, Any]]) -> None:
     ensure_results_dir()
     if not rows:
         path.write_text("", encoding="utf-8")
+        if path.parent == RESULTS_DIR:
+            (CANONICAL_RESULTS_DIR / path.name).write_text("", encoding="utf-8")
         return
     fields: List[str] = []
     seen = set()
@@ -52,11 +56,19 @@ def write_rows_csv(path: Path, rows: Sequence[Dict[str, Any]]) -> None:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
         w.writerows(rows)
+    if path.parent == RESULTS_DIR:
+        alias_path = CANONICAL_RESULTS_DIR / path.name
+        with alias_path.open("w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=fields)
+            w.writeheader()
+            w.writerows(rows)
 
 
 def write_text(path: Path, text: str) -> None:
     ensure_results_dir()
     path.write_text(text, encoding="utf-8")
+    if path.parent == RESULTS_DIR:
+        (CANONICAL_RESULTS_DIR / path.name).write_text(text, encoding="utf-8")
 
 
 def as_jsonl(path: Path, rows: Sequence[Dict[str, Any]]) -> None:
@@ -64,6 +76,19 @@ def as_jsonl(path: Path, rows: Sequence[Dict[str, Any]]) -> None:
     with path.open("w", encoding="utf-8") as f:
         for r in rows:
             f.write(json.dumps(r, ensure_ascii=True) + "\n")
+    if path.parent == RESULTS_DIR:
+        alias_path = CANONICAL_RESULTS_DIR / path.name
+        with alias_path.open("w", encoding="utf-8") as f:
+            for r in rows:
+                f.write(json.dumps(r, ensure_ascii=True) + "\n")
+
+
+def write_json(path: Path, payload: Dict[str, Any]) -> None:
+    ensure_results_dir()
+    text = json.dumps(payload, ensure_ascii=True, indent=2)
+    path.write_text(text + "\n", encoding="utf-8")
+    if path.parent == RESULTS_DIR:
+        (CANONICAL_RESULTS_DIR / path.name).write_text(text + "\n", encoding="utf-8")
 
 
 def synthetic_arch_eval_set(n: int = 180, seed: int = 42) -> List[Dict[str, Any]]:

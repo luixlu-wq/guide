@@ -1,0 +1,4 @@
+action,priority
+reduce_leverage,high
+tighten_position_caps,high
+slow_rebalance,medium

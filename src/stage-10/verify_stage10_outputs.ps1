@@ -11,20 +11,39 @@ if (-not (Test-Path $resultsDir)) {
 
 $required = @(
     "lab1_layer_metrics.csv",
+    "lab1_system_metrics.csv",
     "lab1_baseline_outputs.jsonl",
     "lab2_contract_checks.csv",
     "lab2_contract_failures.md",
+    "lab2_failure_cases.csv",
+    "lab2_contract_fix_report.md",
     "lab3_incident_baseline.csv",
     "lab3_solution_options.csv",
     "lab3_verification_rerun.csv",
     "lab3_verification_notes.md",
+    "lab3_decision.md",
     "lab4_baseline_outputs.jsonl",
     "lab4_improved_outputs.jsonl",
     "lab4_layer_metrics.csv",
     "lab4_solution_options.csv",
     "lab4_metrics_comparison.csv",
     "lab4_verification_report.md",
-    "lab4_production_readiness.md"
+    "lab4_production_readiness.md",
+    "release_decision.md",
+    "canary_eval_report.md",
+    "trace_sample_analysis.jsonl",
+    "otel_trace_contract_report.md",
+    "throughput_vllm_vs_trt.csv",
+    "hardware_saturation_log.jsonl",
+    "hardware_quantization_report.md",
+    "production_eval_store.jsonl",
+    "hallucination_drift_log.jsonl",
+    "judge_alignment_report.md",
+    "circuit_breaker_incident_log.jsonl",
+    "incident_postmortem_drill.md",
+    "drift_telemetry_report.csv",
+    "vector_drift_analysis.md",
+    "rollback_drill.md"
 )
 
 $missing = New-Object System.Collections.Generic.List[string]
@@ -67,4 +86,3 @@ if ($missing.Count -eq 0 -and $empty.Count -eq 0) {
 Write-Host ""
 Write-Host "FAIL: output verification failed. Regenerate artifacts and rerun." -ForegroundColor Red
 exit 1
-

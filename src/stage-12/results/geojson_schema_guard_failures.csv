@@ -1,0 +1,3 @@
+geojson_id,expected_crs,detected_crs,projection_valid
+g_001,WGS84,NAD83,False
+g_002,WGS84,WGS84,True

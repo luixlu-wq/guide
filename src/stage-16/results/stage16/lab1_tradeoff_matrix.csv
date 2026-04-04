@@ -1,0 +1,5 @@
+criterion,weight
+quality,0.35
+latency,0.25
+cost,0.2
+risk,0.2

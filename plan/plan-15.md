@@ -704,3 +704,106 @@ Each module must cite at least:
 - at least two options are compared before final decision
 - verification rerun uses same data/split/eval profile
 - all decisions include before/after artifacts and signed label
+
+## 28) Stage 15 Expert-Tier Operations Addendum (Review Closure)
+
+This section is additive-only and closes the remaining expert-tier gaps for Stage 15.
+
+### 28.1 ICV Protocol Mandate (Identify -> Compare -> Verify)
+
+Stage 15 must treat troubleshooting as a formal engineering protocol, not ad-hoc debugging.
+
+Required protocol:
+
+1. `identify`: define failure with measurable threshold (example: `p95_latency_ms > 2000`)
+2. `compare`: run at least two controlled options under fixed data/split/eval profile
+3. `verify`: rerun the failing case with selected fix and publish before/after deltas
+
+Mandatory artifact:
+- `results/stage15/icv_protocol_report.md`
+
+Hard rule:
+- no promote decision without complete ICV evidence chain.
+
+### 28.2 Domain-Specific GIS/Tourism Boundary Drill (Lab 03)
+
+Generic RAG failure drills are insufficient for Stage 15 mastery.
+
+Required Lab 03 scenario:
+- boundary-case retrieval failure for tourism/GIS context
+- user coordinate near subdivision boundary produces wrong 5A spot retrieval
+- diagnose whether root cause is:
+  - projection mismatch (`NAD83` vs `WGS84`)
+  - retrieval configuration (`top_k`/ranking/metadata filters)
+
+Mandatory artifacts:
+- `results/stage15/lab03_gis_boundary_failure_report.md`
+- `results/stage15/lab03_projection_vs_topk_compare.csv`
+
+Pass condition:
+- root cause category is proven by controlled comparison and fixed rerun.
+
+### 28.3 WSL2/CUDA Resource-Contention Drill (Lab 01)
+
+High-end local hardware issues are often contention/overhead problems, not raw compute limits.
+
+Required Lab 01 scenario:
+- throughput degradation after long runtime session
+- diagnose whether bottleneck is:
+  - GPU throttling/clock behavior
+  - WSL2 memory pressure/ballooning
+  - host-side preprocessing contention
+
+Required tools path:
+- `nvidia-smi` snapshots
+- `nsys` profile summary (when available)
+
+Mandatory artifacts:
+- `results/stage15/lab01_wsl_cuda_contention_report.md`
+- `results/stage15/lab01_gpu_telemetry_log.csv`
+
+### 28.4 Golden-Set Prompt Regression Gate (Lab 02)
+
+Prompt fixes must not silently damage previously correct behavior.
+
+Required:
+- fixed golden set with category coverage for project domain
+- compare original prompt vs fixed prompt on identical set
+- include catastrophic-forgetting check on established tourism/GIS facts
+
+Mandatory artifact:
+- `results/stage15/lab02_prompt_regression.md`
+
+Minimum required table fields:
+- `case_id`
+- `category`
+- `original_result`
+- `fixed_result`
+- `regression_flag`
+- `decision`
+
+### 28.5 Y-Statement ADR Decision Gate (Lab 04)
+
+Final release decision must use standardized architecture reasoning format.
+
+Required output format (only valid final decision format):
+
+- Y-Statement ADR:
+  - "In the context of `<project>`, we decided to use `<choice>` to achieve `<goal>`, because `<evidence/tradeoff>`, and accepted `<consequence>`."
+
+Mandatory artifacts:
+- `results/stage15/lab04_final_y_statement.md`
+- `results/stage15/lab04_option_compare_evidence.csv`
+
+Pass condition:
+- promote/hold/rollback decision is traceable to option comparison and verification deltas.
+
+### 28.6 Stage 15 Expanded Hard Gates (Must All Pass)
+
+Stage 15 is complete only when all below pass:
+
+- ICV protocol report exists and is complete
+- GIS/tourism boundary drill completed with proven root cause
+- WSL2/CUDA contention drill completed with telemetry evidence
+- golden-set prompt regression report completed with blocker-category checks
+- final release decision published in Y-Statement ADR format

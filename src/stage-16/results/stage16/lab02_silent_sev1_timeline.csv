@@ -1,0 +1,7 @@
+minute,event,class,owner
+0,sev1_declared,silent_data_quality,incident_commander
+4,style_drift_detected_130_30,sector_concentration,trading_owner
+7,kill_switch_triggered,risk_control,incident_commander
+10,stakeholder_notification_sent,comms,comms_owner
+22,root_cause_hypothesis_logged,feature_scaling_fault,ml_owner
+35,service_suspended_until_fix_verified,containment,incident_commander

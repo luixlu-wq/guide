@@ -1,0 +1,4 @@
+module,quality_score,latency_p95_ms,failure_rate
+data,0.91,45.0,0.005
+model,0.78,220.0,0.018
+reasoning,0.74,310.0,0.022

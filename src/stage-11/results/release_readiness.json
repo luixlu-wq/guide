@@ -1,0 +1,18 @@
+{
+  "p95_latency_ms": 860.0,
+  "token_throughput_per_sec": 5.5,
+  "error_rate_by_class": {
+    "boundary": 0.003,
+    "hardware": 0.006,
+    "model": 0.005,
+    "retrieval": 0.004,
+    "operations": 0.004
+  },
+  "decision": "promote",
+  "evidence_refs": [
+    "lab4_verification_rerun.csv",
+    "circuit_breaker_events.jsonl",
+    "sse_ttft_metrics.csv",
+    "otel_trace_path_validation.md"
+  ]
+}

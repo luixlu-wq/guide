@@ -1,0 +1,3 @@
+option,expected_format_delta,risk
+add_schema_examples,0.18,low
+tighten_system_constraints,0.22,medium

@@ -698,3 +698,110 @@ Each module must cite at least:
 - decisions are based on net-of-cost metrics, not gross-only metrics
 - strategy changes are auditable with rollback readiness
 - all improvements include before/after evidence artifacts
+
+## 28) Stage 14 Expert-Tier Quant Addendum (Review Closure)
+
+This section is additive-only and closes the remaining expert-tier gaps for Stage 14.
+
+### 28.1 Point-in-Time Leakage Audit Gate (Mandatory)
+
+Leakage must be treated as structural in quant pipelines, not only split overlap.
+
+Required:
+- add a formal Point-in-Time (PIT) audit to feature engineering workflow
+- verify each feature timestamp is observable before prediction timestamp
+- block model claims when PIT contract is violated
+
+Mandatory artifact:
+- `results/stage14/pit_audit_report.md`
+
+Minimum PIT evidence fields:
+- `feature_name`
+- `feature_timestamp`
+- `prediction_timestamp`
+- `observable_before_prediction` (`true/false`)
+- `violation_reason`
+
+Hard gate:
+- any PIT violation forces decision to `hold` or `rollback`.
+
+### 28.2 Strategy Calibration Gate (S2_FilterNegative 130/30)
+
+Stage 14 must use a strategy-specific hero example rather than generic classification/regression-only framing.
+
+Required:
+- calibrate labs to `S2_FilterNegative` portfolio logic (long-biased 130/30 with short-filter behavior)
+- prove portfolio construction decisions follow filter policy
+- explain short-leg exclusions for positive-score candidates under filter rules
+
+Mandatory artifacts:
+- `results/stage14/s2_filternegative_decision_log.csv`
+- `results/stage14/portfolio_construction_130_30_report.md`
+
+Lab binding:
+- `lab02_risk_engine_improvement.py` must include short-filter policy checks and rejection reasons.
+
+### 28.3 RTX 5090 Throughput Profiling Gate (LSTM Cross-Section)
+
+Inference performance must be measured at cross-sectional scale, not single-ticker latency only.
+
+Required:
+- profile LSTM inference throughput for batched cross-sectional universe
+- include Blackwell-targeted profiling using `nsys` where available
+- diagnose bottlenecks (GPU compute, transfer, or CPU preprocessing/WSL I/O)
+
+Mandatory artifacts:
+- `results/stage14/batch_inference_latency_per_1k_tickers.csv`
+- `results/stage14/lstm_blackwell_profile_summary.md`
+
+Minimum metric fields:
+- `batch_size`
+- `tickers_count`
+- `latency_ms_per_1k_tickers`
+- `bottleneck_class`
+- `device`
+
+### 28.4 Net-of-Cost Decomposition Gate (Volatility-Aware)
+
+Flat slippage assumptions are not sufficient for release decisions.
+
+Required:
+- decompose transaction cost into commission, spread, and market impact
+- apply volatility-adjusted market-impact component (`lambda` term)
+- report gross vs net alpha under identical replay period
+
+Mandatory artifact:
+- `results/stage14/slippage_decomposition.csv`
+
+Required decomposition columns:
+- `commission_cost`
+- `spread_cost`
+- `market_impact_lambda`
+- `gross_return`
+- `net_return`
+
+### 28.5 Factor Neutrality and Hidden-Beta Gate
+
+130/30 alpha must be validated against hidden factor exposures.
+
+Required:
+- evaluate model-return correlation against SPY and sector ETFs
+- quantify unintended concentration (for example long tech/short energy drift)
+- record mitigation action when exposure breaches limits
+
+Mandatory artifacts:
+- `results/stage14/factor_exposure_report.csv`
+- `results/stage14/factor_neutrality_decision.md`
+
+Hard gate:
+- promotion blocked when factor exposure exceeds declared policy thresholds without mitigation evidence.
+
+### 28.6 Stage 14 Expanded Hard Gates (Must All Pass)
+
+Stage 14 is complete only when all below pass:
+
+- PIT audit is clean and signed (`pit_audit_report.md`)
+- S2_FilterNegative construction logic is evidenced (`portfolio_construction_130_30_report.md`)
+- cross-sectional LSTM throughput profile is captured on target runtime path
+- net-of-cost decomposition includes volatility-aware impact terms
+- factor neutrality review is complete and signed

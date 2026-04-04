@@ -18,11 +18,28 @@ $required = @(
     "lab2_verification_rerun.csv",
     "lab3_decision_scores.csv",
     "lab3_adr.md",
+    "adr_scorecard_with_thresholds.csv",
+    "architecture_decision_y_statement.md",
     "lab4_baseline_metrics.csv",
     "lab4_improved_metrics.csv",
     "lab4_metrics_comparison.csv",
     "lab4_release_decision.md",
-    "lab4_rollback_plan.md"
+    "lab4_rollback_plan.md",
+    "release_gate_report.md",
+    "rollback_simulation.md",
+    "agent_card_registry.json",
+    "a2a_handoff_trace.jsonl",
+    "mcp_tool_contracts.md",
+    "nvfp4_throughput_quality.csv",
+    "prefix_cache_latency_profile.csv",
+    "agent_loop_latency_report.md",
+    "indirect_injection_case_log.jsonl",
+    "unbounded_consumption_guard.csv",
+    "owasp_llm_v2_redteam_report.md",
+    "geojson_schema_guard_failures.csv",
+    "loop_breaker_events.jsonl",
+    "coordinate_projection_validation_report.md",
+    "mobile_latency_guard_report.md"
 )
 
 $missing = New-Object System.Collections.Generic.List[string]

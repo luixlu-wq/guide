@@ -1,0 +1,3 @@
+pattern,option,expected_quality_delta,expected_latency_delta,chosen
+rag,freshness gate + reindex policy,0.08,18.0,yes
+agent,tool schema constraints + step cap,0.06,10.0,yes

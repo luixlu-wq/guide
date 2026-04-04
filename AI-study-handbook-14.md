@@ -50,6 +50,26 @@ Prediction quality is necessary but not sufficient. Risk and execution can domin
 - drawdown guards
 - turnover constraints
 - transaction-cost modeling
+- point-in-time (PIT) feature integrity
+- hardware-bound throughput evidence for cross-sectional LSTM inference
+
+### LSTM Throughput Reality (RTX 5090, WSL2)
+
+For cross-sectional LSTM systems, single-ticker latency is not the primary bottleneck.
+
+You must profile:
+
+- sequence window batching efficiency
+- host-to-device transfer overhead (HtoD)
+- kernel execution share under realistic ticker-batch size
+
+Required evidence artifact:
+
+- `results/stage14/lstm_kernel_profile.csv`
+
+Minimum check:
+
+- kernel execution time should dominate HtoD copy time for the tuned path.
 
 ---
 
@@ -69,6 +89,23 @@ Portfolio logic fails when assets are misaligned or inconsistently processed.
 2. validate coverage and missingness
 3. standardize schema per symbol
 4. version data snapshot
+5. run PIT integrity audit (arrival-time vs occurrence-time)
+
+### Point-in-Time (PIT) Integrity Control (Non-Negotiable)
+
+Every feature row must record both:
+
+- `occurrence_time`: when market event happened
+- `arrival_time`: when data became observable in pipeline/database
+
+Rule:
+
+- model input at time `T` may only use feature rows where `arrival_time <= T`.
+- any feature using `T+1` data invalidates the run for release evaluation.
+
+Required artifact:
+
+- `results/stage14/pit_integrity_report.md`
 
 ### Typical issues
 
@@ -135,6 +172,16 @@ Without risk engine, one strong signal can create portfolio fragility.
 - volatility scaling
 - drawdown triggers
 - stop-loss policy (if applicable)
+- explicit 130/30 exposure constraints (for S2_FilterNegative path)
+
+### S2_FilterNegative Risk Controls (130/30)
+
+When using S2_FilterNegative:
+
+- long exposure target: `+1.30`
+- short exposure target: `-0.30`
+- gross exposure target: `1.60`
+- short leg includes only names below configured negative-score threshold
 
 ### Typical issues
 
@@ -165,6 +212,7 @@ Allocation determines realized risk-return profile.
 2. define hard constraints
 3. solve for weights
 4. validate turnover and concentration
+5. validate S2 short-filter decisions and 130/30 leverage consistency
 
 ### Common objective examples
 
@@ -177,6 +225,22 @@ Allocation determines realized risk-return profile.
 - optimizer instability
 - corner solutions (all weight in one asset)
 - high turnover from noisy expected returns
+- short leg built from bottom rank without negative-threshold filter
+- hidden leverage drift away from 130/30 target
+
+### S2_FilterNegative Optimization Logic (Required)
+
+Use explicit conditional short-filter logic:
+
+1. generate ranked predictions
+2. allocate long candidates from top-ranked names
+3. allocate short candidates only when predicted return `< short_threshold`
+4. enforce 130/30 exposure and concentration limits
+5. log exclusions for names rejected by short-filter rule
+
+Required artifact:
+
+- `results/stage14/s2_filternegative_decision_log.csv`
 
 ### Related scripts
 
@@ -200,6 +264,25 @@ Ignoring costs and slippage overstates strategy quality.
 - slippage model
 - liquidity cap
 - fill delay assumption
+- volatility-adjusted impact model (ADV-aware)
+
+### Slippage Model Upgrade (ADV + Square Root Law)
+
+Do not use flat slippage only. Use decomposition:
+
+- commission cost
+- spread cost
+- market impact cost using square-root form relative to ADV
+
+Reference impact form:
+
+`impact_cost = lambda * sigma * sqrt(order_size / ADV)`
+
+where:
+
+- `sigma`: volatility proxy
+- `ADV`: average daily volume
+- `lambda`: calibrated impact coefficient
 
 ### Typical issues
 
@@ -281,6 +364,17 @@ Signal generation and scenario simulation can become compute-intensive; runtime 
 2. monitor memory usage under multi-asset batch runs
 3. define fallback path if CUDA unavailable
 4. include runtime evidence in release package
+5. profile LSTM sequence batching with kernel-time vs HtoD-time split
+
+Blackwell-specific runtime evidence (recommended path):
+
+- run `nsys` profile for representative 1k-ticker batches
+- record kernel vs memory-copy percentages
+- confirm preprocessing path is not the dominant bottleneck
+
+Required artifact:
+
+- `results/stage14/lstm_kernel_profile.csv`
 
 ---
 
@@ -357,18 +451,22 @@ Required outputs:
 - `results/lab1_multi_asset_baseline_metrics.csv`
 - `results/lab1_signal_summary.csv`
 - `results/lab1_portfolio_weights.csv`
+- `results/stage14/pit_integrity_report.md`
 
 ## Lab 2: Risk Engine Improvement
 
 Goal:
 
 - reduce drawdown while preserving acceptable return.
+- enforce strategy-specific 130/30 constraints under S2_FilterNegative logic.
 
 Required outputs:
 
 - `results/lab2_risk_before_after.csv`
 - `results/lab2_constraint_changes.csv`
 - `results/lab2_risk_decision.md`
+- `results/stage14/s2_filternegative_decision_log.csv`
+- `results/stage14/lab2_130_30_exposure_checks.csv`
 
 ## Lab 3: Execution Slippage Impact
 
@@ -381,6 +479,7 @@ Required outputs:
 - `results/lab3_execution_cost_profile.csv`
 - `results/lab3_slippage_scenarios.csv`
 - `results/lab3_execution_findings.md`
+- `results/stage14/slippage_decomposition.csv` (commission, spread, impact-lambda columns required)
 
 ## Lab 4: Stress Test and Recovery
 
@@ -411,10 +510,12 @@ Required outputs:
 
 | Topic | Pain point | Root causes | Resolution | Related lab |
 |---|---|---|---|---|
+| Data integrity | hidden look-ahead leakage | arrival-time not enforced | PIT audit and timestamp gate | `lab01_multi_asset_baseline.py` |
 | Signal quality | alpha decays quickly | regime shift, unstable features | regime-aware evaluation and filtering | `lab01_multi_asset_baseline.py` |
 | Risk engine | large unexpected drawdowns | weak exposure constraints | stricter limits and drawdown controls | `lab02_risk_engine_improvement.py` |
 | Optimizer | unstable allocations | noisy expectations, weak constraints | robust constraints and turnover controls | `topic03*_portfolio_optimizer_*` |
 | Execution | paper alpha disappears live | ignored slippage and costs | realistic execution simulation | `lab03_execution_slippage_impact.py` |
+| Hidden beta/style drift | alpha is factor exposure in disguise | sector concentration and benchmark coupling | factor neutrality checks vs SPY/sector ETFs | `lab04_stress_test_and_recovery.py` |
 | Stress resilience | strategy fails in shocks | no stress assumptions | stress testing and recovery workflow | `lab04_stress_test_and_recovery.py` |
 
 ---
@@ -474,8 +575,10 @@ Mandatory additions for this chapter:
 - Required outputs:
   - `results/stage14/baseline_signal_report.csv`
   - `results/stage14/data_audit.md`
+  - `results/stage14/pit_integrity_report.md`
 - Pass criteria:
   - Baseline is leak-safe with stable initial signal diagnostics.
+  - PIT audit confirms no feature uses future (`T+1`) data.
 - First troubleshooting action:
   - Verify symbol mapping and rolling split integrity.
 
@@ -484,8 +587,12 @@ Mandatory additions for this chapter:
 - Required outputs:
   - `results/stage14/risk_before_after.csv`
   - `results/stage14/risk_policy_note.md`
+  - `results/stage14/s2_filternegative_decision_log.csv`
+  - `results/stage14/lab2_130_30_exposure_checks.csv`
 - Pass criteria:
   - Risk breaches decrease while target performance remains acceptable.
+  - 130/30 constraints hold (`long=1.30`, `short=-0.30`, `gross=1.60`).
+  - short-filter rejection reasons are logged for excluded short names.
 - First troubleshooting action:
   - Compare two risk-limit configurations before deciding final policy.
 
@@ -496,6 +603,7 @@ Mandatory additions for this chapter:
   - `results/stage14/execution_recommendation.md`
 - Pass criteria:
   - Net-of-cost metrics remain above minimum acceptance threshold.
+  - Slippage decomposition includes impact cost separate from spread and commission.
 - First troubleshooting action:
   - Reduce turnover and rerun under fixed assumptions if net metrics fail.
 
@@ -527,5 +635,12 @@ Requirement: each module tutorial must cite at least one mapped source.
 - all decisions use net-of-cost metrics (not gross-only)
 - strategy changes are auditable and rollback-ready
 - all improvement claims include before/after artifacts
+- PIT integrity report passes with zero future-data violations
+- 130/30 S2_FilterNegative constraints are satisfied in release candidate
+- LSTM profile evidence exists and kernel-time dominates HtoD transfer on tuned path
+- factor neutrality gate is evaluated:
+  - correlation to benchmark (for example SPY) stays within declared strategy threshold
+  - sector/style drift is reviewed and documented
+- slippage decomposition includes commission + spread + market-impact components
 
 If any hard gate fails: decision cannot be `promote`.

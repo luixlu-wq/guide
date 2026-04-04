@@ -31,6 +31,7 @@ You must be able to:
 - produce baseline and improved evidence packs
 - run incident response and escalation workflow
 - make release decisions from objective gates
+- prove hardware-bound runtime safety under concurrent load (RTX 5090 class)
 
 ---
 
@@ -42,6 +43,8 @@ You must be able to:
 - measurable quality/latency/cost objectives
 - deterministic rerun and verification process
 - production-readiness review artifacts
+- hardware saturation control (VRAM/temperature/SM utilization) as release evidence
+- WSL2 boundary performance validation for data and service I/O
 
 ### Out of scope
 
@@ -68,6 +71,54 @@ Each component must provide:
 - version metadata
 - owner
 - failure behavior
+
+Boundary performance contract (WSL2):
+
+- if large capstone data is loaded from `/mnt/c/`, run a boundary performance check
+- if boundary I/O causes gate breach, capstone cannot pass production readiness
+- heavy data/index/model artifacts must be moved to native Linux filesystem before release gate
+- validate WSL2 service-to-client boundary latency before release signoff
+
+Capstone integration schema (code-first, mandatory):
+
+- Every capstone must provide `results/stage13/contract_definitions.json`.
+- Schema must define handoff contracts for `features -> model -> context`.
+
+Pydantic-style reference contract:
+
+```python
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional
+
+class FeaturePayload(BaseModel):
+    run_id: str
+    entity_id: str
+    feature_vector: List[float]
+    feature_version: str
+    projection: Optional[str] = None  # e.g., "WGS84" or "NAD83" for GIS tasks
+
+class ModelPayload(BaseModel):
+    run_id: str
+    entity_id: str
+    score: float
+    confidence: float = Field(ge=0.0, le=1.0)
+    model_version: str
+
+class ContextPayload(BaseModel):
+    run_id: str
+    entity_id: str
+    context_ids: List[str]
+    citations: List[str]
+    context_version: str
+    grounded: bool
+
+class CapstoneContract(BaseModel):
+    features: FeaturePayload
+    model: ModelPayload
+    context: ContextPayload
+```
+
+`contract_definitions.json` must be the serialized contract reference used by integration checks.
 
 ### Owner mapping example
 
@@ -355,12 +406,34 @@ Script requirements:
 Goal:
 
 - complete baseline run and produce initial evidence pack.
+- establish hardware-safe and domain-valid baseline before any improvement cycle.
 
 Required outputs:
 
 - `results/lab1_capstone_baseline_metrics.csv`
 - `results/lab1_capstone_layer_outputs.jsonl`
 - `results/lab1_capstone_contract_status.csv`
+- `results/stage13/hardware_saturation_log.jsonl`
+- `results/stage13/contract_definitions.json`
+- `results/stage13/domain_baseline_checks.md`
+- `results/stage13/wsl_boundary_performance.csv`
+
+Domain-specific baseline constraints (mandatory):
+
+- choose one domain profile and declare it at run start:
+  - `maptogo_tour_guide`
+  - `ontario_gis`
+- if `maptogo_tour_guide`: include no-hallucination check against Baidu Baike-backed source set
+- if `ontario_gis`: include coordinate projection validation (NAD83 vs WGS84 mismatch detection)
+
+Hardware saturation log minimum fields:
+
+- `timestamp`
+- `run_id`
+- `sm_utilization`
+- `vram_allocated_mb`
+- `gpu_temp_c`
+- `request_concurrency`
 
 ## Lab 2: Capstone Improvement Cycle
 
@@ -379,12 +452,22 @@ Required outputs:
 Goal:
 
 - run one realistic incident drill with escalation process.
+- diagnose one AI-specific silent failure and close with verified mitigation.
 
 Required outputs:
 
 - `results/lab3_incident_timeline.csv`
 - `results/lab3_root_cause_analysis.md`
 - `results/lab3_verification_rerun.csv`
+- `results/stage13/semantic_drift_incident_report.md`
+- `results/stage13/semantic_drift_trace_evidence.md`
+
+Mandatory incident scenario:
+
+- one of:
+  - semantic drift after new data/index ingestion (retrieval quality drops silently)
+  - tool-loop/runaway tool-calling behavior
+- use OpenTelemetry traces to show where failure appeared and why fix works
 
 ## Lab 4: Capstone Production Readiness
 
@@ -479,8 +562,12 @@ Mandatory additions for this chapter:
 - Required outputs:
   - `results/stage13/baseline_scope_contracts.md`
   - `results/stage13/baseline_metrics.csv`
+  - `results/stage13/hardware_saturation_log.jsonl`
+  - `results/stage13/contract_definitions.json`
 - Pass criteria:
   - Scope/contract baseline is complete and reproducible.
+  - Hardware saturation baseline is captured and within release-safe envelope.
+  - Domain baseline checks (MapToGo no-hallucination or Ontario GIS projection validation) pass.
 - First troubleshooting action:
   - Freeze seed/data versions and rerun baseline before tuning anything.
 
@@ -499,8 +586,10 @@ Mandatory additions for this chapter:
 - Required outputs:
   - `results/stage13/incident_timeline.md`
   - `results/stage13/postmortem.md`
+  - `results/stage13/semantic_drift_incident_report.md`
 - Pass criteria:
   - Response flow complete, prevention actions assigned.
+  - Incident is AI-specific (`semantic_drift` or `tool_loop`) with OpenTelemetry evidence.
 - First troubleshooting action:
   - Re-run simulation if ownership/escalation paths were unclear.
 
@@ -511,6 +600,8 @@ Mandatory additions for this chapter:
   - `results/stage13/rollback_drill.md`
 - Pass criteria:
   - Signed go/no-go with rollback proof.
+  - Final release review includes reconciled ADR Y-Statement:
+    - "In the context of <project>, we decided to use <choice> because <evidence/tradeoff>, and accepted <consequence>."
 - First troubleshooting action:
   - If any gate missing, decision defaults to `hold`.
 
@@ -533,5 +624,13 @@ Requirement: each module tutorial must cite at least one mapped source.
 - one full incident drill with postmortem quality check
 - signed go/no-go with rollback proof
 - all claims tied to before/after evidence artifacts
+- hardware saturation gate passes:
+  - `vram_utilization_threshold < 90%` at gate load profile
+  - `sm_clock_throttle_count = 0` during release candidate load test
+- WSL2 boundary performance gate passes:
+  - capstone heavy data/index/model assets are not served from `/mnt/c/` in release profile
+- semantic-incident gate passes:
+  - at least one `semantic_drift` or `tool_loop` drill resolved with trace evidence
+- release review includes final ADR Y-Statement with owner signoff
 
 If any hard gate fails: decision cannot be `promote`.

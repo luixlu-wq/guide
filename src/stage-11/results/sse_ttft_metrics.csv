@@ -1,0 +1,4 @@
+scenario,ttft_ms,full_response_ms,client_disconnect
+normal_stream,168.0,1330.0,False
+high_load_stream,232.0,1820.0,False
+disconnect_test,176.0,410.0,True

@@ -14,7 +14,13 @@ THIS_DIR = Path(__file__).resolve().parent
 if str(THIS_DIR) not in sys.path:
     sys.path.insert(0, str(THIS_DIR))
 
-from stage16_utils import RESULTS_DIR, print_data_declaration, write_rows_csv, write_text
+from stage16_utils import (
+    print_data_declaration,
+    write_rows_csv_dual,
+    write_text_dual,
+    build_silent_sev1_timeline,
+    build_kill_switch_evidence,
+)
 
 
 def main() -> None:
@@ -33,19 +39,23 @@ def main() -> None:
         {"minute": 5, "role": "tech_owner", "action": "stabilize_service", "status": "done"},
         {"minute": 14, "role": "comms_owner", "action": "stakeholder_update", "status": "done"},
     ]
-    write_rows_csv(RESULTS_DIR / "lab2_incident_timeline.csv", timeline)
+    write_rows_csv_dual("lab2_incident_timeline.csv", timeline)
 
     owners = [
         {"action": "root_cause_analysis", "owner": "tech_owner"},
         {"action": "mitigation_validation", "owner": "incident_commander"},
         {"action": "postmortem_publish", "owner": "comms_owner"},
     ]
-    write_rows_csv(RESULTS_DIR / "lab2_actions_and_owners.csv", owners)
+    write_rows_csv_dual("lab2_actions_and_owners.csv", owners)
 
-    write_text(
-        RESULTS_DIR / "lab2_postmortem.md",
+    write_text_dual(
+        "lab2_postmortem.md",
         "# Lab 2 Postmortem\n\n- Incident resolved in 23 minutes.\n- Key lesson: clearer freshness alert threshold reduced detection delay.\n",
     )
+
+    # Chapter-16 expert silent-Sev1 artifacts.
+    write_rows_csv_dual("lab02_silent_sev1_timeline.csv", build_silent_sev1_timeline())
+    write_text_dual("lab02_kill_switch_evidence.md", build_kill_switch_evidence())
 
 
 if __name__ == "__main__":

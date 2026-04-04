@@ -701,3 +701,101 @@ Each module must cite at least:
 - governance and security are hard release constraints
 - portfolio contains measurable outcomes and decision traceability
 - all improvement claims include before/after evidence
+
+## 28) Stage 16 Expert-Tier Ownership Addendum (Review Closure)
+
+This section is additive-only and closes remaining expert-tier gaps for Stage 16.
+
+### 28.1 Ownership Goal Shift (Implementer -> System Owner)
+
+Stage 16 must explicitly measure ownership, not only competency.
+
+Required:
+- architecture decisions are defended with end-to-end measurable evidence
+- final artifacts are written from lead/staff engineering ownership perspective
+- release decisions include explicit accountability and tradeoff rationale
+
+Mandatory decision-sign format:
+- Y-Statement:
+  - "In the context of `<project>`, we decided to use `<X>` over `<Y>` because `<evidence>` showed `<measured delta>`."
+
+### 28.2 Staff-Level Architecture Audit Gate (Lab 01)
+
+Architecture assessment must include defensive dependency-risk mapping.
+
+Required:
+- map critical upstream data dependencies and failure blast radius
+- include schema-change contingency path and owner actions
+- evaluate fail-safe behavior under upstream contract change
+
+Mandatory artifacts:
+- `results/stage16/system_mastery_rubric.md`
+- `results/stage16/dependency_risk_map.md`
+
+Required scenario:
+- Ontario GIS ingestion behavior when upstream LIO schema changes without notice.
+
+### 28.3 Silent Sev1 Incident Command Drill (Lab 02)
+
+Incident drill must include silent, data-quality-driven Sev1 scenario.
+
+Required scenario example:
+- 130/30 LSTM allocations become highly sector-concentrated due to feature-scaling fault.
+
+Mandatory controls:
+- kill-switch trigger criteria and execution evidence
+- stakeholder communication timeline with role ownership
+- suspension and recovery conditions
+
+Mandatory artifacts:
+- `results/stage16/lab02_silent_sev1_timeline.csv`
+- `results/stage16/lab02_kill_switch_evidence.md`
+
+### 28.4 Blackwell/RTX 5090 Compute-Efficiency Governance
+
+Governance must include local hardware lifecycle and power-aware efficiency, not cloud-spend only.
+
+Required:
+- compare throughput and power draw across at least two runtime modes
+- include optimization mode (for example FP8/NVFP4 or batching policy)
+- justify selected mode with measurable efficiency delta
+
+Mandatory artifact:
+- `results/stage16/compute_efficiency_report.csv`
+
+Required metric columns:
+- `throughput_per_sec`
+- `avg_power_w`
+- `tokens_or_samples_per_watt`
+- `optimization_mode`
+- `decision`
+
+### 28.5 Portfolio Hard-Gate Evidence Pack (Lab 04)
+
+Final portfolio must aggregate impact evidence across all stages.
+
+Required:
+- compile Stage 1-16 before/after deltas into one mastery scorecard
+- include project-specific impact summaries (MapToGo, Ontario GIS, LSTM Trading where applicable)
+- produce executive-ready portfolio evidence with traceable metrics
+
+Mandatory artifacts:
+- `results/stage16/mastery_scorecard.csv`
+- `results/stage16/lab04_portfolio_evidence_pack.md`
+
+Minimum scorecard fields:
+- `stage`
+- `baseline_metric`
+- `improved_metric`
+- `delta`
+- `business_or_ops_impact`
+
+### 28.6 Stage 16 Expanded Hard Gates (Must All Pass)
+
+Stage 16 is complete only when all below pass:
+
+- ownership framing and Y-Statement signature are present in final decisions
+- staff-level dependency-risk architecture audit is complete
+- silent Sev1 drill includes kill-switch and stakeholder communication evidence
+- compute-efficiency governance report is complete and reviewable
+- mastery scorecard aggregates cross-stage before/after deltas

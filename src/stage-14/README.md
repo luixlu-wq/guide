@@ -26,20 +26,40 @@ powershell -ExecutionPolicy Bypass -File .\run_ladder_stage14.ps1
 powershell -ExecutionPolicy Bypass -File .\run_ladder_stage14.ps1 -IncludeLabs
 ```
 
+Run one specific lab:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run_all_stage14.ps1 -Lab lab02_risk_engine_improvement
+```
+
+Optional strategy/runtime controls:
+
+```powershell
+$env:STAGE14_STRATEGY = "S2_FilterNegative"
+$env:STAGE14_SPY_CORR_LIMIT = "0.35"
+```
+
 ## 3) Required Lab Outputs
 
 - `results/lab1_multi_asset_baseline_metrics.csv`
 - `results/lab1_signal_summary.csv`
 - `results/lab1_portfolio_weights.csv`
+- `results/stage14/pit_integrity_report.md`
 - `results/lab2_risk_before_after.csv`
 - `results/lab2_constraint_changes.csv`
 - `results/lab2_risk_decision.md`
+- `results/stage14/s2_filternegative_decision_log.csv`
+- `results/stage14/lab2_130_30_exposure_checks.csv`
+- `results/stage14/lstm_kernel_profile.csv`
 - `results/lab3_execution_cost_profile.csv`
 - `results/lab3_slippage_scenarios.csv`
 - `results/lab3_execution_findings.md`
+- `results/stage14/slippage_decomposition.csv`
 - `results/lab4_stress_results.csv`
 - `results/lab4_recovery_actions.csv`
 - `results/lab4_release_recommendation.md`
+- `results/stage14/factor_exposure_report.csv`
+- `results/stage14/factor_neutrality_decision.md`
 
 ## 4) Verification
 

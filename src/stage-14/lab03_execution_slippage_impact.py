@@ -14,7 +14,12 @@ THIS_DIR = Path(__file__).resolve().parent
 if str(THIS_DIR) not in sys.path:
     sys.path.insert(0, str(THIS_DIR))
 
-from stage14_utils import RESULTS_DIR, print_data_declaration, write_rows_csv, write_text
+from stage14_utils import (
+    print_data_declaration,
+    write_rows_csv_dual,
+    write_text_dual,
+    build_slippage_decomposition,
+)
 
 
 def main() -> None:
@@ -33,18 +38,26 @@ def main() -> None:
         {"regime": "medium", "fee_bps": 5, "slip_bps": 8, "cost_impact": -0.027},
         {"regime": "high", "fee_bps": 8, "slip_bps": 14, "cost_impact": -0.046},
     ]
-    write_rows_csv(RESULTS_DIR / "lab3_execution_cost_profile.csv", costs)
+    write_rows_csv_dual("lab3_execution_cost_profile.csv", costs)
 
     scenarios = [
         {"scenario": "baseline_fill", "net_return": 0.136},
         {"scenario": "stressed_fill", "net_return": 0.101},
     ]
-    write_rows_csv(RESULTS_DIR / "lab3_slippage_scenarios.csv", scenarios)
+    write_rows_csv_dual("lab3_slippage_scenarios.csv", scenarios)
 
-    write_text(
-        RESULTS_DIR / "lab3_execution_findings.md",
-        "# Lab 3 Execution Findings\n\n- Execution assumptions materially change realized return.\n- High-turnover paths need stricter cost controls.\n",
+    write_text_dual(
+        "lab3_execution_findings.md",
+        (
+            "# Lab 3 Execution Findings\n\n"
+            "- Execution assumptions materially change realized return.\n"
+            "- High-turnover paths need stricter cost controls.\n"
+            "- Slippage model must separate spread and impact components.\n"
+        ),
     )
+
+    # New expert-tier artifact: volatility/ADV-aware slippage decomposition.
+    write_rows_csv_dual("slippage_decomposition.csv", build_slippage_decomposition())
 
 
 if __name__ == "__main__":

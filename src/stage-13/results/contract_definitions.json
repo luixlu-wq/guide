@@ -1,0 +1,58 @@
+{
+  "version": "1.0.0",
+  "domain": "ontario_gis",
+  "contracts": {
+    "features": {
+      "required_fields": [
+        "run_id",
+        "entity_id",
+        "feature_vector",
+        "feature_version"
+      ],
+      "optional_fields": [
+        "projection"
+      ],
+      "types": {
+        "run_id": "str",
+        "entity_id": "str",
+        "feature_vector": "list[float]",
+        "feature_version": "str",
+        "projection": "str|null"
+      }
+    },
+    "model": {
+      "required_fields": [
+        "run_id",
+        "entity_id",
+        "score",
+        "confidence",
+        "model_version"
+      ],
+      "types": {
+        "run_id": "str",
+        "entity_id": "str",
+        "score": "float",
+        "confidence": "float[0..1]",
+        "model_version": "str"
+      }
+    },
+    "context": {
+      "required_fields": [
+        "run_id",
+        "entity_id",
+        "context_ids",
+        "citations",
+        "context_version",
+        "grounded"
+      ],
+      "types": {
+        "run_id": "str",
+        "entity_id": "str",
+        "context_ids": "list[str]",
+        "citations": "list[str]",
+        "context_version": "str",
+        "grounded": "bool"
+      }
+    }
+  }
+}

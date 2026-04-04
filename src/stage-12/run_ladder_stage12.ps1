@@ -39,7 +39,11 @@ if ($IncludeLabs) {
         "lab01_pattern_baseline_compare.py",
         "lab02_rag_vs_agent_failure_drill.py",
         "lab03_architecture_decision_record.py",
-        "lab04_pattern_to_production.py"
+        "lab04_pattern_to_production.py",
+        "lab05_a2a_mcp_interoperability.py",
+        "lab06_blackwell_nvfp4_prefix_caching.py",
+        "lab07_owasp_llm_v2_redteam.py",
+        "lab08_gis_projection_and_loop_breaker.py"
     )
 }
 

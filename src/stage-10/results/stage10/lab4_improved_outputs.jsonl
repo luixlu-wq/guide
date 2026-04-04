@@ -1,0 +1,60 @@
+{"id": "row_0040", "pred_class": 1, "pred_prob_up": 0.7521, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 0}
+{"id": "row_0094", "pred_class": 1, "pred_prob_up": 0.6221, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 0}
+{"id": "row_0217", "pred_class": 0, "pred_prob_up": 0.405, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0078", "pred_class": 0, "pred_prob_up": 0.4697, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0189", "pred_class": 1, "pred_prob_up": 0.6104, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 1}
+{"id": "row_0031", "pred_class": 1, "pred_prob_up": 0.6412, "analysis": "Model signal is bullish, but negative context raises uncertainty.", "risk": "medium-high", "target": 1}
+{"id": "row_0037", "pred_class": 1, "pred_prob_up": 0.7292, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 0}
+{"id": "row_0200", "pred_class": 1, "pred_prob_up": 0.6041, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 1}
+{"id": "row_0284", "pred_class": 1, "pred_prob_up": 0.5392, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0167", "pred_class": 1, "pred_prob_up": 0.6126, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 0}
+{"id": "row_0112", "pred_class": 1, "pred_prob_up": 0.5392, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0240", "pred_class": 0, "pred_prob_up": 0.3683, "analysis": "Signals align to downside pressure with weak context support.", "risk": "high", "target": 1}
+{"id": "row_0246", "pred_class": 0, "pred_prob_up": 0.3486, "analysis": "Signals align to downside pressure with weak context support.", "risk": "high", "target": 0}
+{"id": "row_0178", "pred_class": 1, "pred_prob_up": 0.5589, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0180", "pred_class": 1, "pred_prob_up": 0.6372, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 1}
+{"id": "row_0232", "pred_class": 0, "pred_prob_up": 0.4621, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0170", "pred_class": 1, "pred_prob_up": 0.5938, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0060", "pred_class": 1, "pred_prob_up": 0.6288, "analysis": "Model signal is bullish, but negative context raises uncertainty.", "risk": "medium-high", "target": 1}
+{"id": "row_0213", "pred_class": 1, "pred_prob_up": 0.5472, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0083", "pred_class": 1, "pred_prob_up": 0.6069, "analysis": "Model signal is bullish, but negative context raises uncertainty.", "risk": "medium-high", "target": 1}
+{"id": "row_0255", "pred_class": 1, "pred_prob_up": 0.5434, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0042", "pred_class": 1, "pred_prob_up": 0.6954, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 0}
+{"id": "row_0155", "pred_class": 1, "pred_prob_up": 0.5459, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0196", "pred_class": 1, "pred_prob_up": 0.5946, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0203", "pred_class": 0, "pred_prob_up": 0.4985, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0069", "pred_class": 1, "pred_prob_up": 0.6967, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 1}
+{"id": "row_0214", "pred_class": 0, "pred_prob_up": 0.4693, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0306", "pred_class": 1, "pred_prob_up": 0.5843, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0312", "pred_class": 0, "pred_prob_up": 0.4968, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0192", "pred_class": 1, "pred_prob_up": 0.5396, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0130", "pred_class": 0, "pred_prob_up": 0.4787, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0099", "pred_class": 0, "pred_prob_up": 0.4974, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0296", "pred_class": 1, "pred_prob_up": 0.5278, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0194", "pred_class": 1, "pred_prob_up": 0.5693, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0309", "pred_class": 0, "pred_prob_up": 0.4517, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0101", "pred_class": 0, "pred_prob_up": 0.4882, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0023", "pred_class": 1, "pred_prob_up": 0.7222, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 1}
+{"id": "row_0162", "pred_class": 1, "pred_prob_up": 0.6178, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 1}
+{"id": "row_0249", "pred_class": 0, "pred_prob_up": 0.3888, "analysis": "Signals align to downside pressure with weak context support.", "risk": "high", "target": 0}
+{"id": "row_0132", "pred_class": 1, "pred_prob_up": 0.5246, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0234", "pred_class": 0, "pred_prob_up": 0.3533, "analysis": "Signals align to downside pressure with weak context support.", "risk": "high", "target": 1}
+{"id": "row_0311", "pred_class": 0, "pred_prob_up": 0.4994, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0121", "pred_class": 0, "pred_prob_up": 0.4962, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0033", "pred_class": 1, "pred_prob_up": 0.6869, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 0}
+{"id": "row_0278", "pred_class": 1, "pred_prob_up": 0.5614, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0139", "pred_class": 0, "pred_prob_up": 0.4975, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0131", "pred_class": 1, "pred_prob_up": 0.5005, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0067", "pred_class": 1, "pred_prob_up": 0.6192, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 0}
+{"id": "row_0035", "pred_class": 1, "pred_prob_up": 0.6424, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 1}
+{"id": "row_0036", "pred_class": 1, "pred_prob_up": 0.6308, "analysis": "Model signal is bullish, but negative context raises uncertainty.", "risk": "medium-high", "target": 1}
+{"id": "row_0236", "pred_class": 0, "pred_prob_up": 0.3505, "analysis": "Signals align to downside pressure with weak context support.", "risk": "high", "target": 0}
+{"id": "row_0064", "pred_class": 1, "pred_prob_up": 0.6618, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 1}
+{"id": "row_0299", "pred_class": 0, "pred_prob_up": 0.4785, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0072", "pred_class": 1, "pred_prob_up": 0.5636, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0091", "pred_class": 1, "pred_prob_up": 0.5385, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0134", "pred_class": 0, "pred_prob_up": 0.4807, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0145", "pred_class": 0, "pred_prob_up": 0.4577, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 0}
+{"id": "row_0160", "pred_class": 1, "pred_prob_up": 0.5187, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}
+{"id": "row_0032", "pred_class": 1, "pred_prob_up": 0.6689, "analysis": "Signals are aligned: short-term trend and context both support upside continuation.", "risk": "moderate", "target": 0}
+{"id": "row_0077", "pred_class": 1, "pred_prob_up": 0.5499, "analysis": "Signals are mixed; directional confidence remains limited.", "risk": "medium", "target": 1}

@@ -713,3 +713,154 @@ Required source families for this stage:
 - p95 latency <= 2.5 seconds at defined load profile
 - rollback drill completed before promote decision
 - all improvements have before/after artifacts
+
+## 28) Expert-Tier Operations Addendum (2026-04-04, Additive-Only)
+
+This addendum is additive and does not remove any prior requirement.
+It upgrades Stage 10 from reliability baseline to 2026 production-operations standard for:
+
+- Blackwell-class local hardware (RTX 5090)
+- compound AI serving workflows
+- Ontario GIS / MTG data lifecycle operations
+
+### 28.1 OpenTelemetry GenAI Standardization (Mandatory)
+
+Replace ad-hoc tracing fields with OpenTelemetry GenAI semantic conventions where applicable.
+
+Minimum trace attributes to require in Stage 10 telemetry:
+
+- `trace_id` (end-to-end propagation)
+- `gen_ai.usage.input_tokens`
+- `gen_ai.usage.output_tokens`
+- `gen_ai.response.model`
+- `gen_ai.finish_reason`
+
+Contract propagation requirement:
+
+- trace id must propagate from ingress request
+- through retrieval/vector layer
+- through LLM completion
+- into final response/decision logs
+
+Lab integration requirement:
+
+- `lab02_pipeline_contract_validation.py` must include explicit trace propagation checks.
+
+### 28.2 Blackwell Hardware Telemetry (Mandatory)
+
+For CUDA/quantized paths, extend telemetry beyond memory-used.
+
+Required GPU telemetry dimensions:
+
+- memory used and peak memory
+- `gpu_compute_utilization_ratio`
+- SM throttle reason (when available from NVML/DCGM path)
+- `quantization_error_delta` (quality delta under quantized path vs baseline precision)
+
+Recommended instrumentation stack:
+
+- `pynvml` or DCGM-compatible exporter path
+- structured sampling during load windows
+
+### 28.3 Evaluation Store and Feedback Loop (Mandatory)
+
+Stage 10 must include persistent evaluation storage for production trace samples.
+
+Minimum workflow:
+
+1. sample ~5% production-like traces
+2. score with judge model (faithfulness/relevance)
+3. store records in:
+   - `results/stage10/production_eval_store.jsonl`
+4. run weekly trend analysis and publish summary deltas
+
+Implicit feedback detection (required):
+
+- track regenerate actions
+- track copy/accept actions
+- use as proxy signals for quality trend monitoring
+
+### 28.4 Agentic Safety Circuit Breaker (Mandatory)
+
+When tool calls repeatedly fail, policy gate alone is insufficient.
+
+Add stateful circuit-breaker pattern:
+
+- if same tool class fails >= 3 times in 60 seconds
+- trip breaker and enter fallback mode (read-only or deterministic path)
+- notify user with controlled fallback response
+
+Lab requirement:
+
+- inject repeated mock API failures (e.g., repeated 404)
+- verify breaker trip, fallback behavior, and stop-loop behavior are logged
+
+### 28.5 Vector Drift Detection for Retrieval Index (Mandatory)
+
+Add vector-distribution monitoring for index refresh workflows.
+
+Minimum method:
+
+- compute baseline centroid from historical embeddings
+- compare new-ingest centroid distance
+- trigger drift warning if shift > 15% threshold (configurable)
+
+Required artifact:
+
+- `results/stage10/vector_drift_analysis.md`
+
+### 28.6 Model Regression Battle Drill (Mandatory)
+
+Formalize rollback drill with MTTR target.
+
+Required exercise:
+
+1. deploy intentionally degraded candidate path
+2. detect spike (e.g., formatting_error/hallucination/latency)
+3. execute one-command rollback to gold path
+4. verify recovery metrics
+
+Stage target:
+
+- MTTR <= 120 seconds for local deployment drill
+
+### 28.7 Evidence Schema Expansion (Stage 10 Required Fields)
+
+In addition to existing canonical columns, Stage 10 tables must include:
+
+- `p99_latency_ms`
+- `cost_per_1k_tokens`
+- `hallucination_score_judge`
+- `cache_hit_rate`
+- `gpu_compute_utilization_ratio`
+- `quantization_error_delta`
+
+### 28.8 Unified Results Folder Expansion (`results/stage10/`)
+
+Add these mandatory canonical outputs:
+
+- `incident_postmortem_drill.md`
+- `drift_telemetry_report.csv`
+- `hardware_saturation_log.jsonl`
+- `production_eval_store.jsonl`
+- `vector_drift_analysis.md`
+
+### 28.9 Stage 10 Script/Lab Mapping Additions
+
+Extend script package expectations with these operation tracks:
+
+- `topic09*_otel_genai_tracing_*`
+- `topic10*_hardware_telemetry_blackwell_*`
+- `topic11*_evaluation_store_feedback_*`
+- `topic12*_agent_circuit_breaker_*`
+- `topic13*_vector_drift_monitoring_*`
+- `topic14*_rollback_battle_drill_*`
+
+Recommended additive labs:
+
+- `lab05_observability_genai_and_trace_contract.py`
+- `lab06_hardware_saturation_and_quantization.py`
+- `lab07_eval_store_and_feedback_loop.py`
+- `lab08_circuit_breaker_incident_response.py`
+- `lab09_vector_drift_and_index_refresh.py`
+- `lab10_model_regression_rollback_drill.py`

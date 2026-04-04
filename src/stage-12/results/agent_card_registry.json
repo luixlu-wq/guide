@@ -1,0 +1,22 @@
+{
+  "agents": [
+    {
+      "agent_id": "gis_validation_agent",
+      "display_name": "Ontario GIS Validation Agent",
+      "capabilities": [
+        "projection_check",
+        "geojson_schema_validation"
+      ],
+      "trust_boundary": "internal"
+    },
+    {
+      "agent_id": "tour_planning_agent",
+      "display_name": "MapToGo Tour Planning Agent",
+      "capabilities": [
+        "poi_ranking",
+        "itinerary_generation"
+      ],
+      "trust_boundary": "internal"
+    }
+  ]
+}

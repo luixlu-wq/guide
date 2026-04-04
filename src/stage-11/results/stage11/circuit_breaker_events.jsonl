@@ -1,0 +1,3 @@
+{"timestamp": "2026-04-04T12:03:10", "event": "threshold_warning", "gpu_temp_c": 83.4, "vram_used_ratio": 0.93, "circuit_breaker_state": "closed", "action": "queue_backpressure"}
+{"timestamp": "2026-04-04T12:03:42", "event": "threshold_breach", "gpu_temp_c": 86.1, "vram_used_ratio": 0.96, "circuit_breaker_state": "open", "action": "fallback_cpu_path"}
+{"timestamp": "2026-04-04T12:05:05", "event": "recovery", "gpu_temp_c": 78.0, "vram_used_ratio": 0.71, "circuit_breaker_state": "half_open", "action": "canary_gpu_probe"}

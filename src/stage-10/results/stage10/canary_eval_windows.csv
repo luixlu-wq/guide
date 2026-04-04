@@ -1,0 +1,4 @@
+window,faithfulness_score,formatting_error_rate,p95_latency_ms
+w1,0.84,0.01,620.0
+w2,0.79,0.04,710.0
+w3,0.77,0.05,760.0

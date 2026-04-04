@@ -1,0 +1,3 @@
+optimization_mode,throughput_per_sec,avg_power_w,tokens_or_samples_per_watt,decision
+bf16_baseline,1720.0,410.0,4.2,baseline
+nvfp4_or_optimized_batching,1715.0,332.0,5.17,candidate

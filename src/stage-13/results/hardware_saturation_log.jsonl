@@ -1,0 +1,1 @@
+{"timestamp": "2026-04-04T22:34:15.711531+00:00", "run_id": "stage13_lab1_baseline", "device_name": "cpu-fallback", "sm_utilization": 0.0, "vram_allocated_mb": 0.0, "gpu_temp_c": 0.0, "request_concurrency": 4, "sm_clock_throttle_count": 0}

@@ -37,6 +37,16 @@ Stage metadata:
 | `verification_report.md` | `results/lab4_verification_report.md` | `mapped` | Auto-mapped from existing stage output (2026-04-04). |
 | `decision_log.md` | `results/decision_log.md` | `mapped` | Alias placeholder created automatically on 2026-04-04; replace TODO content with stage-specific evidence. |
 | `reproducibility.md` | `results/reproducibility.md` | `mapped` | Alias placeholder created automatically on 2026-04-04; replace TODO content with stage-specific evidence. |
+| `release_decision.md` | `results/release_decision.md` | `mapped` | Stage 10 production go/no-go decision artifact. |
+| `rollback_drill.md` | `results/rollback_drill.md` | `mapped` | Model regression rollback drill output. |
+| `vector_drift_analysis.md` | `results/vector_drift_analysis.md` | `mapped` | Retrieval index drift analysis report. |
+| `drift_telemetry_report.csv` | `results/drift_telemetry_report.csv` | `mapped` | Drift telemetry time-series for threshold checks. |
+| `hardware_saturation_log.jsonl` | `results/hardware_saturation_log.jsonl` | `mapped` | Blackwell hardware saturation telemetry. |
+| `throughput_vllm_vs_trt.csv` | `results/throughput_vllm_vs_trt.csv` | `mapped` | Runtime throughput benchmark comparison. |
+| `trace_sample_analysis.jsonl` | `results/trace_sample_analysis.jsonl` | `mapped` | OTel trace sample evidence. |
+| `production_eval_store.jsonl` | `results/production_eval_store.jsonl` | `mapped` | Persistent eval store sample. |
+| `hallucination_drift_log.jsonl` | `results/hallucination_drift_log.jsonl` | `mapped` | Judge-based hallucination drift tracking. |
+| `incident_postmortem_drill.md` | `results/incident_postmortem_drill.md` | `mapped` | Circuit breaker incident postmortem drill. |
 
 ## Optional alias files (recommended)
 

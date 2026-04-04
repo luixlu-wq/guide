@@ -31,6 +31,16 @@ You must be able to:
 - verify improvements by rerun
 - decide promotion, hold, or rollback
 
+### Mandatory Workflow: ICV Protocol (Identify -> Compare -> Verify)
+
+Every incident and lab must follow the same named workflow:
+
+1. `Identify`: measurable failure statement with threshold and reproducible case
+2. `Compare`: at least two controlled options under fixed eval profile
+3. `Verify`: rerun failing case with selected fix and publish before/after delta
+
+No troubleshooting ticket is complete without an explicit ICV audit trail.
+
 ---
 
 ## 2) Failure Definition Standard
@@ -73,10 +83,15 @@ Classify every incident into one primary domain:
 - RAG retrieval/indexing
 - runtime/infrastructure
 - monitoring/governance
+- hardware resource contention (WSL2/CUDA boundary)
 
 ### Why this matters
 
 Domain classification narrows search space and avoids random tuning loops.
+
+WSL2/CUDA contention note:
+
+- throughput drops after long sessions may be runtime-resource problems (memory ballooning, CUDA context pressure, throttling), not model logic faults.
 
 ---
 
@@ -322,18 +337,22 @@ Required outputs:
 - `results/lab2_prompt_cases.csv`
 - `results/lab2_prompt_options.csv`
 - `results/lab2_prompt_verification.csv`
+- `results/stage15/lab02_prompt_regression.md` (golden-set regression report)
 
 ## Lab 3: RAG Retrieval Failure
 
 Goal:
 
 - diagnose retrieval weakness and verify improvement.
+- run one GIS/tourism boundary failure drill and isolate projection vs retrieval-config root cause.
 
 Required outputs:
 
 - `results/lab3_retrieval_baseline.csv`
 - `results/lab3_retrieval_options.csv`
 - `results/lab3_retrieval_verification.csv`
+- `results/stage15/lab03_gis_boundary_failure_report.md`
+- `results/stage15/lab03_projection_vs_topk_compare.csv`
 
 ## Lab 4: Option Compare and Verify
 
@@ -346,6 +365,7 @@ Required outputs:
 - `results/lab4_solution_compare.csv`
 - `results/lab4_verification_rerun.csv`
 - `results/lab4_decision_record.md`
+- `results/stage15/lab04_final_y_statement.md`
 
 ---
 
@@ -354,6 +374,20 @@ Required outputs:
 1. identify: reproduce and classify failure
 2. compare: evaluate at least two remediation options
 3. verify: rerun fixed tests and validate deltas
+
+ICV audit trail block (mandatory in all lab outputs):
+
+```text
+Identify:
+  - failure metric and threshold
+  - reproducible failing case ID
+Compare:
+  - option A vs option B (fixed eval profile)
+  - risk/cost tradeoff
+Verify:
+  - before/after delta table
+  - promote/hold/rollback recommendation
+```
 
 Required run record fields:
 
@@ -434,18 +468,28 @@ Mandatory additions for this chapter:
 - Required outputs:
   - `results/stage15/ml_failure_statement.md`
   - `results/stage15/ml_root_cause.md`
+  - `results/stage15/lab01_wsl_cuda_contention_report.md`
+  - `results/stage15/lab01_gpu_telemetry_log.csv`
 - Pass criteria:
   - Root cause is explicit and verified on fixed eval protocol.
+  - Runtime throughput degradation is classified as logic vs WSL2/CUDA contention with evidence.
 - First troubleshooting action:
   - Expand slice analysis and leakage checks before changing model hyperparameters.
+
+Resource-contention drill (mandatory):
+- reproduce a long-session throughput drop case
+- inspect `nvidia-smi` telemetry and `nsys` summary (or equivalent trace evidence)
+- decide whether cause is model logic, CUDA context pressure, or WSL2 memory contention
 
 ### Lab 2: LLM Prompt Regression
 - Command: `pwsh red-book/src/stage-15/run_all_stage15.ps1 -Lab lab02_llm_prompt_regression`
 - Required outputs:
   - `results/stage15/prompt_regression_table.csv`
   - `results/stage15/prompt_fix_note.md`
+  - `results/stage15/lab02_prompt_regression.md`
 - Pass criteria:
   - Target improvement with no blocker category regressions.
+  - Golden-set pass rate for high-priority project facts remains `100%` after prompt fix.
 - First troubleshooting action:
   - Compare at least two prompt alternatives before deciding.
 
@@ -454,8 +498,13 @@ Mandatory additions for this chapter:
 - Required outputs:
   - `results/stage15/retrieval_diagnostics.csv`
   - `results/stage15/groundedness_delta.csv`
+  - `results/stage15/lab03_gis_boundary_failure_report.md`
+  - `results/stage15/lab03_projection_vs_topk_compare.csv`
 - Pass criteria:
   - Retrieval and groundedness both improve under one-change policy.
+  - Boundary-case root cause is explicitly classified:
+    - projection mismatch (`NAD83/WGS84`) OR
+    - retrieval configuration (`Top-K`/ranking/filter)
 - First troubleshooting action:
   - Revisit chunking and citation contract if groundedness remains low.
 
@@ -464,8 +513,11 @@ Mandatory additions for this chapter:
 - Required outputs:
   - `results/stage15/option_compare_table.csv`
   - `results/stage15/final_decision.md`
+  - `results/stage15/lab04_final_y_statement.md`
 - Pass criteria:
   - Decision explicitly selects `promote`, `hold`, or `rollback` with evidence.
+  - Final decision is documented in Y-Statement ADR format:
+    - "In the context of `<project>`, we decided to use `<option>` to fix `<failure>`, because `<evidence>`, and `<measured delta>`."
 - First troubleshooting action:
   - If options tie, pick lower-risk option and require follow-up validation.
 
@@ -488,5 +540,9 @@ Requirement: each module tutorial must cite at least one mapped source.
 - at least two options compared before final decision
 - verification rerun uses same data/split/eval profile
 - all decisions include before/after artifacts and signed label
+- ICV protocol audit trail is present for every lab decision
+- Lab 1 includes WSL2/CUDA contention evidence when runtime degradation is observed
+- Golden-set pass rate for prompt fixes is `>= 100%` on high-priority protected cases
+- Final decision artifact uses Y-Statement ADR format
 
 If any hard gate fails: decision cannot be `promote`.

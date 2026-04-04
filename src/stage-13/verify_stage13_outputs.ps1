@@ -12,15 +12,23 @@ $required = @(
     'lab1_capstone_baseline_metrics.csv',
     'lab1_capstone_layer_outputs.jsonl',
     'lab1_capstone_contract_status.csv',
+    'stage13/hardware_saturation_log.jsonl',
+    'stage13/wsl_boundary_performance.csv',
+    'stage13/contract_definitions.json',
+    'stage13/domain_baseline_checks.md',
     'lab2_solution_options.csv',
     'lab2_before_after_delta.csv',
     'lab2_improvement_decision.md',
     'lab3_incident_timeline.csv',
     'lab3_root_cause_analysis.md',
     'lab3_verification_rerun.csv',
+    'stage13/semantic_drift_incident_report.md',
+    'stage13/semantic_drift_trace_evidence.md',
     'lab4_release_gate_checklist.csv',
     'lab4_release_decision.md',
-    'lab4_rollback_plan.md'
+    'lab4_rollback_plan.md',
+    'stage13/final_release_review.md',
+    'stage13/rollback_drill.md'
 )
 
 $missing = New-Object System.Collections.Generic.List[string]

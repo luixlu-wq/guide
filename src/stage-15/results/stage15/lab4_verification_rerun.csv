@@ -1,0 +1,4 @@
+metric,before,after,delta
+quality_score,0.74,0.82,0.08
+latency_p95_ms,790.0,760.0,-30.0
+failure_rate,0.024,0.014,-0.01

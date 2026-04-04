@@ -29,6 +29,12 @@ You must be able to:
 - mentor teams with reproducible engineering workflow
 - deliver portfolio projects at industry standard
 
+Ownership standard (final-stage requirement):
+
+- move from implementer mindset to system-owner mindset
+- defend architecture choices with end-to-end measurable evidence
+- sign final release decisions using Y-Statement ADR format
+
 ---
 
 ## 2) Mastery Competency Matrix
@@ -41,12 +47,19 @@ Evaluate yourself across these dimensions:
 - observability and incident response
 - governance and release management
 - communication and leadership
+- dependency risk mapping and defensive architecture
 
 ### Maturity levels
 
 - Level 1: can execute known workflows with guidance
 - Level 2: can diagnose and improve workflows independently
 - Level 3: can design standards and lead cross-functional delivery
+
+Defensive ownership check (mandatory):
+
+- map external dependencies (for example LIO schema, Baidu Baike/API contracts)
+- define schema guard/circuit-breaker behavior for each dependency
+- prove fallback path and owner response plan for upstream changes
 
 ---
 
@@ -97,6 +110,12 @@ Running incident response with clear roles and communication.
 5. verify with rerun
 6. publish postmortem and actions
 
+Silent Sev1 drill requirement:
+
+- include at least one data-quality-driven Sev1 incident where system is "up" but outputs are unsafe/wrong.
+- example: 130/30 LSTM output becomes sector-concentrated (style drift) due to scaling defect.
+- execute kill-switch and stakeholder communication protocol before recovery.
+
 ### Related scripts
 
 - `topic02*_incident_command_*`
@@ -117,10 +136,13 @@ Operational controls that keep AI systems trustworthy.
 - policy validation for outputs
 - audit logs and traceability
 - release gate checklist
+- hardware lifecycle and power-efficiency governance (local RTX 5090 path)
+- compute efficiency gate (throughput and watts tracked together)
 
 ### Typical failure
 
 - fast iteration without governance causes silent risk accumulation.
+- runtime cost/performance drift is ignored because only quality metrics are reviewed.
 
 ### Related scripts
 
@@ -214,6 +236,11 @@ Senior engineers must understand runtime constraints, not only model APIs.
 2. detect and resolve mixed-device or OOM issues
 3. tune batch/precision with evidence
 4. include runtime risks in architecture and release reviews
+5. produce power-to-performance curve and choose operating point with governance signoff
+
+Required artifact:
+
+- `results/stage16/power_perf_curve.csv`
 
 ---
 
@@ -290,18 +317,23 @@ Required outputs:
 - `results/lab1_architecture_options.csv`
 - `results/lab1_tradeoff_matrix.csv`
 - `results/lab1_decision_record.md`
+- `results/stage16/system_mastery_rubric.md`
+- `results/stage16/dependency_risk_map.md`
 
 ## Lab 2: Incident Command Drill
 
 Goal:
 
 - execute incident command workflow from alert to closure.
+- handle at least one silent Sev1 scenario caused by data-quality/style drift.
 
 Required outputs:
 
 - `results/lab2_incident_timeline.csv`
 - `results/lab2_actions_and_owners.csv`
 - `results/lab2_postmortem.md`
+- `results/stage16/lab02_silent_sev1_timeline.csv`
+- `results/stage16/lab02_kill_switch_evidence.md`
 
 ## Lab 3: Quality and Governance Audit
 
@@ -314,18 +346,22 @@ Required outputs:
 - `results/lab3_audit_checklist.csv`
 - `results/lab3_risk_register.csv`
 - `results/lab3_audit_recommendation.md`
+- `results/stage16/compute_efficiency_report.csv`
 
 ## Lab 4: Industry Project Portfolio Pack
 
 Goal:
 
 - produce a hiring-ready project evidence package.
+- aggregate cumulative improvement evidence across all 16 stages.
 
 Required outputs:
 
 - `results/lab4_portfolio_index.md`
 - `results/lab4_case_study_summary.md`
 - `results/lab4_capability_matrix.csv`
+- `results/stage16/mastery_scorecard.csv`
+- `results/stage16/lab04_portfolio_evidence_pack.md`
 
 ---
 
@@ -418,8 +454,11 @@ Mandatory additions for this chapter:
 - Required outputs:
   - `results/stage16/review_findings.md`
   - `results/stage16/architecture_decision.md`
+  - `results/stage16/system_mastery_rubric.md`
+  - `results/stage16/dependency_risk_map.md`
 - Pass criteria:
   - Review includes risk, tradeoff, owner, fallback path.
+  - External dependency schema-change behavior is explicitly documented.
 - First troubleshooting action:
   - Add missing failure-mode section before signoff.
 
@@ -428,8 +467,11 @@ Mandatory additions for this chapter:
 - Required outputs:
   - `results/stage16/incident_drill_timeline.md`
   - `results/stage16/communication_log.md`
+  - `results/stage16/lab02_silent_sev1_timeline.csv`
+  - `results/stage16/lab02_kill_switch_evidence.md`
 - Pass criteria:
   - Response timeline is complete and decision points are traceable.
+  - Silent Sev1 (data-quality/style-drift) includes kill-switch execution proof.
 - First troubleshooting action:
   - Reassign unclear roles and rerun the drill.
 
@@ -438,8 +480,11 @@ Mandatory additions for this chapter:
 - Required outputs:
   - `results/stage16/governance_gap_report.md`
   - `results/stage16/control_remediation_plan.md`
+  - `results/stage16/compute_efficiency_report.csv`
+  - `results/stage16/power_perf_curve.csv`
 - Pass criteria:
   - Critical gaps have owners and due dates.
+  - Compute-efficiency operating point is selected with evidence.
 - First troubleshooting action:
   - Block release for unresolved critical controls.
 
@@ -448,8 +493,12 @@ Mandatory additions for this chapter:
 - Required outputs:
   - `results/stage16/portfolio_pack.md`
   - `results/stage16/mastery_readiness_score.csv`
+  - `results/stage16/mastery_scorecard.csv`
+  - `results/stage16/lab04_portfolio_evidence_pack.md`
+  - `results/stage16/lab04_final_y_statement.md`
 - Pass criteria:
   - Portfolio demonstrates measurable impact, decisions, and operational ownership.
+  - Final release decision is signed in Y-Statement ADR format.
 - First troubleshooting action:
   - Attach missing metrics and incident evidence before final submission.
 
@@ -471,5 +520,9 @@ Requirement: each module tutorial must cite at least one mapped source.
 - governance/security controls are treated as hard release constraints
 - portfolio pack shows measurable industry-level impact and decision traceability
 - all improvement claims include before/after evidence artifacts
+- dependency risk map covers critical upstream sources with fallback policy
+- silent Sev1 drill includes kill-switch and stakeholder communication evidence
+- compute efficiency is evaluated with throughput + power metrics
+- final approval includes signed Y-Statement ADR
 
 If any hard gate fails: Stage 16 completion cannot be approved.

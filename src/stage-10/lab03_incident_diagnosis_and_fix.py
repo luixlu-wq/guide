@@ -60,13 +60,23 @@ def main() -> None:
     ]
     write_text(RESULTS_DIR / "lab3_verification_notes.md", "\n".join(note))
 
+    decision = [
+        "# Lab 3 Decision",
+        "",
+        "- Decision: hold",
+        "- Reason: latency and error improved, but stability window is insufficient for promote.",
+        "- Next action: rerun same profile for two additional windows before release vote.",
+        "- Rollback trigger: if p95 exceeds 1000ms or error_rate exceeds 0.03.",
+    ]
+    write_text(RESULTS_DIR / "lab3_decision.md", "\n".join(decision))
+
     print("[INFO] Lab 3 outputs written:")
     print("- results/lab3_incident_baseline.csv")
     print("- results/lab3_solution_options.csv")
     print("- results/lab3_verification_rerun.csv")
     print("- results/lab3_verification_notes.md")
+    print("- results/lab3_decision.md")
 
 
 if __name__ == "__main__":
     main()
-

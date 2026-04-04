@@ -1,0 +1,4 @@
+mode,avg_power_w,throughput_per_sec
+conservative,280.0,1500.0
+balanced,332.0,1715.0
+max_perf,430.0,1760.0

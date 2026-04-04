@@ -37,6 +37,21 @@ Stage metadata:
 | `verification_report.md` | `results/lab2_verification_rerun.csv` | `mapped` | Auto-mapped from existing stage output (2026-04-04). |
 | `decision_log.md` | `results/lab4_release_decision.md` | `mapped` | Auto-mapped from existing stage output (2026-04-04). |
 | `reproducibility.md` | `results/reproducibility.md` | `mapped` | Alias placeholder created automatically on 2026-04-04; replace TODO content with stage-specific evidence. |
+| `agent_card_registry.json` | `results/agent_card_registry.json` | `mapped` | A2A capability-discovery artifact. |
+| `a2a_handoff_trace.jsonl` | `results/a2a_handoff_trace.jsonl` | `mapped` | Inter-agent handoff evidence artifact. |
+| `mcp_tool_contracts.md` | `results/mcp_tool_contracts.md` | `mapped` | MCP-compatible tool schema documentation. |
+| `nvfp4_throughput_quality.csv` | `results/nvfp4_throughput_quality.csv` | `mapped` | Blackwell precision tradeoff evidence. |
+| `prefix_cache_latency_profile.csv` | `results/prefix_cache_latency_profile.csv` | `mapped` | Prefix-caching loop-latency comparison. |
+| `agent_loop_latency_report.md` | `results/agent_loop_latency_report.md` | `mapped` | Agent loop latency interpretation report. |
+| `owasp_llm_v2_redteam_report.md` | `results/owasp_llm_v2_redteam_report.md` | `mapped` | OWASP 2026 red-team summary report. |
+| `indirect_injection_case_log.jsonl` | `results/indirect_injection_case_log.jsonl` | `mapped` | Indirect prompt injection incident evidence. |
+| `unbounded_consumption_guard.csv` | `results/unbounded_consumption_guard.csv` | `mapped` | Consumption guardrail evidence under loop pressure. |
+| `coordinate_projection_validation_report.md` | `results/coordinate_projection_validation_report.md` | `mapped` | GIS coordinate/projection validation report. |
+| `geojson_schema_guard_failures.csv` | `results/geojson_schema_guard_failures.csv` | `mapped` | GeoJSON schema/projection failure table. |
+| `loop_breaker_events.jsonl` | `results/loop_breaker_events.jsonl` | `mapped` | Loop-breaker state transition events. |
+| `mobile_latency_guard_report.md` | `results/mobile_latency_guard_report.md` | `mapped` | Mobile latency guard drill report. |
+| `architecture_decision_y_statement.md` | `results/architecture_decision_y_statement.md` | `mapped` | Mandatory Y-statement ADR output. |
+| `adr_scorecard_with_thresholds.csv` | `results/adr_scorecard_with_thresholds.csv` | `mapped` | Threshold-aware ADR scorecard. |
 
 ## Optional alias files (recommended)
 

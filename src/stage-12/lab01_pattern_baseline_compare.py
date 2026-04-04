@@ -36,6 +36,8 @@ def main() -> None:
         {"pattern": "multi_agent", "quality_score": 0.80, "latency_p95_ms": 820.0, "cost_index": 2.2, "failure_rate": 0.028},
     ]
     write_rows_csv(RESULTS_DIR / "lab1_pattern_metrics.csv", rows)
+    # Compatibility alias for runbook naming.
+    write_rows_csv(RESULTS_DIR / "pattern_baseline_table.csv", rows)
 
     matrix = [
         {"criterion": "knowledge_freshness_need", "llm_app": 2, "rag": 5, "agent": 4, "multi_agent": 4},
@@ -54,13 +56,16 @@ def main() -> None:
         "- Multi-agent only when role separation is clearly justified",
     ]
     write_text(RESULTS_DIR / "lab1_pattern_summary.md", "\n".join(summary))
+    # Compatibility alias for runbook naming.
+    write_text(RESULTS_DIR / "initial_decision.md", "\n".join(summary))
 
     print("[INFO] Lab 1 outputs written:")
     print("- results/lab1_pattern_metrics.csv")
     print("- results/lab1_tradeoff_matrix.csv")
     print("- results/lab1_pattern_summary.md")
+    print("- results/pattern_baseline_table.csv")
+    print("- results/initial_decision.md")
 
 
 if __name__ == "__main__":
     main()
-

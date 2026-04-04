@@ -7,7 +7,9 @@ Deterministic helpers for stage topic demos and lab artifact generation.
 from __future__ import annotations
 
 import csv
+from datetime import datetime, timezone
 import json
+import os
 import random
 import time
 from pathlib import Path
@@ -17,10 +19,12 @@ import numpy as np
 
 THIS_DIR = Path(__file__).resolve().parent
 RESULTS_DIR = THIS_DIR / "results"
+CANONICAL_RESULTS_DIR = RESULTS_DIR / "stage16"
 
 
 def ensure_results_dir() -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    CANONICAL_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def set_seed(seed: int = 42) -> None:
@@ -182,4 +186,116 @@ def build_delta_rows(before: Dict[str, float], after: Dict[str, float]) -> List[
             }
         )
     return rows
+
+
+def write_rows_csv_dual(filename: str, rows: Sequence[Dict[str, Any]]) -> None:
+    """Write CSV to both legacy `results/` and canonical `results/stage16/` paths."""
+    write_rows_csv(RESULTS_DIR / filename, rows)
+    write_rows_csv(CANONICAL_RESULTS_DIR / filename, rows)
+
+
+def write_text_dual(filename: str, text: str) -> None:
+    """Write text artifact to both legacy and canonical result folders."""
+    write_text(RESULTS_DIR / filename, text)
+    write_text(CANONICAL_RESULTS_DIR / filename, text)
+
+
+def resolve_project_profile() -> str:
+    """Resolve project context for Stage 16 ownership artifacts."""
+    raw = os.getenv("STAGE16_PROJECT", "Ontario_GIS").strip()
+    return raw if raw else "Ontario_GIS"
+
+
+def build_system_mastery_rubric(project: str) -> str:
+    """Create system mastery rubric with defensive ownership checks."""
+    return (
+        "# System Mastery Rubric\n\n"
+        f"- Project context: `{project}`\n"
+        "- Ownership gate: architecture decisions include measurable tradeoff evidence.\n"
+        "- Defensive design gate: upstream dependency risks are mapped with fallback policy.\n"
+        "- Incident gate: silent Sev1 drill includes kill-switch and communication evidence.\n"
+        "- Governance gate: power-efficiency and quality gates are enforced.\n"
+    )
+
+
+def build_dependency_risk_map() -> str:
+    """Create dependency risk map for external data providers."""
+    return (
+        "# Dependency Risk Map\n\n"
+        "| Dependency | Risk Event | Detection | Guardrail | Owner |\n"
+        "|---|---|---|---|---|\n"
+        "| Land Information Ontario (LIO) schema | Upstream schema change | Schema diff check in ingest job | Schema guard + circuit breaker to safe mode | data_owner |\n"
+        "| Baidu Baike content/API | Field contract drift or content format change | contract validation and parse error monitor | fallback parser + retrieval quarantine | retrieval_owner |\n"
+    )
+
+
+def build_silent_sev1_timeline() -> List[Dict[str, Any]]:
+    """Generate silent Sev1 incident timeline for style-drift scenario."""
+    return [
+        {"minute": 0, "event": "sev1_declared", "class": "silent_data_quality", "owner": "incident_commander"},
+        {"minute": 4, "event": "style_drift_detected_130_30", "class": "sector_concentration", "owner": "trading_owner"},
+        {"minute": 7, "event": "kill_switch_triggered", "class": "risk_control", "owner": "incident_commander"},
+        {"minute": 10, "event": "stakeholder_notification_sent", "class": "comms", "owner": "comms_owner"},
+        {"minute": 22, "event": "root_cause_hypothesis_logged", "class": "feature_scaling_fault", "owner": "ml_owner"},
+        {"minute": 35, "event": "service_suspended_until_fix_verified", "class": "containment", "owner": "incident_commander"},
+    ]
+
+
+def build_kill_switch_evidence() -> str:
+    """Return kill-switch evidence narrative for silent Sev1 scenario."""
+    return (
+        "# Kill-Switch Evidence\n\n"
+        "- Trigger condition: sector concentration > 80% in 130/30 output.\n"
+        "- Observed concentration: 90% single-sector exposure.\n"
+        "- Action: automated strategy suspension executed.\n"
+        "- Stakeholder notifications: sent to trading, risk, and ops channels.\n"
+        "- Resume condition: scaling fix verified and concentration back within policy.\n"
+    )
+
+
+def build_compute_efficiency_rows() -> List[Dict[str, Any]]:
+    """Generate compute efficiency comparison for local RTX 5090 governance."""
+    return [
+        {
+            "optimization_mode": "bf16_baseline",
+            "throughput_per_sec": 1720.0,
+            "avg_power_w": 410.0,
+            "tokens_or_samples_per_watt": 4.20,
+            "decision": "baseline",
+        },
+        {
+            "optimization_mode": "nvfp4_or_optimized_batching",
+            "throughput_per_sec": 1715.0,
+            "avg_power_w": 332.0,
+            "tokens_or_samples_per_watt": 5.17,
+            "decision": "candidate",
+        },
+    ]
+
+
+def build_power_perf_curve_rows() -> List[Dict[str, Any]]:
+    """Create power-to-performance curve points for governance review."""
+    return [
+        {"mode": "conservative", "avg_power_w": 280.0, "throughput_per_sec": 1500.0},
+        {"mode": "balanced", "avg_power_w": 332.0, "throughput_per_sec": 1715.0},
+        {"mode": "max_perf", "avg_power_w": 430.0, "throughput_per_sec": 1760.0},
+    ]
+
+
+def build_mastery_scorecard_rows(project: str) -> List[Dict[str, Any]]:
+    """Aggregate cross-stage deltas into final mastery scorecard."""
+    return [
+        {"stage": "7", "baseline_metric": "rag_grounding", "improved_metric": "rag_grounding", "delta": "+0.18", "business_or_ops_impact": "more reliable tourism answers"},
+        {"stage": "8", "baseline_metric": "prompt_format_valid", "improved_metric": "prompt_format_valid", "delta": "+0.19", "business_or_ops_impact": "fewer schema violations"},
+        {"stage": "14", "baseline_metric": "net_return_after_cost", "improved_metric": "net_return_after_cost", "delta": "+0.011", "business_or_ops_impact": "better trading robustness"},
+        {"stage": "16", "baseline_metric": "release_governance_readiness", "improved_metric": "release_governance_readiness", "delta": "+0.22", "business_or_ops_impact": f"{project} ownership evidence complete"},
+    ]
+
+
+def build_y_statement(project: str) -> str:
+    """Create final Y-Statement ADR for Stage 16 portfolio release."""
+    return (
+        "# Final Y-Statement ADR\n\n"
+        f"In the context of {project}, we decided to use a defensive ownership workflow over ad-hoc release practices because evidence showed stronger reliability, clear incident command traceability, and measurable efficiency gains on local runtime.\n"
+    )
 

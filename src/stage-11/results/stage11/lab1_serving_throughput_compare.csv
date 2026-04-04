@@ -1,0 +1,4 @@
+stack,throughput_rps
+ollama_local,2.1
+vllm_server,3.8
+ray_serve_path,3.3

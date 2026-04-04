@@ -1,0 +1,5 @@
+stage,baseline_metric,improved_metric,delta,business_or_ops_impact
+7,rag_grounding,rag_grounding,+0.18,more reliable tourism answers
+8,prompt_format_valid,prompt_format_valid,+0.19,fewer schema violations
+14,net_return_after_cost,net_return_after_cost,+0.011,better trading robustness
+16,release_governance_readiness,release_governance_readiness,+0.22,Ontario_GIS ownership evidence complete

@@ -638,6 +638,145 @@ If a plan already uses another path, keep it and add a path mapping note in stag
 
 - Do not delete prior deliverable names from existing plan text.
 - Add normalization as aliases/mappings only.
+
+---
+
+## 22.1) Stage 11 Expert-Tier Hard-Gate Addendum (Mirror of Chapter 11 Section 24)
+
+This section is additive-only and mandatory for Stage 11 acceptance.  
+It mirrors the Chapter 11 infrastructure addendum and must be applied in scripts, labs, notebooks, and release decisions.
+
+### 22.1.1) Blackwell Precision and Throughput Gate (RTX 5090)
+
+Mandatory requirements:
+
+- benchmark baseline precision path (`bf16` or `fp16`) versus Blackwell path (`fp4` where supported)
+- compare both performance and quality on the same fixed query/eval workload
+- include VRAM fragmentation tracking, not only allocated memory
+
+Required artifact:
+
+- `results/stage11/fp4_throughput_quality_tradeoff.csv`
+
+Hard gate:
+
+- no promotion if precision decision is based on throughput only without quality delta evidence
+
+### 22.1.2) WSL2 Production Hardening Gate
+
+Mandatory requirements:
+
+- keep model weights and active vector indexes inside WSL filesystem (no hot-path `/mnt/c/...`)
+- validate telemetry/trace transport with WSL networking configuration
+- run before/after I/O comparison after hardening
+
+Required artifacts:
+
+- `results/stage11/wsl_io_before_after.csv`
+- `results/stage11/wsl_network_trace_check.md`
+
+Hard gate:
+
+- no promotion if storage path or trace transport is unverified
+
+### 22.1.3) High-Availability and Circuit-Breaker Gate
+
+Mandatory requirements:
+
+- define infra circuit breaker thresholds:
+  - `gpu_temp_c > 85`
+  - `vram_used_ratio > 0.95`
+- define fallback behavior (`cpu fallback` or controlled `503`)
+- validate Qdrant durability with persistence/WAL recovery drill
+
+Required artifacts:
+
+- `results/stage11/circuit_breaker_events.jsonl`
+- `results/stage11/qdrant_persistence_recovery.md`
+
+Hard gate:
+
+- no promotion if breaker behavior is undefined or fallback is not verified by drill evidence
+
+### 22.1.4) Streaming Infrastructure (SSE) and TTFT Gate
+
+Mandatory requirements:
+
+- provide SSE streaming endpoint behavior for user-facing responses
+- measure and report `TTFT` plus end-to-end latency
+- verify client-disconnect cancellation to reclaim compute/VRAM
+
+Required artifacts:
+
+- `results/stage11/sse_ttft_metrics.csv`
+- `results/stage11/sse_disconnect_recovery.md`
+
+Hard gate:
+
+- no promotion if streaming path cannot prove cancellation/recovery behavior
+
+### 22.1.5) Infrastructure-as-Code Reproducibility Gate
+
+Mandatory requirements:
+
+- one-command local stack startup using `docker compose`
+- stack includes:
+  - model runtime (`ollama` or `vllm`)
+  - vector DB (`qdrant`)
+  - telemetry collector (`opentelemetry-collector`)
+- include service health checks and shutdown procedure
+
+Required artifacts:
+
+- `results/stage11/local_stack_boot_report.md`
+- `results/stage11/service_health_snapshot.json`
+
+Hard gate:
+
+- no promotion if environment bootstrap is not reproducible from documented one-command startup
+
+### 22.1.6) Go/No-Go Unified Evidence Schema Gate
+
+Mandatory release decision file:
+
+- `results/stage11/release_readiness.json`
+
+Required fields:
+
+- `p95_latency_ms`
+- `token_throughput_per_sec`
+- `error_rate_by_class` (boundary/hardware/model/retrieval/operations)
+- `decision`
+- `evidence_refs`
+
+Hard gate:
+
+- decision must default to `hold` if any required field is missing
+
+### 22.1.7) Module-Level Missing Item Closure (Required Deliverables)
+
+Add these as explicit required outcomes:
+
+- Module 3 High-Performance Serving:
+  - include in-flight/continuous batching benchmark
+  - output: `results/stage11/throughput_vs_latency_batch_profile.csv`
+- Module 5 Observability with OTel:
+  - trace one GIS request end-to-end (`API -> retrieval -> generation`)
+  - output: `results/stage11/otel_trace_path_validation.md`
+- Module 7 Failure Recovery Drill:
+  - simulate VRAM leak symptoms and verify controlled recovery
+  - output: `results/stage11/incident_postmortem_infra.md`
+
+### 22.1.8) Stage 11 Promotion Rule Update (Strict)
+
+For Stage 11, promotion is allowed only if all are true:
+
+1. existing Stage 11 hard gates pass
+2. all Section 22.1 artifacts exist with valid evidence
+3. release decision file is complete and internally consistent
+4. at least one failure drill proves safe recovery under stress
+
+If any item fails, final decision must be `hold` or `rollback`.
 - When old and canonical names both exist, the stage README must state the mapping.
 
 
@@ -703,3 +842,132 @@ Each module must cite at least one source from:
 - retrieval p95 and recall targets both pass at scale
 - incident drill produces complete timeline and prevention actions
 - all improvement claims include before/after artifacts
+
+## 28) Expert-Tier Infrastructure Addendum (2026-04-04, Additive-Only)
+
+This addendum is additive and does not remove prior requirements.
+It upgrades Stage 11 to 2026 production depth for:
+
+- Blackwell-class local hardware (RTX 5090)
+- high-throughput serving under variable request patterns
+- Ontario GIS-scale retrieval/index operations
+- infrastructure resilience in WSL2 and local deployment contexts
+
+### 28.1 Blackwell-Native Profiling (Mandatory)
+
+Lab 2 must include profiler-backed diagnostics beyond basic GPU utilization.
+
+Required tooling path:
+
+- NVIDIA Nsight Systems (`nsys`)
+- NVIDIA Nsight Compute (`ncu`)
+
+Required metrics to collect:
+
+- Tensor Core/FP4 kernel occupancy proxy (`fp4_compute_utilization`)
+- `sm_clock_throttle_events`
+- memory pressure and kernel timeline evidence
+
+Acceptance intent:
+
+- distinguish compute saturation vs memory/transfer bottlenecks before tuning decisions.
+
+### 28.2 In-Flight (Continuous) Batching (Mandatory)
+
+Stage 11 serving module must explicitly teach continuous batching behavior in vLLM/TensorRT-style serving paths.
+
+Required workflow:
+
+1. fixed mixed-size request profile
+2. compare static batching vs in-flight batching
+3. report throughput/latency tradeoff under same load windows
+
+Required artifact:
+
+- `results/stage11/throughput_vs_latency_batch_profile.csv`
+
+### 28.3 Vector DB Scale Tuning for Large GIS Data (Mandatory)
+
+Add Qdrant HNSW and quantization tuning drill with explicit parameter evidence.
+
+Required tuning dimensions:
+
+- HNSW `m`
+- HNSW `ef_construct`
+- query-time recall/latency tradeoff
+- scalar quantization (int8) path comparison
+
+Required validation target:
+
+- major memory reduction with bounded recall loss (target guidance: <1% recall drop where feasible for selected workload).
+
+Required artifact:
+
+- `results/stage11/vector_recall_vs_latency_matrix.csv`
+
+### 28.4 WSL2 Production Hardening (Mandatory)
+
+Add dedicated WSL2 infra operations guidance in Stage 11 infra module.
+
+Required operational rules:
+
+- keep model weights and vector indices inside WSL filesystem (avoid `/mnt/c` for hot-path I/O)
+- document mirrored networking mode in `.wslconfig` for telemetry/collector connectivity
+- verify storage path and networking configuration before benchmark runs
+
+Required evidence:
+
+- storage and network configuration notes in reproducibility artifacts.
+
+### 28.5 Infrastructure Circuit Breaker (Mandatory)
+
+Add stateful infra protection policy at serving layer.
+
+Required trigger examples:
+
+- GPU temperature > 85C
+- `vram_fragmentation_ratio` > 0.90
+
+Required behavior:
+
+- trip infra circuit breaker and route to lightweight fallback (CPU path) or controlled `503` with retry policy
+- prevent full process crash and uncontrolled degradation
+
+Lab requirement:
+
+- `lab04_infra_incident_recovery.py` must simulate VRAM-leak-like pressure and verify protection path.
+
+### 28.6 Evidence Schema Expansion (Stage 11 Required Fields)
+
+In addition to existing canonical fields, Stage 11 comparison tables should include:
+
+- `p99_latency_ms`
+- `vram_fragmentation_ratio`
+- `tokens_per_watt`
+- `fp4_compute_utilization`
+- `sm_clock_throttle_events`
+
+### 28.7 Unified Results Folder Expansion (`results/stage11/`)
+
+Add these canonical outputs:
+
+- `hardware_saturation_profile.jsonl`
+- `vector_recall_vs_latency_matrix.csv`
+- `incident_postmortem_infra.md`
+- `throughput_vs_latency_batch_profile.csv`
+
+### 28.8 Script/Lab Mapping Additions (Recommended)
+
+Extend Stage 11 script package expectations with:
+
+- `topic08*_inflight_batching_*`
+- `topic09*_blackwell_profiling_*`
+- `topic10*_wsl2_hardening_*`
+- `topic11*_infra_circuit_breaker_*`
+
+Recommended additive labs:
+
+- `lab05_blackwell_profile_and_batching.py`
+- `lab06_qdrant_hnsw_quantization_tuning.py`
+- `lab07_wsl2_hardening_validation.py`
+- `lab08_infra_circuit_breaker_drill.py`

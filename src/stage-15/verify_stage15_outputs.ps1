@@ -9,15 +9,31 @@ $required = @(
     'lab1_ml_baseline_metrics.csv',
     'lab1_ml_failure_analysis.md',
     'lab1_ml_verification_rerun.csv',
+    'stage15/ml_failure_statement.md',
+    'stage15/ml_root_cause.md',
+    'stage15/icv_protocol_report.md',
+    'stage15/lab01_wsl_cuda_contention_report.md',
+    'stage15/lab01_gpu_telemetry_log.csv',
     'lab2_prompt_cases.csv',
     'lab2_prompt_options.csv',
     'lab2_prompt_verification.csv',
+    'stage15/prompt_regression_table.csv',
+    'stage15/prompt_fix_note.md',
+    'stage15/lab02_prompt_regression.md',
     'lab3_retrieval_baseline.csv',
     'lab3_retrieval_options.csv',
     'lab3_retrieval_verification.csv',
+    'stage15/retrieval_diagnostics.csv',
+    'stage15/groundedness_delta.csv',
+    'stage15/lab03_gis_boundary_failure_report.md',
+    'stage15/lab03_projection_vs_topk_compare.csv',
     'lab4_solution_compare.csv',
     'lab4_verification_rerun.csv',
-    'lab4_decision_record.md'
+    'lab4_decision_record.md',
+    'stage15/option_compare_table.csv',
+    'stage15/final_decision.md',
+    'stage15/lab04_option_compare_evidence.csv',
+    'stage15/lab04_final_y_statement.md'
 )
 
 $missing = New-Object System.Collections.Generic.List[string]

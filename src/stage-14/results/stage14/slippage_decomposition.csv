@@ -1,0 +1,4 @@
+regime,commission_cost,spread_cost,market_impact_lambda,sigma,order_size,adv,impact_cost,gross_return,net_return
+low_vol,0.0012,0.0025,0.95,0.015,250000.0,5000000.0,0.003186,0.138,0.131114
+medium_vol,0.0012,0.0045,1.05,0.024,350000.0,4000000.0,0.007454,0.136,0.122846
+high_vol,0.0012,0.0072,1.2,0.038,450000.0,3200000.0,0.0171,0.133,0.1075

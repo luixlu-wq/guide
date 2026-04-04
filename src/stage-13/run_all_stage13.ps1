@@ -1,5 +1,6 @@
 ﻿param(
-    [string]$PythonExe = "python"
+    [string]$PythonExe = "python",
+    [string]$Lab = ""
 )
 
 Set-StrictMode -Version Latest
@@ -17,9 +18,23 @@ $scripts = @(
     'lab01_capstone_baseline.py'
 )
 
+if ($Lab -ne "") {
+    $candidate = "$Lab.py"
+    if (Test-Path (Join-Path $scriptDir $candidate)) {
+        $scripts = @($candidate)
+    }
+    elseif (Test-Path (Join-Path $scriptDir $Lab)) {
+        $scripts = @($Lab)
+    }
+    else {
+        throw "Requested lab script not found: $Lab"
+    }
+}
+
 Write-Host "Stage 13 fail-fast runner" -ForegroundColor Cyan
 Write-Host "Python executable: $PythonExe"
 Write-Host "Script directory : $scriptDir"
+if ($Lab -ne "") { Write-Host "Selected lab   : $Lab" }
 
 foreach ($name in $scripts) {
     $path = Join-Path $scriptDir $name

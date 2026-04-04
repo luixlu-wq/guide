@@ -1,0 +1,4 @@
+stack,latency_p50_ms,latency_p95_ms,error_rate
+ollama_local,420.0,740.0,0.014
+vllm_server,295.0,530.0,0.01
+ray_serve_path,315.0,570.0,0.009

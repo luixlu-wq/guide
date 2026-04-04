@@ -1,0 +1,5 @@
+criterion,llm_app,rag,agent,multi_agent
+knowledge_freshness_need,2,5,4,4
+tool_action_need,1,2,5,5
+latency_sensitivity,5,4,2,1
+operational_complexity_tolerance,5,4,2,1

@@ -1,0 +1,4 @@
+metric,target,actual,pass_or_fail
+long_exposure,1.3,1.3,pass
+short_exposure,-0.3,-0.3,pass
+gross_exposure,1.6,1.6,pass
