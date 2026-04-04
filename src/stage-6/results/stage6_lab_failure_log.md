@@ -1,5 +1,6 @@
 # Stage 6 Failure Log
-total_cases=30
+dataset_profile=gis
+total_cases=20
 failure_cases=0
 
 ## Failure Details

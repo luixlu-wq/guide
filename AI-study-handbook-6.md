@@ -179,6 +179,7 @@ Runnable examples:
 - [topic00a_pytorch_cuda_agent_simple.py](src/stage-6/topic00a_pytorch_cuda_agent_simple.py)
 - [topic00_pytorch_cuda_agent_intermediate.py](src/stage-6/topic00_pytorch_cuda_agent_intermediate.py)
 - [topic00c_pytorch_cuda_agent_advanced.py](src/stage-6/topic00c_pytorch_cuda_agent_advanced.py)
+- [topic00m_local_model_capability_validation.py](src/stage-6/topic00m_local_model_capability_validation.py)
 
 Short answer:
 
@@ -235,148 +236,17 @@ python .\src\stage-6\topic00c_pytorch_cuda_agent_advanced.py
 
 Complete inline examples (operatable):
 
-Example A - Simple: device-aware risk scoring tool
+Code moved to lab/example scripts:
 
-```python
-# Complete runnable example:
-# 1) selects cpu/cuda device
-# 2) computes a weighted risk score with torch tensors
-# 3) prints a policy decision that an agent can use
+- Example A (simple): [topic00a_pytorch_cuda_agent_simple.py](src/stage-6/topic00a_pytorch_cuda_agent_simple.py)
+- Example B (intermediate): [topic00_pytorch_cuda_agent_intermediate.py](src/stage-6/topic00_pytorch_cuda_agent_intermediate.py)
+- Example C (advanced): [topic00c_pytorch_cuda_agent_advanced.py](src/stage-6/topic00c_pytorch_cuda_agent_advanced.py)
+- Combined chapter code lab: [lab00_pytorch_cuda_agent_examples.py](src/stage-6/lab00_pytorch_cuda_agent_examples.py)
 
-import torch
+Run:
 
-
-def compute_risk_score(features: dict[str, float]) -> float:
-    # Select CUDA when available; otherwise use CPU.
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # Convert feature dictionary into tensor in fixed field order.
-    x = torch.tensor(
-        [
-            features["security_signal"],
-            features["outage_signal"],
-            features["billing_signal"],
-        ],
-        dtype=torch.float32,
-        device=device,
-    )
-
-    # Model weights are fixed for this teaching example.
-    w = torch.tensor([0.6, 0.25, 0.15], dtype=torch.float32, device=device)
-
-    # Dot product computes a single risk score.
-    score = torch.dot(x, w).item()
-    return float(score)
-
-
-if __name__ == "__main__":
-    sample = {
-        "security_signal": 0.9,
-        "outage_signal": 0.3,
-        "billing_signal": 0.2,
-    }
-    risk = compute_risk_score(sample)
-    print("risk_score:", round(risk, 4))
-    print("needs_human_approval:", risk >= 0.7)
-```
-
-Example B - Intermediate: retrieval reranking with cosine similarity
-
-```python
-# Complete runnable example:
-# 1) builds query/doc vectors
-# 2) runs cosine similarity in torch
-# 3) returns ranking for agent retrieval context
-
-import torch
-
-
-def cosine_rank(query_vec, doc_vecs):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # Move query and documents to same device for consistent compute.
-    q = torch.tensor(query_vec, dtype=torch.float32, device=device)
-    d = torch.tensor(doc_vecs, dtype=torch.float32, device=device)
-
-    # Normalize vectors before dot product to obtain cosine similarity.
-    qn = q / (q.norm() + 1e-12)
-    dn = d / (d.norm(dim=1, keepdim=True) + 1e-12)
-    scores = dn @ qn
-
-    # Sort descending: higher score means more relevant document.
-    order = torch.argsort(scores, descending=True).detach().cpu().tolist()
-    return [(idx, float(scores[idx].detach().cpu().item())) for idx in order]
-
-
-if __name__ == "__main__":
-    query = [0.9, 0.1, 0.0, 0.2]
-    docs = [
-        [0.8, 0.1, 0.0, 0.3],
-        [0.1, 0.9, 0.2, 0.1],
-        [0.7, 0.2, 0.1, 0.1],
-    ]
-    ranked = cosine_rank(query, docs)
-    print("ranked_docs:", [(i, round(s, 4)) for i, s in ranked])
-```
-
-Example C - Advanced: mini training loop for agent policy scoring
-
-```python
-# Complete runnable example:
-# 1) creates synthetic training data
-# 2) trains a tiny linear model with forward/backward/optimizer steps
-# 3) predicts risk probability for one new case
-
-import torch
-
-
-def train_policy_model(epochs: int = 120):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # Synthetic dataset:
-    # columns = [security_signal, outage_signal, billing_signal]
-    # target  = 1 if case should be escalated to human approval
-    X = torch.tensor(
-        [
-            [0.9, 0.2, 0.1],
-            [0.8, 0.4, 0.2],
-            [0.2, 0.8, 0.2],
-            [0.1, 0.2, 0.9],
-            [0.7, 0.6, 0.2],
-            [0.2, 0.1, 0.7],
-        ],
-        dtype=torch.float32,
-        device=device,
-    )
-    y = torch.tensor([[1.0], [1.0], [1.0], [0.0], [1.0], [0.0]], dtype=torch.float32, device=device)
-
-    # Tiny model for binary risk scoring.
-    model = torch.nn.Sequential(torch.nn.Linear(3, 1), torch.nn.Sigmoid()).to(device)
-    loss_fn = torch.nn.BCELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.05)
-
-    # Standard training loop.
-    for epoch in range(epochs):
-        optimizer.zero_grad()       # clear old gradients
-        pred = model(X)             # forward pass
-        loss = loss_fn(pred, y)     # compute loss
-        loss.backward()             # backward pass
-        optimizer.step()            # update parameters
-
-        if epoch % 30 == 0:
-            print(f"epoch={epoch:03d} loss={loss.item():.4f}")
-
-    return model, device
-
-
-if __name__ == "__main__":
-    model, device = train_policy_model()
-
-    # New case for inference in agent pipeline.
-    x_new = torch.tensor([[0.85, 0.30, 0.15]], dtype=torch.float32, device=device)
-    prob = float(model(x_new).item())
-    print("predicted_risk_probability:", round(prob, 4))
-    print("needs_human_approval:", prob >= 0.7)
+```powershell
+python .\src\stage-6\lab00_pytorch_cuda_agent_examples.py
 ```
 
 CUDA troubleshooting quick checks:
@@ -385,6 +255,21 @@ CUDA troubleshooting quick checks:
 - avoid device mismatch: model/tensors must be on same device
 - if OOM: reduce batch size or vector count
 - synchronize before timing CUDA paths for accurate latency
+
+Cold-start capability gate (recommended before orchestration coding):
+
+- Validate local model schema-following ability first, especially for quantized local models.
+- Bridge practical runtime to Ollama/vLLM capability checks.
+- Use:
+  - [topic00m_local_model_capability_validation.py](src/stage-6/topic00m_local_model_capability_validation.py)
+
+What to measure:
+
+- schema adherence rate across fixed tool schemas
+- tool argument accuracy
+- mean latency per schema case
+
+If schema adherence is low, improve model/runtime choice before building complex agent loops.
 
 ---
 
@@ -460,6 +345,18 @@ Operatable rule:
 
 - Build baseline workflow first, then compare agent variant on same eval set.
 
+Visual hierarchy tags:
+
+- `[Workflow Chain]`:
+  - `A -> B -> C -> Done`
+- `[Agent Loop]`:
+  - `Plan -> Act -> Observe -> Re-plan -> ... -> Stop/Budget Gate`
+
+Instructional note:
+
+- If a task can stay in `[Workflow Chain]`, prefer it.
+- Move to `[Agent Loop]` only when dynamic decision value is clear and measurable.
+
 Comparison table:
 
 | System | Strength | Risk | Best use |
@@ -494,34 +391,26 @@ What a good tool has:
 
 Data declaration template for every tool example:
 
-```text
-Data: <name and source>
-Records/Samples: <count>
-Input schema: <fields and types>
-Output schema: <fields and types>
-Split/Eval policy: <fixed set rule>
-Type: <workflow/agent/multi-agent/eval>
-```
+Data: `<name and source>`  
+Records/Samples: `<count>`  
+Input schema: `<fields and types>`  
+Output schema: `<fields and types>`  
+Split/Eval policy: `<fixed set rule>`  
+Type: `<workflow/agent/multi-agent/eval>`
 
 Operatable mini tool contract:
 
-```json
-{
-  "name": "get_stock_snapshot",
-  "input_schema": {
-    "symbol": "string",
-    "start_date": "YYYY-MM-DD",
-    "end_date": "YYYY-MM-DD"
-  },
-  "output_schema": {
-    "symbol": "string",
-    "rows": "int",
-    "close_prices": "array<float>",
-    "return_5d": "float"
-  },
-  "errors": ["INVALID_SYMBOL", "TIMEOUT", "EMPTY_DATA"]
-}
-```
+- `name`: `get_stock_snapshot`
+- `input_schema`:
+  - `symbol: string`
+  - `start_date: YYYY-MM-DD`
+  - `end_date: YYYY-MM-DD`
+- `output_schema`:
+  - `symbol: string`
+  - `rows: int`
+  - `close_prices: array<float>`
+  - `return_5d: float`
+- `errors`: `INVALID_SYMBOL`, `TIMEOUT`, `EMPTY_DATA`
 
 Common beginner mistake:
 
@@ -552,6 +441,8 @@ Required controls:
 - memory write policy
 - memory TTL/expiry
 - source tagging and confidence score
+- state checkpointing after major steps/tool calls
+- resume-from-checkpoint path for long-running loops
 
 Simple memory policy example:
 
@@ -563,6 +454,18 @@ Common beginner mistake:
 
 - Mistake: storing everything.
 - Fix: define `what can be stored` and `when to discard`.
+
+Time-travel debugger pattern (must know):
+
+- Save checkpoint after each critical step.
+- If run fails at step N, reload checkpoint and continue from N instead of restarting at step 1.
+- This pattern is implemented in:
+  - [topic03_memory_retrieval_intermediate.py](src/stage-6/topic03_memory_retrieval_intermediate.py)
+
+Checkpoint artifacts to inspect:
+
+- `results/stage6/topic03_memory_checkpoint.json`
+- `results/stage6/topic03_memory_recovery_report.csv`
 
 ---
 
@@ -622,10 +525,7 @@ HITL checkpoints (example):
 
 Operatable gate example:
 
-```text
-if action in ["send_email", "create_ticket", "execute_trade"] and risk_score >= 0.7:
-    require_human_approval = true
-```
+`if action in ["send_email", "create_ticket", "execute_trade"] and risk_score >= 0.7 -> require_human_approval = true`
 
 Common beginner mistake:
 
@@ -660,6 +560,12 @@ Core metrics:
 - average steps per task
 - p95 latency
 - cost per task
+- token efficiency (`total_tokens_used / successful_tool_calls`)
+
+Token-efficiency interpretation:
+
+- rising value usually means prompt drift or repeated low-value tool calls
+- stable/lower value means agent is converting token budget into useful actions more efficiently
 
 Regression rule:
 
@@ -702,6 +608,15 @@ When to use MCP:
 When to use A2A:
 
 - you need independent agents to coordinate tasks.
+
+3-question protocol decision tree:
+
+1. Is tool/resource running on different server/language boundary?
+   - Yes -> prefer MCP.
+2. Do two agents need negotiation/coordination as peers?
+   - Yes -> prefer A2A.
+3. Is capability just a local Python class/function in same repo?
+   - Yes -> use standard class/function call; do not over-engineer protocol layer.
 
 Common beginner mistake:
 
@@ -761,6 +676,19 @@ High-frequency risks:
 - over-permissioned tools
 - retry storms under failure
 
+Sovereignty gate (Ontario GIS context):
+
+- If request includes sensitive GeoJSON/provincial identifiers, block raw egress to external endpoints by default.
+- Apply redact/generalize policy before any allowed external transfer.
+- Track `privacy_leak_rate` as mandatory security metric.
+
+Lab implementation:
+
+- [lab04_secure_agent_operations.py](src/stage-6/lab04_secure_agent_operations.py)
+- key outputs include:
+  - `results/lab4_privacy_leak_report.csv`
+  - `results/lab4_data_boundary_policy.md`
+
 Mitigation baseline:
 
 - strict allowlist tools
@@ -803,6 +731,7 @@ Required ladders:
 - `topic00a_pytorch_cuda_agent_simple.py`
 - `topic00_pytorch_cuda_agent_intermediate.py`
 - `topic00c_pytorch_cuda_agent_advanced.py`
+- `topic00m_local_model_capability_validation.py`
 
 1. Workflow vs agent
 - `topic01a_workflow_first_simple.py`
@@ -837,10 +766,12 @@ Required ladders:
 7. Operations and security
 - `topic08a_budget_controls_simple.py`
 - `topic08_latency_cost_optimization_intermediate.py`
+- `topic08c_slo_regression_gate_advanced.py`
 - `topic09a_prompt_injection_defense_simple.py`
 - `topic09_policy_and_permissions_intermediate.py`
 
 8. Labs
+- `lab00_pytorch_cuda_agent_examples.py`
 - `lab01_support_triage_agent.py`
 - `lab02_finance_research_agent.py`
 - `lab03_multi_agent_ops_assistant.py`
@@ -864,6 +795,7 @@ Primary runnable lab script:
 
 Additional runnable labs:
 
+- [lab00_pytorch_cuda_agent_examples.py](src/stage-6/lab00_pytorch_cuda_agent_examples.py)
 - [lab02_finance_research_agent.py](src/stage-6/lab02_finance_research_agent.py)
 - [lab03_multi_agent_ops_assistant.py](src/stage-6/lab03_multi_agent_ops_assistant.py)
 - [lab04_secure_agent_operations.py](src/stage-6/lab04_secure_agent_operations.py)
@@ -871,7 +803,9 @@ Additional runnable labs:
 Run commands:
 
 ```powershell
-python .\src\stage-6\lab01_support_triage_agent.py
+python .\src\stage-6\lab00_pytorch_cuda_agent_examples.py
+python .\src\stage-6\lab01_support_triage_agent.py --profile gis
+python .\src\stage-6\lab01_support_triage_agent.py --profile generic
 python .\src\stage-6\lab02_finance_research_agent.py
 python .\src\stage-6\lab03_multi_agent_ops_assistant.py
 python .\src\stage-6\lab04_secure_agent_operations.py
@@ -893,7 +827,8 @@ Build one operatable agent pipeline that:
 
 Data source:
 
-- local file: `red-book/data/stage-6/tickets_sample.csv` (create if missing)
+- profile `gis` (recommended): synthetic GIS/mapping support tickets aligned with Ontario-style projects
+- profile `generic`: local file `red-book/data/stage-6/tickets_sample.csv` (create if missing)
 
 Input schema:
 

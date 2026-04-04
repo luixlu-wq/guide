@@ -1,0 +1,3 @@
+run_id,stage,topic_or_module,metric_name,before_value,after_value,delta,dataset_or_eval_set,seed_or_config_id,decision,parse_success_rate,tool_argument_accuracy,mean_latency_ms,runtime_mode
+stage6_topic00m_qwen2.5:32b-instruct-q4_K_M,6,topic00m_local_model_capability_validation,schema_adherence_rate,0.0,1.0,1.0,fixed_schema_cases_10,qwen2.5:32b-instruct-q4_K_M,hold,1.0,0.55,3511.42,ollama_local
+stage6_topic00m_qwen2.5:32b-instruct-q8_0,6,topic00m_local_model_capability_validation,schema_adherence_rate,0.0,1.0,1.0,fixed_schema_cases_10,qwen2.5:32b-instruct-q8_0,promote,1.0,1.0,2040.41,offline_simulation

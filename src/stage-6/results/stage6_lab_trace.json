@@ -1,6 +1,6 @@
 [
   {
-    "ticket_id": "TKT-1000",
+    "ticket_id": "GIS-2000",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -12,41 +12,6 @@
         "step": 1,
         "action": "classify_priority",
         "result": "medium"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "general"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "GEN-01: Provide self-service guide",
-          "GEN-02: Offer follow-up options"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": false
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1002",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "critical"
       },
       {
         "step": 2,
@@ -64,83 +29,13 @@
       {
         "step": 4,
         "action": "policy_gate",
-        "result": true
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1004",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "low"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "general"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "GEN-01: Provide self-service guide",
-          "GEN-02: Offer follow-up options"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
         "result": false
       }
     ],
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1006",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "low"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "security"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "SEC-01: Verify identity before disclosure",
-          "SEC-04: Escalate suspicious access"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": true
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1008",
+    "ticket_id": "GIS-2001",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -152,76 +47,6 @@
         "step": 1,
         "action": "classify_priority",
         "result": "high"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "billing"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "BILL-03: Invoice correction workflow",
-          "BILL-07: Payment failure checklist"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": false
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1010",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "medium"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "general"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "GEN-01: Provide self-service guide",
-          "GEN-02: Offer follow-up options"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": false
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1012",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "critical"
       },
       {
         "step": 2,
@@ -239,13 +64,13 @@
       {
         "step": 4,
         "action": "policy_gate",
-        "result": true
+        "result": false
       }
     ],
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1014",
+    "ticket_id": "GIS-2002",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -280,7 +105,7 @@
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1016",
+    "ticket_id": "GIS-2003",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -296,26 +121,61 @@
       {
         "step": 2,
         "action": "route_queue",
-        "result": "security"
+        "result": "general"
       },
       {
         "step": 3,
         "action": "retrieve_policy_snippets",
         "result": [
-          "SEC-01: Verify identity before disclosure",
-          "SEC-04: Escalate suspicious access"
+          "GEN-01: Provide self-service guide",
+          "GEN-02: Offer follow-up options"
         ]
       },
       {
         "step": 4,
         "action": "policy_gate",
-        "result": true
+        "result": false
       }
     ],
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1018",
+    "ticket_id": "GIS-2004",
+    "tool_calls": [
+      "classify_priority",
+      "route_queue",
+      "retrieve_policy_snippets",
+      "policy_gate"
+    ],
+    "trace_steps": [
+      {
+        "step": 1,
+        "action": "classify_priority",
+        "result": "low"
+      },
+      {
+        "step": 2,
+        "action": "route_queue",
+        "result": "general"
+      },
+      {
+        "step": 3,
+        "action": "retrieve_policy_snippets",
+        "result": [
+          "GEN-01: Provide self-service guide",
+          "GEN-02: Offer follow-up options"
+        ]
+      },
+      {
+        "step": 4,
+        "action": "policy_gate",
+        "result": false
+      }
+    ],
+    "failure_class": null
+  },
+  {
+    "ticket_id": "GIS-2005",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -331,41 +191,6 @@
       {
         "step": 2,
         "action": "route_queue",
-        "result": "billing"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "BILL-03: Invoice correction workflow",
-          "BILL-07: Payment failure checklist"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": false
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1020",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "medium"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
         "result": "general"
       },
       {
@@ -385,7 +210,7 @@
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1022",
+    "ticket_id": "GIS-2006",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -396,7 +221,7 @@
       {
         "step": 1,
         "action": "classify_priority",
-        "result": "critical"
+        "result": "medium"
       },
       {
         "step": 2,
@@ -414,83 +239,13 @@
       {
         "step": 4,
         "action": "policy_gate",
-        "result": true
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1024",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "low"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "general"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "GEN-01: Provide self-service guide",
-          "GEN-02: Offer follow-up options"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
         "result": false
       }
     ],
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1026",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "low"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "security"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "SEC-01: Verify identity before disclosure",
-          "SEC-04: Escalate suspicious access"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": true
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1028",
+    "ticket_id": "GIS-2007",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -502,76 +257,6 @@
         "step": 1,
         "action": "classify_priority",
         "result": "high"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "billing"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "BILL-03: Invoice correction workflow",
-          "BILL-07: Payment failure checklist"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": false
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1030",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "medium"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "general"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "GEN-01: Provide self-service guide",
-          "GEN-02: Offer follow-up options"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": false
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1032",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "critical"
       },
       {
         "step": 2,
@@ -589,13 +274,13 @@
       {
         "step": 4,
         "action": "policy_gate",
-        "result": true
+        "result": false
       }
     ],
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1034",
+    "ticket_id": "GIS-2008",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -630,7 +315,7 @@
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1036",
+    "ticket_id": "GIS-2009",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -646,26 +331,61 @@
       {
         "step": 2,
         "action": "route_queue",
-        "result": "security"
+        "result": "general"
       },
       {
         "step": 3,
         "action": "retrieve_policy_snippets",
         "result": [
-          "SEC-01: Verify identity before disclosure",
-          "SEC-04: Escalate suspicious access"
+          "GEN-01: Provide self-service guide",
+          "GEN-02: Offer follow-up options"
         ]
       },
       {
         "step": 4,
         "action": "policy_gate",
-        "result": true
+        "result": false
       }
     ],
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1038",
+    "ticket_id": "GIS-2010",
+    "tool_calls": [
+      "classify_priority",
+      "route_queue",
+      "retrieve_policy_snippets",
+      "policy_gate"
+    ],
+    "trace_steps": [
+      {
+        "step": 1,
+        "action": "classify_priority",
+        "result": "low"
+      },
+      {
+        "step": 2,
+        "action": "route_queue",
+        "result": "general"
+      },
+      {
+        "step": 3,
+        "action": "retrieve_policy_snippets",
+        "result": [
+          "GEN-01: Provide self-service guide",
+          "GEN-02: Offer follow-up options"
+        ]
+      },
+      {
+        "step": 4,
+        "action": "policy_gate",
+        "result": false
+      }
+    ],
+    "failure_class": null
+  },
+  {
+    "ticket_id": "GIS-2011",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -681,41 +401,6 @@
       {
         "step": 2,
         "action": "route_queue",
-        "result": "billing"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "BILL-03: Invoice correction workflow",
-          "BILL-07: Payment failure checklist"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": false
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1040",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "medium"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
         "result": "general"
       },
       {
@@ -735,7 +420,7 @@
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1042",
+    "ticket_id": "GIS-2012",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -746,7 +431,7 @@
       {
         "step": 1,
         "action": "classify_priority",
-        "result": "critical"
+        "result": "medium"
       },
       {
         "step": 2,
@@ -764,83 +449,13 @@
       {
         "step": 4,
         "action": "policy_gate",
-        "result": true
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1044",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "low"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "general"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "GEN-01: Provide self-service guide",
-          "GEN-02: Offer follow-up options"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
         "result": false
       }
     ],
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1046",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "low"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "security"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "SEC-01: Verify identity before disclosure",
-          "SEC-04: Escalate suspicious access"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": true
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1048",
+    "ticket_id": "GIS-2013",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -852,76 +467,6 @@
         "step": 1,
         "action": "classify_priority",
         "result": "high"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "billing"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "BILL-03: Invoice correction workflow",
-          "BILL-07: Payment failure checklist"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": false
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1050",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "medium"
-      },
-      {
-        "step": 2,
-        "action": "route_queue",
-        "result": "general"
-      },
-      {
-        "step": 3,
-        "action": "retrieve_policy_snippets",
-        "result": [
-          "GEN-01: Provide self-service guide",
-          "GEN-02: Offer follow-up options"
-        ]
-      },
-      {
-        "step": 4,
-        "action": "policy_gate",
-        "result": false
-      }
-    ],
-    "failure_class": null
-  },
-  {
-    "ticket_id": "TKT-1052",
-    "tool_calls": [
-      "classify_priority",
-      "route_queue",
-      "retrieve_policy_snippets",
-      "policy_gate"
-    ],
-    "trace_steps": [
-      {
-        "step": 1,
-        "action": "classify_priority",
-        "result": "critical"
       },
       {
         "step": 2,
@@ -939,13 +484,13 @@
       {
         "step": 4,
         "action": "policy_gate",
-        "result": true
+        "result": false
       }
     ],
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1054",
+    "ticket_id": "GIS-2014",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -980,7 +525,7 @@
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1056",
+    "ticket_id": "GIS-2015",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -996,26 +541,61 @@
       {
         "step": 2,
         "action": "route_queue",
-        "result": "security"
+        "result": "general"
       },
       {
         "step": 3,
         "action": "retrieve_policy_snippets",
         "result": [
-          "SEC-01: Verify identity before disclosure",
-          "SEC-04: Escalate suspicious access"
+          "GEN-01: Provide self-service guide",
+          "GEN-02: Offer follow-up options"
         ]
       },
       {
         "step": 4,
         "action": "policy_gate",
-        "result": true
+        "result": false
       }
     ],
     "failure_class": null
   },
   {
-    "ticket_id": "TKT-1058",
+    "ticket_id": "GIS-2016",
+    "tool_calls": [
+      "classify_priority",
+      "route_queue",
+      "retrieve_policy_snippets",
+      "policy_gate"
+    ],
+    "trace_steps": [
+      {
+        "step": 1,
+        "action": "classify_priority",
+        "result": "low"
+      },
+      {
+        "step": 2,
+        "action": "route_queue",
+        "result": "general"
+      },
+      {
+        "step": 3,
+        "action": "retrieve_policy_snippets",
+        "result": [
+          "GEN-01: Provide self-service guide",
+          "GEN-02: Offer follow-up options"
+        ]
+      },
+      {
+        "step": 4,
+        "action": "policy_gate",
+        "result": false
+      }
+    ],
+    "failure_class": null
+  },
+  {
+    "ticket_id": "GIS-2017",
     "tool_calls": [
       "classify_priority",
       "route_queue",
@@ -1031,14 +611,84 @@
       {
         "step": 2,
         "action": "route_queue",
-        "result": "billing"
+        "result": "general"
       },
       {
         "step": 3,
         "action": "retrieve_policy_snippets",
         "result": [
-          "BILL-03: Invoice correction workflow",
-          "BILL-07: Payment failure checklist"
+          "GEN-01: Provide self-service guide",
+          "GEN-02: Offer follow-up options"
+        ]
+      },
+      {
+        "step": 4,
+        "action": "policy_gate",
+        "result": false
+      }
+    ],
+    "failure_class": null
+  },
+  {
+    "ticket_id": "GIS-2018",
+    "tool_calls": [
+      "classify_priority",
+      "route_queue",
+      "retrieve_policy_snippets",
+      "policy_gate"
+    ],
+    "trace_steps": [
+      {
+        "step": 1,
+        "action": "classify_priority",
+        "result": "medium"
+      },
+      {
+        "step": 2,
+        "action": "route_queue",
+        "result": "outage"
+      },
+      {
+        "step": 3,
+        "action": "retrieve_policy_snippets",
+        "result": [
+          "OPS-02: Collect impact scope",
+          "OPS-05: Incident severity rubric"
+        ]
+      },
+      {
+        "step": 4,
+        "action": "policy_gate",
+        "result": false
+      }
+    ],
+    "failure_class": null
+  },
+  {
+    "ticket_id": "GIS-2019",
+    "tool_calls": [
+      "classify_priority",
+      "route_queue",
+      "retrieve_policy_snippets",
+      "policy_gate"
+    ],
+    "trace_steps": [
+      {
+        "step": 1,
+        "action": "classify_priority",
+        "result": "high"
+      },
+      {
+        "step": 2,
+        "action": "route_queue",
+        "result": "outage"
+      },
+      {
+        "step": 3,
+        "action": "retrieve_policy_snippets",
+        "result": [
+          "OPS-02: Collect impact scope",
+          "OPS-05: Incident severity rubric"
         ]
       },
       {

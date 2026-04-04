@@ -11,6 +11,7 @@ $scripts = @(
     "topic00a_pytorch_cuda_agent_simple.py",
     "topic00_pytorch_cuda_agent_intermediate.py",
     "topic00c_pytorch_cuda_agent_advanced.py",
+    "topic00m_local_model_capability_validation.py",
     "topic01a_workflow_first_simple.py",
     "topic01_workflow_vs_agent_intermediate.py",
     "topic01c_multi_step_agent_advanced.py",
@@ -40,6 +41,7 @@ $scripts = @(
 
 if ($IncludeLabs) {
     $scripts = $scripts + @(
+        "lab00_pytorch_cuda_agent_examples.py",
         "lab01_support_triage_agent.py",
         "lab02_finance_research_agent.py",
         "lab03_multi_agent_ops_assistant.py",

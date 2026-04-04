@@ -37,6 +37,11 @@ Stage metadata:
 | `verification_report.md` | `results/lab6_project_verification_report.md` | `mapped` | Auto-mapped from existing stage output (2026-04-04). |
 | `decision_log.md` | `results/decision_log.md` | `mapped` | Alias placeholder created automatically on 2026-04-04; replace TODO content with stage-specific evidence. |
 | `reproducibility.md` | `results/reproducibility.md` | `mapped` | Alias placeholder created automatically on 2026-04-04; replace TODO content with stage-specific evidence. |
+| `grounding_report.md` | `results/lab1_grounding_audit.md` | `mapped` | Canonical grounding alias for Lab 1 citation/groundedness verification. |
+| `retrieval_vram_usage.csv` | `results/stage7/retrieval_vram_usage.csv` | `todo` | Add from GPU rerank benchmark runs (CPU vs CUDA). |
+| `retrieval_latency_vs_vram.csv` | `results/stage7/retrieval_latency_vs_vram.csv` | `todo` | Add paired quality/latency/VRAM comparison table. |
+| `eval_triad_scores.jsonl` | `results/stage7/eval_triad_scores.jsonl` | `todo` | Add context relevance, answer relevance, faithfulness, grounding attribution scores. |
+| `ontario_data_chunking_log.md` | `results/stage7/ontario_data_chunking_log.md` | `todo` | Add structure-aware chunking integrity validation notes for GIS/tabular records. |
 
 ## Optional alias files (recommended)
 

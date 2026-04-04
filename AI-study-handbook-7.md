@@ -31,6 +31,9 @@ By the end of Stage 7, you must be able to:
   - permission filtering (ACL)
   - latency/cost checks
 - explain where PyTorch/CUDA helps in RAG (local embedding/rerank acceleration)
+- run one local GPU reranking benchmark and report quality/latency/VRAM deltas
+- implement structure-aware chunking for structured Ontario-style records (for example GeoJSON or subdivision tables)
+- execute a no-regret regression check before promoting retrieval/indexing changes
 
 ---
 
@@ -285,6 +288,23 @@ Checklist:
 - no major sentence break in key facts
 - metadata points back to exact source
 
+Structure-aware chunking for Ontario/GIS-style data (mandatory):
+
+- Do not split one logical record across multiple chunks when the record should stay atomic.
+- For GeoJSON-like sources:
+  - chunk by `Feature` object (or by stable administrative boundary key), not by arbitrary sentence window.
+- For tabular administrative sources:
+  - chunk by row/record group using stable keys (`division_id`, `subdivision_id`, `source_file`).
+- Always preserve record identifiers in payload metadata so retrieval can be audited.
+
+Operational log requirement:
+
+- write `results/stage7/ontario_data_chunking_log.md` with:
+  - chunking strategy version
+  - record-preservation checks
+  - at least 10 sampled chunk inspections
+  - failure cases and fixes
+
 ---
 
 ## 6.3 Embeddings and Indexing
@@ -335,6 +355,17 @@ Decision guide:
 Common mistake and fix:
 - Mistake: using large top-k to hide poor ranking.
 - Fix: improve candidate quality before increasing k.
+
+Industry pattern: Small-to-Big retrieval (mandatory)
+
+- Step 1: index small child chunks for precise matching.
+- Step 2: retrieve top child chunks.
+- Step 3: expand to parent section/document before generation.
+- Step 4: rerank final context pack for precision.
+
+Why this matters:
+
+- It solves a common production issue: retrieval finds the right sentence but misses surrounding constraints needed for correct final answer.
 
 ---
 
@@ -405,6 +436,26 @@ Minimum evaluation protocol:
 Regression gate example:
 - block merge if `hit@5` drops > 3% or groundedness drops > 2%.
 
+RAG triad + grounding attribution (mandatory):
+
+- Evaluate these dimensions together:
+  - context relevance (retrieval-side)
+  - answer relevance (response usefulness/correctness)
+  - faithfulness (answer stays aligned with evidence)
+  - grounding attribution (claims map to specific chunk/source ids)
+
+Required output artifact:
+
+- `results/stage7/eval_triad_scores.jsonl`
+
+No-regret release gate (mandatory):
+
+- Stage 7 change is not promotable unless this check passes:
+  - increasing `top_k` from `3` to `10` improves or maintains hit rate
+  - and p95 latency remains within your defined latency budget on the local target machine
+- If quality improves but latency exceeds budget:
+  - decision must be `hold` or `rollback` unless optimization evidence is provided
+
 ---
 
 ## 6.7 Production RAG Operations (Mandatory)
@@ -447,6 +498,26 @@ How training/inference loop relates to RAG scoring:
 
 In production inference path, usually step 3-5 are skipped (no training), but steps 1-2 still matter for fast reranking.
 
+Cross-encoder reranking acceleration (review-driven, mandatory):
+
+- Use local GPU when available for reranking pass (especially larger cross-encoders).
+- Compare CPU vs GPU latency on identical candidate sets and query batches.
+- Track VRAM usage during rerank runs.
+
+Operatable benchmark workflow:
+
+1. Run intermediate rerank baseline:
+   - `python red-book/src/stage-7/topic03_retrieval_rerank_intermediate.py`
+2. Run advanced CUDA path:
+   - `python red-book/src/stage-7/topic00c_pytorch_cuda_rag_advanced.py`
+3. Record:
+   - rerank latency
+   - total query latency
+   - VRAM allocated
+4. Save benchmark table:
+   - `results/stage7/retrieval_vram_usage.csv`
+   - `results/stage7/retrieval_latency_vs_vram.csv`
+
 ### Device policy
 
 - Always detect GPU availability.
@@ -464,6 +535,7 @@ Run:
 Interpretation:
 - simple example shows device handling and scoring mechanics.
 - intermediate example shows how rerank models are trained and then used for ranking.
+- advanced example shows hardware-aware optimization and memory-aware execution patterns.
 
 ---
 
@@ -558,6 +630,7 @@ Required outputs:
 - `results/lab1_outputs.jsonl`
 - `results/lab1_retrieval_metrics.csv`
 - `results/lab1_grounding_audit.md`
+- `results/stage7/grounding_report.md` (canonical alias mapped from grounding audit)
 
 Acceptance checks:
 - each answer has at least 1 citation id
@@ -610,6 +683,18 @@ Acceptance checks:
 - include per-query winner (`dense`, `lexical`, `hybrid`, `hybrid+rerank`)
 - include at least 10 failure-case analyses
 - include metric deltas for `hit@k`, `MRR`, and latency
+
+Additional drill (lost-in-the-middle, mandatory):
+
+1. Build a 20-chunk context where the correct evidence is in chunk #10.
+2. Run baseline packing and record miss/failure behavior.
+3. Apply one mitigation:
+   - stronger reranker OR context filtering OR smaller final top-k pack.
+4. Rerun same cases and record delta.
+
+Required outputs:
+- `results/stage7/lost_in_middle_drill.jsonl`
+- `results/stage7/lost_in_middle_fix_report.md`
 
 ## Lab 4: Enterprise RAG Operations Drill
 
@@ -758,6 +843,7 @@ Required failure drills:
 - unknown-answer policy missing
 - prompt injection in retrieved docs
 - PyTorch/CUDA device mismatch or CUDA OOM
+- lost-in-the-middle (correct evidence present but ignored due to context position)
 
 Required workflow:
 
@@ -795,6 +881,8 @@ RAG failure diagnosis decision tree (use in order):
    - yes -> optimize top-k, rerank depth, batching, caching
 6. Any ACL/privacy violation?
    - yes -> stop release and run ACL incident playbook immediately
+7. Correct evidence present but final answer still wrong?
+   - yes -> test for lost-in-the-middle and rerank/context-pack strategy
 
 Problem identification matrix (operatable):
 
@@ -875,6 +963,13 @@ RAG-not-working root cause map (practical):
      - cache frequent retrieval
      - reduce rerank depth
      - batch embeddings/rerank
+6. Root cause: positional context failure (lost-in-the-middle)
+   - evidence:
+     - answer ignores mid-context evidence while citing earlier/later noisy chunks
+   - fixes:
+     - rerank context before final packing
+     - reduce context window to high-confidence chunks
+     - apply small-to-big expansion only for top-ranked evidence
 
 Verification process (must follow in order):
 
@@ -907,6 +1002,9 @@ Minimum acceptance thresholds before promotion:
    - cost/query within budget
 5. reliability:
    - rerun variance within allowed band
+6. no-regret gate:
+   - `top_k=10` must improve/maintain hit rate vs `top_k=3`
+   - p95 latency must remain within defined budget
 
 Troubleshooting capability framework (mandatory):
 
@@ -977,6 +1075,19 @@ Run:
 Expected output behavior:
 - each query prints retrieved chunk ids and citations
 - answer text is grounded in retrieved chunk content
+
+Review-driven mandatory artifact set (additive):
+
+- `results/stage7/retrieval_vram_usage.csv`
+- `results/stage7/retrieval_latency_vs_vram.csv`
+- `results/stage7/eval_triad_scores.jsonl`
+- `results/stage7/ontario_data_chunking_log.md`
+
+Artifact mapping rule:
+
+- Keep existing script output names.
+- Add canonical aliases/mappings in:
+  - `red-book/src/stage-7/artifact_name_map.md`
 
 ---
 

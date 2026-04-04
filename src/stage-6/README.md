@@ -34,6 +34,7 @@ Include labs:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\run_ladder_stage6.ps1 -IncludeLabs
+python .\lab01_support_triage_agent.py --profile gis
 ```
 
 ## Topics
@@ -42,6 +43,7 @@ powershell -ExecutionPolicy Bypass -File .\run_ladder_stage6.ps1 -IncludeLabs
   - `topic00a_pytorch_cuda_agent_simple.py`
   - `topic00_pytorch_cuda_agent_intermediate.py`
   - `topic00c_pytorch_cuda_agent_advanced.py`
+  - `topic00m_local_model_capability_validation.py`
 - Workflow vs agent ladder:
   - `topic01a_workflow_first_simple.py`
   - `topic01_workflow_vs_agent_intermediate.py`
@@ -74,10 +76,36 @@ powershell -ExecutionPolicy Bypass -File .\run_ladder_stage6.ps1 -IncludeLabs
   - `topic09_policy_and_permissions_intermediate.py`
   - `topic09c_incident_response_advanced.py`
 - Labs:
+  - `lab00_pytorch_cuda_agent_examples.py`
   - `lab01_support_triage_agent.py`
   - `lab02_finance_research_agent.py`
   - `lab03_multi_agent_ops_assistant.py`
   - `lab04_secure_agent_operations.py`
+
+## Review-to-Script Mapping (Industry Upgrade)
+
+This table maps Chapter 6 review improvements to runnable scripts.
+
+| Review improvement | Script(s) |
+|---|---|
+| Local model capability validation (cold start gate) | `topic00m_local_model_capability_validation.py` |
+| State checkpointing and resume (time-travel debugger) | `topic03_memory_retrieval_intermediate.py` |
+| GIS/sovereignty guardrails and leak-rate testing | `lab04_secure_agent_operations.py` |
+| Token efficiency metric (`Total Tokens / Successful Tool Calls`) | `topic05_eval_metrics_intermediate.py` |
+| Orchestration divergence stop rule + backoff prompt | `topic08c_slo_regression_gate_advanced.py` |
+| Workflow vs Agent loop differentiation | `topic01a_workflow_first_simple.py`, `topic01_workflow_vs_agent_intermediate.py` |
+| MCP vs A2A protocol comparison | `topic07a_mcp_tooling_simple.py`, `topic07_protocol_interop_intermediate.py`, `topic07c_a2a_collaboration_advanced.py` |
+
+Suggested run order for these upgrades:
+
+```powershell
+python .\lab00_pytorch_cuda_agent_examples.py
+python .\topic00m_local_model_capability_validation.py
+python .\topic03_memory_retrieval_intermediate.py
+python .\topic05_eval_metrics_intermediate.py
+python .\topic08c_slo_regression_gate_advanced.py
+python .\lab04_secure_agent_operations.py
+```
 
 ## Data and Outputs
 
@@ -97,6 +125,7 @@ Detailed examples include:
 - trace JSON/JSONL
 - failure log markdown
 - before/after comparison reports
+- sovereignty/privacy leak-rate reports for secure operations lab
 
 PyTorch/CUDA note:
 

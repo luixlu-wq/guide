@@ -1,3 +1,3 @@
 label,task_success_rate,citation_presence_rate,human_approval_rate,failure_rate,avg_steps
-baseline_workflow,1.0,1.0,0.4,0.0,3.0
-agent_improved,1.0,1.0,0.4,0.0,4.0
+baseline_workflow_gis,1.0,1.0,0.0,0.0,3.0
+agent_improved_gis,1.0,1.0,0.0,0.0,4.0

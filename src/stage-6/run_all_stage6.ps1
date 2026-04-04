@@ -8,6 +8,7 @@ $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $scripts = @(
     "topic00_pytorch_cuda_agent_intermediate.py",
+    "topic00m_local_model_capability_validation.py",
     "topic01_workflow_vs_agent_intermediate.py",
     "topic02_tool_validation_intermediate.py",
     "topic03_memory_retrieval_intermediate.py",

@@ -1,0 +1,2 @@
+run_id,resumed_from_step,resume_success,failure_class,final_status,retrieved_memory_count
+stage6_topic03_memory_checkpoint_demo,3,True,simulated_runtime_failure_at_step_3,completed_after_resume,2

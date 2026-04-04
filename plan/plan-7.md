@@ -785,6 +785,121 @@ Handbook must end with `What Comes After Stage 7` and include:
 
 ---
 
+## 21) Review-Driven Addendum (2026-04-04, Additive-Only)
+
+This section incorporates external review feedback and is additive only. Existing sections, file names, and deliverables remain valid.
+
+### 21.1) Local GPU Retrieval Optimization Benchmark (Mandatory)
+
+Add an explicit benchmark track for local high-end hardware:
+
+- compare `semantic search only` vs `semantic search + local GPU reranker`
+- measure and report:
+  - `NDCG@10`
+  - `Recall@k`
+  - `p95 latency (ms)`
+  - `VRAM allocated (MB/GB)`
+- require one fixed evaluation query set and fixed seed/config ID
+
+Required artifact:
+
+- `results/stage7/retrieval_latency_vs_vram.csv`
+
+Recommended script mapping:
+
+- `topic03e_local_rerank_benchmark.py`
+
+### 21.2) Ontario/GIS Structure-Aware Chunking (Mandatory)
+
+Add structure-aware chunking content for tabular/GIS sources:
+
+- preserve GeoJSON `Feature` integrity (do not split geometry/properties across chunks)
+- preserve row-level integrity for CSV/records with administrative identifiers
+- compare against naive sentence/window chunking on fixed eval queries
+
+Required artifact:
+
+- `results/stage7/chunking_strategy_comparison.md`
+
+Recommended script mapping:
+
+- `topic01d_structure_aware_chunking.py`
+
+### 21.3) RAG Triad + Grounding Attribution (Mandatory)
+
+Evaluation must include all four dimensions:
+
+- context relevance
+- answer relevance
+- faithfulness
+- grounding attribution (claim-to-chunk/source mapping coverage)
+
+Required artifact:
+
+- `results/stage7/eval_triad_scores.jsonl`
+
+Implementation rule:
+
+- every evaluated answer must include source/chunk identifiers for factual claims
+
+### 21.4) Small-to-Big Retrieval Pattern (Mandatory)
+
+Add parent-document retrieval tutorial/lab path:
+
+- retrieve with small chunks for precision
+- expand to parent/broader context for completeness
+- compare quality/latency against standard chunk-only retrieval
+
+Recommended script mapping:
+
+- `topic03f_small_to_big_retrieval.py`
+
+### 21.5) Lost-in-the-Middle Failure Drill (Mandatory)
+
+Add a dedicated positional-bias stress drill:
+
+- construct long-context test where key evidence is in middle positions
+- demonstrate baseline failure and improved strategy (rerank/context filtering/reordering)
+- verify metric delta on same fixed eval set
+
+Recommended script mapping:
+
+- `topic05d_lost_in_middle_drill.py`
+
+### 21.6) No-Regret Release Gate (Mandatory)
+
+Before accepting new data-source ingestion or retrieval changes:
+
+- run regression on existing fixed benchmark queries
+- prove no unacceptable degradation on prior must-pass queries
+- log promote/hold/rollback with evidence
+
+Required artifact:
+
+- `results/stage7/regression_report.md`
+
+### 21.7) Stage 7 Acceptance Gate Extension
+
+Stage 7 is only complete when all of the following are true:
+
+- local reranker benchmark completed with quality/latency/VRAM evidence
+- structure-aware chunking implemented and compared vs naive baseline
+- RAG triad + grounding attribution results generated and reviewed
+- small-to-big retrieval comparison completed
+- lost-in-the-middle drill completed with verified mitigation
+- no-regret regression report produced for data/index changes
+
+### 21.8) Results Mapping Note
+
+To preserve compatibility with existing plan outputs:
+
+- keep all existing Stage 7 output filenames unchanged
+- add this mapping file when needed:
+  - `results/stage7/artifact_name_map.md`
+- map existing output names to canonical names from Section C (Cross-Plan Consistency Addendum)
+
+---
+
 
 ## Cross-Plan Consistency Addendum (2026-04-04, Additive-Only)
 

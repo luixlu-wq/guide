@@ -1,0 +1,12 @@
+{
+  "run_id": "stage6_topic03_memory_checkpoint_demo",
+  "step_index": 4,
+  "query": "customer reports security alert and suspicious access in Ontario subdivision system",
+  "retrieved_memory_ids": [
+    "M4",
+    "M1"
+  ],
+  "status": "completed_after_resume",
+  "failure_class": "simulated_runtime_failure_at_step_3",
+  "final_summary": "Recovered from checkpoint; response can proceed using retrieved memory IDs M4, M1"
+}

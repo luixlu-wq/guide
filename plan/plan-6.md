@@ -37,6 +37,21 @@ These requirements are locked and must remain in scope:
   - production operations (SLO/cost/latency/rate limits)
   - agent security threat modeling and incident response
   - PyTorch/CUDA applicability in agent systems (local inference, retrieval/reranking, and performance optimization)
+- Add RTX-5090-specific local inference benchmarking:
+  - quantization vs latency vs tool-call correctness tradeoffs for agent loops
+  - practical comparison of low-bit and higher-bit local model settings
+- Add Ontario data-sovereignty guardrails:
+  - explicit data-boundary policies for sensitive GIS/GeoJSON payloads
+  - privacy leak-rate metric for external API egress attempts
+- Add explicit state-machine/checkpointing guidance:
+  - persist state after each tool call
+  - recover/resume from mid-run failure without restarting full workflow
+- Add MCP provider-side implementation coverage:
+  - include one lab where learner builds a simple local MCP server
+  - include client/server interoperability validation
+- Add orchestration-divergence troubleshooting:
+  - detect loop-of-death repeated tool calls
+  - enforce max-self-correction and backoff prompt policy
 
 - Mandatory request: include PyTorch and CUDA conceptual/tutorial content in the chapter.
 - Mandatory request: include runnable PyTorch/CUDA example code (simple -> intermediate -> advanced) with very detailed and clear functional comments.
@@ -54,6 +69,39 @@ These requirements are locked and must remain in scope:
 - Key request: for each chapter topic, list industry-project pain points, root causes, and practical resolution strategies, and provide related lab practice examples so learners can understand and operate solutions more easily.
 
 This section is a scope guard: future edits should not remove these requirements.
+
+---
+
+## 0.1 Reviewer Additive Refinement (2026-04-04)
+
+These are additive refinements and do not replace existing plan items:
+
+1. Local inference performance benchmark track (RTX 5090):
+- require a quantization tradeoff module for agent loops
+- report tokens/sec and tool-call argument accuracy under multiple quantization settings
+
+2. Data sovereignty and boundary guardrails (Ontario context):
+- require explicit rule that sensitive municipal/provincial GIS payloads are blocked from unintended external endpoints
+- require measurable privacy leak-rate tests
+
+3. State-machine and checkpointing operability:
+- require checkpoint persistence after each major step/tool call
+- require resume-from-checkpoint demonstration in one lab
+
+4. MCP provider-side implementation:
+- require at least one “build a local MCP server” exercise (not client-only usage)
+
+5. Orchestration divergence mitigation:
+- require stop rules for repeated bad tool calls
+- require backoff prompt + max self-correction policy and verification evidence
+6. Chapter-to-script explicit mapping quality gate:
+- stage-6 README must map each major review improvement to specific runnable `.py` files
+7. Local model cold-start gate:
+- require schema-adherence validation before orchestration implementation
+8. Token-efficiency observability:
+- require `total_tokens / successful_tool_calls` metric in evaluation module
+9. Protocol decision operability:
+- require a 3-question MCP vs A2A decision tree in chapter content
 
 ---
 
@@ -342,6 +390,11 @@ Required files:
 
 Core ladders (simple -> intermediate -> advanced):
 
+0. Local inference and quantization benchmark ladder (RTX 5090-focused)
+- `topic00a_quantization_baseline_simple.py`
+- `topic00_quantization_latency_tradeoff_intermediate.py`
+- `topic00c_quantization_tool_accuracy_advanced.py`
+
 1. Workflow vs Agent ladder
 - `topic01a_workflow_first_simple.py`
 - `topic01_workflow_vs_agent_intermediate.py`
@@ -374,6 +427,7 @@ Core ladders (simple -> intermediate -> advanced):
 - `topic07a_mcp_tooling_simple.py`
 - `topic07_protocol_interop_intermediate.py`
 - `topic07c_a2a_collaboration_advanced.py`
+- `topic07m_mcp_server_local_resource_lab.py`
 
 8. Operations and reliability ladder
 - `topic08a_budget_controls_simple.py`
@@ -390,6 +444,7 @@ Core ladders (simple -> intermediate -> advanced):
 - `lab02_finance_research_agent.py`
 - `lab03_multi_agent_ops_assistant.py`
 - `lab04_secure_agent_operations.py`
+- `lab05_local_quantization_and_boundary_controls.py`
 
 Script requirements:
 
@@ -398,6 +453,11 @@ Script requirements:
 - all scripts must print expected metrics and interpretation text
 - all scripts must include explicit failure-handling paths
 - all scripts must include one test input and expected output format sample
+- quantization/latency scripts must report:
+  - tokens per second (TPS)
+  - end-to-end step latency
+  - tool-call argument accuracy
+- protocol scripts must include one provider-side MCP server example with local resource access
 
 ---
 
@@ -497,6 +557,8 @@ Required outputs:
 - `results/lab4_security_tests.md`
 - `results/lab4_guardrail_events.jsonl`
 - `results/lab4_fix_validation.csv`
+- `results/lab4_privacy_leak_report.csv`
+- `results/lab4_data_boundary_policy.md`
 
 Lab rules:
 
@@ -506,6 +568,24 @@ Lab rules:
 4. explicit before/after metric delta.
 5. include one security test case.
 6. include one operations test case (timeout/rate-limit/budget).
+7. include one data-boundary leak test with explicit pass/fail condition.
+
+### Lab 5: Local Quantization and Boundary Controls (Reviewer Additive)
+
+Goal:
+- measure local quantization tradeoffs for agent loops and validate boundary controls against sensitive GIS payload egress.
+
+Required outputs:
+- `results/lab5_quantization_tps_vs_accuracy.csv`
+- `results/lab5_quantization_decision.md`
+- `results/lab5_boundary_enforcement_log.jsonl`
+- `results/lab5_resume_from_checkpoint.md`
+
+Required metrics:
+- `tokens_per_second`
+- `tool_call_argument_accuracy`
+- `privacy_leak_rate`
+- `resume_success_rate`
 
 ---
 
@@ -522,8 +602,12 @@ Lab rules:
 | Eval and traceability | Failures cannot be compared across versions | Missing trace IDs and fixed eval set | Standardize tracing and eval harness for every run | Trace coverage + regression table | `topic05_eval_metrics_intermediate.py`, `topic05c_regression_suite_advanced.py` |
 | Industry architecture patterns | Multi-agent setup adds complexity without gains | Role overlap and unclear ownership | Define role contracts and escalation boundaries | Task success/latency per role | `topic06_industry_patterns.py`, `lab03_multi_agent_ops_assistant.py` |
 | Protocol interoperability | MCP/A2A integration unstable in mixed environments | Protocol boundary ambiguity | Add explicit protocol contracts and compatibility tests | Interop test matrix | `topic07_protocol_interop_intermediate.py`, `topic07c_a2a_collaboration_advanced.py` |
+| MCP provider-side implementation | Team can consume MCP tools but cannot expose internal resources safely | Client-only understanding, no server contract testing | Build local MCP server over local dataset and validate auth/scope boundaries | MCP server capability + access-control test report | `topic07m_mcp_server_local_resource_lab.py` |
 | Budget/SLO operations | Agent quality improves but cost/latency explodes | No budget caps or SLO gates | Enforce max-step/latency/cost budgets + gate checks | SLO and cost before/after report | `topic08_latency_cost_optimization_intermediate.py`, `topic08c_slo_regression_gate_advanced.py` |
+| Quantization reliability tradeoff | Faster local model causes wrong tool args | Over-quantization hurts argument precision | Benchmark Q-levels against tool-call correctness under fixed tasks | TPS vs tool-accuracy comparison table | `topic00_quantization_latency_tradeoff_intermediate.py`, `topic00c_quantization_tool_accuracy_advanced.py`, `lab05_local_quantization_and_boundary_controls.py` |
 | Security incidents | Prompt injection or tool abuse succeeds | Missing threat model and permission isolation | Add injection defenses + least-privilege tool permissions | Security drill report + incident timeline | `topic09_policy_and_permissions_intermediate.py`, `topic09c_incident_response_advanced.py` |
+| Data sovereignty leakage | Agent attempts to send sensitive GIS payloads to external APIs | Missing egress policy and classifier for sensitive fields | Add data-boundary classification + outbound policy gate + redaction/block path | Privacy leak-rate report with blocked-attempt evidence | `lab04_secure_agent_operations.py`, `lab05_local_quantization_and_boundary_controls.py` |
+| Orchestration divergence | Agent loops on same failing tool call with slight argument changes | No stop/backoff/self-correction limits | Add max-self-correction, repeated-signature detector, and backoff prompt | Loop-divergence detection log + reduced repeat-call rate | `topic08c_slo_regression_gate_advanced.py`, `topic09c_incident_response_advanced.py` |
 | End-to-end production lab | Agent demo works but not production-ready | Missing reliability and ops evidence | Run full baseline-to-production lab with fixed artifacts | Production readiness scorecard | `lab04_secure_agent_operations.py` |
 
 ### 11.2 Required Troubleshooting Workflow
@@ -540,6 +624,7 @@ Lab rules:
 - `results/stage6/pain_point_matrix.md`
 - `results/stage6/agent_before_after_metrics.csv`
 - `results/stage6/incident_and_release_decision.md`
+- `results/stage6/verification_report.md`
 
 ---
 
@@ -553,6 +638,7 @@ Required debugging flow:
 - high cost -> inspect repeated context + missing cache + unnecessary tool calls
 - low quality retrieval -> inspect chunking + retrieval policy + source coverage
 - policy incidents -> inspect allowlist/denylist and escalation path
+- repeated failing tool loop -> inspect duplicate-call signature + self-correction counter + backoff policy trigger
 
 Quality gates:
 
@@ -561,6 +647,9 @@ Quality gates:
 - lab outputs generated with expected files
 - expected metrics documented and validated
 - chapter passes UTF-8 cleanup check (no mojibake)
+- quantization gate: at least one run includes TPS vs tool-accuracy tradeoff evidence
+- privacy gate: leak-rate must be measured and explicitly reported
+- divergence gate: repeated-tool-call loop control must be demonstrated
 
 ---
 
@@ -634,9 +723,14 @@ Stage 6 is accepted only if:
 - chapter includes explicit MCP vs A2A distinctions and usage rules
 - chapter includes benchmark/eval methodology and thresholds
 - chapter includes operations controls (steps, latency, cost)
+- chapter includes local quantization tradeoff guidance for agent loops
+- chapter includes data-boundary and sovereignty controls with measurable leak-rate tests
+- chapter includes checkpoint/resume pattern for long-running workflows
 - troubleshooting section includes realistic failure drills and fixes
+- troubleshooting includes orchestration-divergence loop mitigation
 - stage-6 runners execute successfully with fail-fast behavior
 - chapter passes UTF-8 quality check
+- hidden-bug gate: learner must fix at least one pre-broken schema/type bug and provide `verification_report.md` evidence
 
 ---
 
