@@ -18,12 +18,27 @@ from torch.utils.data import DataLoader, TensorDataset
 from stage4_preset import preset_banner, scaled_int
 
 
-def accuracy(model: torch.nn.Module, loader: DataLoader) -> float:
+def pick_device() -> torch.device:
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def print_hardware_profile(device: torch.device) -> None:
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
+        print(f"Device: {torch.cuda.get_device_name(0)}")
+        torch.backends.cudnn.benchmark = True
+    else:
+        print("Device: CPU fallback path")
+
+
+def accuracy(model: torch.nn.Module, loader: DataLoader, device: torch.device) -> float:
     model.eval()
     total = 0
     correct = 0
     with torch.no_grad():
         for xb, yb in loader:
+            xb = xb.to(device, non_blocking=(device.type == "cuda"))
+            yb = yb.to(device, non_blocking=(device.type == "cuda"))
             pred = model(xb).argmax(dim=1)
             correct += int((pred == yb).sum().item())
             total += yb.size(0)
@@ -36,7 +51,9 @@ def accuracy(model: torch.nn.Module, loader: DataLoader) -> float:
 # 3) Monitor generalization gap (train vs validation).
 def main() -> None:
     torch.manual_seed(32)
+    device = pick_device()
     print(preset_banner())
+    print_hardware_profile(device)
 
     data = load_digits()
     x = torch.tensor(data.images, dtype=torch.float32).unsqueeze(1) / 16.0
@@ -53,9 +70,16 @@ def main() -> None:
         x_train_full, y_train_full, test_size=0.2, random_state=32, stratify=y_train_full
     )
 
-    train_loader = DataLoader(TensorDataset(x_train, y_train), batch_size=64, shuffle=True)
-    val_loader = DataLoader(TensorDataset(x_val, y_val), batch_size=256, shuffle=False)
-    test_loader = DataLoader(TensorDataset(x_test, y_test), batch_size=256, shuffle=False)
+    pin_memory = device.type == "cuda"
+    train_loader = DataLoader(
+        TensorDataset(x_train, y_train), batch_size=64, shuffle=True, pin_memory=pin_memory
+    )
+    val_loader = DataLoader(
+        TensorDataset(x_val, y_val), batch_size=256, shuffle=False, pin_memory=pin_memory
+    )
+    test_loader = DataLoader(
+        TensorDataset(x_test, y_test), batch_size=256, shuffle=False, pin_memory=pin_memory
+    )
 
     model = torch.nn.Sequential(
         torch.nn.Conv2d(1, 16, kernel_size=3, padding=1),
@@ -68,7 +92,7 @@ def main() -> None:
         torch.nn.Linear(32 * 4 * 4, 64),
         torch.nn.ReLU(),
         torch.nn.Linear(64, 10),
-    )
+    ).to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.003)
     loss_fn = torch.nn.CrossEntropyLoss()
@@ -77,6 +101,8 @@ def main() -> None:
     for epoch in range(1, epochs + 1):
         model.train()
         for xb, yb in train_loader:
+            xb = xb.to(device, non_blocking=pin_memory)
+            yb = yb.to(device, non_blocking=pin_memory)
             logits = model(xb)
             loss = loss_fn(logits, yb)
             optimizer.zero_grad()
@@ -84,12 +110,14 @@ def main() -> None:
             optimizer.step()
 
         if epoch in (1, max(2, epochs // 3), max(3, (2 * epochs) // 3), epochs):
-            train_acc = accuracy(model, train_loader)
-            val_acc = accuracy(model, val_loader)
+            train_acc = accuracy(model, train_loader, device)
+            val_acc = accuracy(model, val_loader, device)
             print(f"epoch={epoch:02d} train_acc={train_acc:.4f} val_acc={val_acc:.4f}")
 
-    test_acc = accuracy(model, test_loader)
+    test_acc = accuracy(model, test_loader, device)
     print(f"final_test_accuracy={test_acc:.4f}")
+    if device.type == "cuda":
+        print(f"Max VRAM Allocated: {torch.cuda.max_memory_allocated(device) / 1e9:.3f} GB")
     print("Interpretation: intermediate complexity adds stable batching and validation tracking.")
 
 

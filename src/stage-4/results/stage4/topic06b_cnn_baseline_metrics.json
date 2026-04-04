@@ -1,0 +1,17 @@
+[
+  {
+    "run_id": "stage4_topic06b_20260404T183442Z",
+    "stage": "4",
+    "topic_or_module": "section06_topic06b_cnn_baseline",
+    "metric_name": "test_accuracy",
+    "before_value": NaN,
+    "after_value": 0.85,
+    "delta": NaN,
+    "dataset_or_eval_set": "digits_fallback",
+    "seed_or_config_id": "seed606",
+    "decision": "promote",
+    "device": "cpu",
+    "max_vram_gb": 0.0,
+    "runtime_seconds": 0.885808699997142
+  }
+]

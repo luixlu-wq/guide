@@ -9,8 +9,8 @@ Use this 4-pass loop for each module:
 
 1. Problem framing: what prediction task is being solved.
 2. Intuition: what the model learns at a high level.
-3. Mechanics: tensor shapes, loss, gradients, optimizer behavior.
-4. Operatable practice: run code, inspect outputs, explain one failure.
+3. Mechanics: tensor shapes first, then loss, gradients, optimizer behavior.
+4. Operatable practice: run code, inspect outputs, explain one failure, and verify hardware utilization.
 
 If you are stuck, answer these before changing model architecture:
 
@@ -18,6 +18,15 @@ If you are stuck, answer these before changing model architecture:
 - Is the task regression, classification, or next-token prediction?
 - Is the output layer paired with the correct loss?
 - Is the issue from data, optimization, or model capacity?
+
+Mandatory hardware-awareness check for local training:
+
+```powershell
+nvidia-smi
+python -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.memory_allocated() if torch.cuda.is_available() else 0)"
+```
+
+If CUDA is available but memory usage is always zero during training, you are likely still on CPU path.
 
 ---
 
@@ -99,6 +108,13 @@ pip install -r src/stage-4/requirements-gpu.txt
 python -c "import torch; print(torch.__version__); print(torch.cuda.is_available())"
 ```
 
+Hardware check (recommended before every deep-learning lab run):
+
+```powershell
+nvidia-smi
+python -c "import torch; print('cuda', torch.cuda.is_available()); print('device_count', torch.cuda.device_count())"
+```
+
 ### Runtime presets (recommended)
 
 Stage 4 runners support two presets:
@@ -165,6 +181,30 @@ Split: <train/val/test or CV>
 Type: <task type>
 ```
 
+Pipeline quality standard (method chaining -> tensor conversion):
+
+```python
+# Example pattern before Dataset/DataLoader creation.
+df_clean = (
+    raw_df
+    .dropna(subset=["f1", "f2", "target"])
+    .assign(
+        f1_z=lambda d: (d["f1"] - d["f1"].mean()) / d["f1"].std(),
+        f2_z=lambda d: (d["f2"] - d["f2"].mean()) / d["f2"].std(),
+    )
+    .loc[:, ["f1_z", "f2_z", "target"]]
+)
+
+X = torch.tensor(df_clean[["f1_z", "f2_z"]].to_numpy(), dtype=torch.float32)
+y = torch.tensor(df_clean["target"].to_numpy(), dtype=torch.long)
+```
+
+Mandatory dtype/device declaration in examples:
+
+- `input_dtype` (for example `torch.float32`)
+- `target_dtype` (for example `torch.long` for class labels)
+- `device` (for example `cpu` or `cuda`)
+
 ---
 
 ## 6) Example Complexity Scale (Used In All Modules)
@@ -180,6 +220,7 @@ Complexity dimensions:
 - model complexity: depth, regularization, architecture variants
 - optimization complexity: LR schedule, clipping, AMP
 - evaluation complexity: train/val/test comparison and gap analysis
+- hardware complexity: CPU-only -> single-GPU device-safe -> AMP + throughput/profiler optimization
 
 Where complexity is in Stage 4 topics:
 
@@ -189,6 +230,21 @@ Where complexity is in Stage 4 topics:
 - Topic 4: basic RNN -> GRU with validation -> RNN/GRU/LSTM comparison
 - Topic 5: attention mechanics -> transformer classifier -> causal next-token modeling
 - Topic 6: device move basics -> CPU/GPU bridge -> AMP path with fallback
+
+---
+
+### Visual Intuition Prompts (Mandatory in Teaching Flow)
+
+Use these visuals when concepts feel abstract:
+
+1. Gradient descent landscape:
+   - compare too-small LR vs stable LR vs too-large LR
+   - show convergence vs oscillation/divergence behavior
+2. Vanishing gradient comparison:
+   - Sigmoid chain vs ReLU chain in deep stack
+   - show why gradients can collapse toward zero with saturated activations
+
+These visuals are required in notebook or script-generated figures for Stage 4 study sessions.
 
 ---
 
@@ -222,7 +278,7 @@ Every deep model uses this loop. If any step is wrong, training fails.
 
 ### Worked tutorial
 
-- Run simple script and confirm parameter values change after `optimizer.step()`.
+- Run simple NumPy script and confirm manual gradient-update steps move parameters.
 - Run intermediate and verify validation MSE decreases over epochs.
 - Run advanced and inspect gradient norm + scheduler behavior.
 
@@ -260,25 +316,84 @@ Runnable scripts:
 - Simple: [topic02a_mlp_simple.py](src/stage-4/topic02a_mlp_simple.py)
 - Intermediate: [topic02_mlp_intermediate.py](src/stage-4/topic02_mlp_intermediate.py)
 - Advanced: [topic02c_mlp_advanced.py](src/stage-4/topic02c_mlp_advanced.py)
+- Section suite simple: [topic05a_mlp_simple.py](src/stage-4/topic05a_mlp_simple.py)
+- Section-focused baseline: [topic05b_mlp_pytorch.py](src/stage-4/topic05b_mlp_pytorch.py)
+- Section suite advanced: [topic05c_mlp_optimized.py](src/stage-4/topic05c_mlp_optimized.py)
+
+Industry mapping note:
+- Your proposed suite `topic05a/topic05b/topic05c` maps here to the Stage 4 MLP ladder (`topic02a/topic02/topic02c`) in this repository.
+
+### Section 5 Alignment (MLP Foundation)
+
+5.1 What it is and why it matters:
+- MLP is a universal approximator for dense/tabular feature spaces.
+- In practice it is also used as the final classifier/regressor head in larger models.
+
+5.2 Mechanics and tensor contract:
+- Input: `[Batch_Size, Input_Features]`
+- Hidden: `H = Activation(XW + b)`
+- Output logits: `[Batch_Size, Output_Classes]` (classification) or `[Batch_Size, 1]` (regression)
+
+5.3 Operatable practice scripts:
+- `topic05a_mlp_simple.py`: NumPy math-first MLP (no autograd magic).
+- `topic05b_mlp_pytorch.py`: PyTorch baseline with `CrossEntropyLoss`.
+- `topic05c_mlp_optimized.py`: BN + Dropout + Scheduler + AMP-ready path.
+
+5.4 Failure-lab focus:
+- Vanishing gradients: loss barely changes -> use ReLU-family activations and inspect gradient norms.
+- Dying ReLU: hidden outputs collapse to zero -> lower LR or use LeakyReLU.
+- Shape mismatch: verify shapes before every linear layer.
 
 ### What it is
 
-A feedforward network using fully connected layers.
+MLP is the foundational deep model for dense/tabular feature spaces and classification heads.
+It is a universal function approximator composed of:
+
+- input layer
+- one or more hidden layers with nonlinear activation
+- output layer mapped to task-specific loss
 
 ### Why it matters
 
-Strong baseline for tabular data and flattened features.
+In industry, MLP is used for:
+
+- tabular deep learning baselines
+- projection heads in larger vision/NLP systems
+- fast controlled experiments before architecture escalation
 
 ### Data and shape declaration
 
 - Digits flat input: `(N,64)`
 - Target: class labels `(N,)`, classes `0..9`
 
+### Shape-first tensor contract (mandatory)
+
+- Input `X`: `[batch_size, input_features]`
+- Hidden layer: `H = activation(XW + b)`
+- Output logits: `[batch_size, output_classes]`
+- Classification loss pair: logits + `CrossEntropyLoss`
+
+If this contract is broken, assume shape/pairing bug first.
+
 ### Worked tutorial
 
-- Start with binary subset (0 vs 1).
-- Upgrade to full 10-class workflow with train/val/test.
-- Add dropout + weight decay and compare train-val gap.
+1. Simple (`topic02a`): binary MLP on digits subset.
+2. Baseline (`topic02`): multiclass train/val/test with split discipline.
+3. Advanced (`topic02c`): dropout + weight decay + comparison deltas.
+4. Hardware check (all runs): print device and memory profile.
+
+Method-chaining ingestion pattern (required before tensor conversion):
+
+```python
+df_clean = (
+    raw_df
+    .dropna(subset=["f1", "f2", "target"])
+    .assign(
+        f1_z=lambda d: (d["f1"] - d["f1"].mean()) / d["f1"].std(),
+        f2_z=lambda d: (d["f2"] - d["f2"].mean()) / d["f2"].std(),
+    )
+)
+```
 
 ### Assumptions and limits
 
@@ -289,6 +404,16 @@ Strong baseline for tabular data and flattened features.
 
 - Mistake: using accuracy only.
 - Fix: inspect train/val gap and test accuracy together.
+
+### Architecture failure taxonomy (MLP)
+
+- Failure mode: `Dying ReLU` (hidden outputs collapse to near-zero for many samples).
+- Red flag: accuracy plateaus early while loss changes minimally.
+- First fix: reduce LR, use better initialization, or test LeakyReLU.
+- Verification: compare hidden-activation distribution before/after the fix.
+- Failure mode: vanishing gradients in deeper MLP with saturating activations.
+- Red flag: loss barely moves over many epochs.
+- First fix: prefer ReLU-family activations, normalize inputs, and inspect gradient norms.
 
 ### Demonstration checklist
 
@@ -314,6 +439,32 @@ Runnable scripts:
 - Simple: [topic03a_cnn_simple.py](src/stage-4/topic03a_cnn_simple.py)
 - Intermediate: [topic03_cnn_intermediate.py](src/stage-4/topic03_cnn_intermediate.py)
 - Advanced: [topic03c_cnn_advanced.py](src/stage-4/topic03c_cnn_advanced.py)
+- Section suite simple: [topic06a_cnn_anatomy.py](src/stage-4/topic06a_cnn_anatomy.py)
+- Section suite baseline: [topic06b_cnn_cifar10.py](src/stage-4/topic06b_cnn_cifar10.py)
+- Section-focused performance lab: [topic06c_cnn_performance.py](src/stage-4/topic06c_cnn_performance.py)
+
+Industry mapping note:
+- Your proposed suite `topic06a/topic06b/topic06c` maps here to the Stage 4 CNN ladder (`topic03a/topic03/topic03c`) in this repository.
+
+### Section 6 Alignment (CNN Spatial Intelligence)
+
+6.1 Intuition:
+- CNN kernels slide across local neighborhoods to detect edges, textures, and higher-level patterns.
+
+6.2 Mechanics and tensor contract:
+- Input format: `[N, C, H, W]`
+- Pooling reduces `(H, W)` while preserving strong activations.
+- Flatten bridges convolutional feature maps to dense layers.
+
+6.3 Operatable practice scripts:
+- `topic06a_cnn_anatomy.py`: manual Sobel filter anatomy.
+- `topic06b_cnn_cifar10.py`: baseline CNN (CIFAR-10 local, digits fallback).
+- `topic06c_cnn_performance.py`: hardware/performance comparison with AMP path.
+
+6.4 Failure-lab focus:
+- Over-pooling: feature map too small too early.
+- Channel explosion: memory pressure from aggressive channel growth.
+- Overfitting: high train vs lower validation/test behavior.
 
 ### What it is
 
@@ -328,11 +479,23 @@ CNNs usually outperform plain MLPs on image-like inputs.
 - Digits image input: `(N,1,8,8)`
 - Target: class labels `(N,)`
 
+### Shape-first CNN contract (mandatory)
+
+- Input format: `[N, C, H, W]` (industry standard)
+- Convolution keeps/changes channels and spatial sizes by kernel/stride/padding policy
+- Pooling reduces spatial dimensions
+- Flatten bridges feature maps to dense classifier head
+
+Track shape transitions explicitly for each block:
+
+- `Conv -> Act -> Pool -> Conv -> Act -> Flatten -> Linear`
+
 ### Worked tutorial
 
-- Simple: one Conv + pooling path.
-- Intermediate: BatchNorm + deeper conv stack with validation tracking.
-- Advanced: controlled augmentation and regularization comparison.
+1. Simple (`topic03a`): minimal Conv pipeline, inspect feature-map outputs.
+2. Baseline (`topic03`): train/val/test with deeper stack and stable logging.
+3. Advanced (`topic03c`): controlled augmentation + regularization delta analysis.
+4. Hardware profile: compare throughput path and memory behavior on CPU/CUDA.
 
 ### Assumptions and limits
 
@@ -344,11 +507,22 @@ CNNs usually outperform plain MLPs on image-like inputs.
 - Mistake: flattening too early and losing local structure.
 - Fix: keep convolutional feature extraction before dense head.
 
+### Architecture failure taxonomy (CNN)
+
+- Failure mode: information bottleneck from overly aggressive pooling/stride.
+- Red flag: train and validation accuracy both low despite stable training.
+- First fix: reduce pooling aggressiveness or adjust feature-map width.
+- Verification: compare feature-map size progression and before/after validation accuracy.
+- Failure mode: channel explosion and memory pressure.
+- Red flag: OOM or heavy step-time growth when channels increase too fast.
+- First fix: moderate channel growth and monitor peak memory.
+
 ### Demonstration checklist
 
 - [ ] Input shape includes channel dimension.
 - [ ] Reports train-val behavior by epoch.
 - [ ] Explains impact of controlled augmentation.
+- [ ] Verifies final feature-map size is not over-compressed.
 
 ### Quick check
 
@@ -359,6 +533,21 @@ A: Same feature detector can be reused across positions.
 
 - Use: image and spatial signals.
 - Not use: purely tabular tasks without spatial structure.
+
+### Sovereign AI Hardware Check (MLP/CNN Labs)
+
+Include this profiling block in each MLP/CNN script run:
+
+```python
+import torch
+
+if torch.cuda.is_available():
+    print(f"Device: {torch.cuda.get_device_name(0)}")
+    print(f"Max VRAM Allocated: {torch.cuda.max_memory_allocated() / 1e9:.2f} GB")
+    torch.backends.cudnn.benchmark = True
+else:
+    print("Device: CPU fallback path")
+```
 
 ---
 
@@ -397,6 +586,13 @@ Introduces temporal dependency modeling before transformers.
 
 - Mistake: wrong input shape ordering.
 - Fix: keep `(batch, time, feature)` when using `batch_first=True`.
+
+### Architecture failure taxonomy (RNN/GRU/LSTM)
+
+- Failure mode: exploding gradients.
+- Red flag: loss spikes, unstable updates, or `NaN` loss.
+- First fix: gradient clipping + lower LR.
+- Verification: gradient-norm trace shows controlled values and stable loss.
 
 ### Demonstration checklist
 
@@ -453,6 +649,14 @@ Core architecture behind modern language and multimodal models.
 - Mistake: forgetting causal mask in autoregressive setup.
 - Fix: use upper-triangular mask to block future tokens.
 
+### Architecture failure taxonomy (Transformer)
+
+- Failure mode A: attention collapse (nearly uniform or degenerate attention patterns).
+- Failure mode B: positional encoding misuse (token order not represented correctly).
+- Red flag: model trains but sequence reasoning quality remains weak.
+- First fix: validate mask/position pipeline and inspect attention diagnostics.
+- Verification: attention-map sanity checks and sequence-quality delta after fix.
+
 ### Demonstration checklist
 
 - [ ] Can explain query/key/value at concept level.
@@ -508,11 +712,33 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 - Print tensor and model device to confirm match.
 - Print loss trend over epochs.
 - Verify CPU fallback path message if CUDA unavailable.
+- If CUDA is available, print peak GPU memory usage.
 
 ### AMP conceptual note
 
 - AMP reduces memory and can increase throughput on supported GPUs.
 - AMP does not replace correct optimization; it changes numeric precision policy.
+
+### Throughput optimization tutorial (local GPU track)
+
+Use this workflow when moving from \"script works\" to \"system performs\":
+
+1. Start with stable FP32 baseline and record step time.
+2. Enable AMP (`autocast` + `GradScaler`) and compare throughput.
+3. Tune input pipeline:
+   - `DataLoader(..., pin_memory=True, num_workers=<tuned value>)`
+   - `.to(device, non_blocking=True)` for batch transfer
+4. Enable backend tuning when shapes are stable:
+   - `torch.backends.cudnn.benchmark = True`
+5. Re-measure:
+   - transfer time
+   - compute time
+   - total step time
+   - peak memory
+
+Decision rule:
+
+- Keep optimized path only if quality stays stable and throughput or memory meaningfully improves.
 
 ### Ladder complexity in this module
 
@@ -534,6 +760,10 @@ Runnable script:
 | Validation unstable with dropout | forgot `model.eval()` | switch modes correctly |
 | Runtime device error | tensor/model on different devices | move both to same device |
 | No learning signal | missing backward/step order | verify `zero_grad -> backward -> step` |
+| MLP dead activations | dying ReLU from optimizer/init setup | lower LR, test LeakyReLU, inspect activations |
+| CNN weak representation | pooling/stride too aggressive | reduce downsampling, inspect feature-map sizes |
+| RNN training blows up | exploding gradients | clip gradients and reduce LR |
+| Transformer sequence confusion | positional encoding or mask misuse | validate mask/position pipeline and attention diagnostics |
 
 ---
 
@@ -568,14 +798,14 @@ Runnable script:
 - Day 9: CNN ladder
 - Day 10: RNN/GRU/LSTM ladder
 - Day 11: Transformer ladder
-- Day 12: architecture comparison on fixed setup
+- Day 12: architecture comparison on fixed setup + failure taxonomy drill
 - Day 13-14: error analysis and summary notes
 
 ### Week 9 - Project and performance
 
 - Day 15-17: project baseline and before metrics
 - Day 18: feature engineering change and after metrics
-- Day 19: analysis docs and model selection rationale
+- Day 19: throughput optimization pass (AMP, DataLoader tuning, memory checks)
 - Day 20: reproducibility and final cleanup
 - Day 21: self-test and Stage 5 readiness decision
 
@@ -634,6 +864,7 @@ Train and compare at least two deep models on one fixed dataset and justify the 
 6. Retrain both models with same split and epoch budget.
 7. Record after-change metrics.
 8. Compare before vs after and write final model choice rationale.
+9. Add one hardware-profile run (CPU vs CUDA if available) with memory/timing evidence.
 
 ### Required deliverables (file-based)
 
@@ -646,6 +877,9 @@ The script must generate these files in `src/stage-4/results/`:
 - `error_analysis.md`
 - `final_choice.md`
 - `reproducibility.md`
+- `evidence_schema_metrics.csv`
+- `hardware_profile.csv`
+- `hardware_decision.md`
 
 ### Minimum acceptance checks
 
@@ -653,6 +887,7 @@ The script must generate these files in `src/stage-4/results/`:
 - Same split/seed policy across compared runs.
 - Explicit feature engineering change is declared and applied.
 - Final choice is justified with metric evidence.
+- `evidence_schema_metrics.csv` contains: `run_id`, `before_value`, `after_value`, `delta`.
 
 ---
 
@@ -694,6 +929,8 @@ Scoring suggestion:
 - AMP recipe: https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html
 - Performance tuning guide: https://docs.pytorch.org/tutorials/recipes/recipes/tuning_guide.html
 - Deep Learning tuning playbook: https://developers.google.com/machine-learning/guides/deep-learning-tuning-playbook
+- NVIDIA CUDA Refresher (Getting Started): https://developer.nvidia.com/blog/even-easier-introduction-cuda/
+- NVIDIA CUDA Refresher (Programming Model): https://developer.nvidia.com/blog/cuda-refresher-cuda-programming-model/
 
 ### Deeper theory and architecture
 

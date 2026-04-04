@@ -1,0 +1,2 @@
+run_id,stage,topic_or_module,metric_name,before_value,after_value,delta,dataset_or_eval_set,seed_or_config_id,decision,device,max_vram_gb,runtime_seconds
+stage4_topic06b_20260404T183442Z,4,section06_topic06b_cnn_baseline,test_accuracy,,0.85,,digits_fallback,seed606,promote,cpu,0.0,0.885808699997142

@@ -1,0 +1,21 @@
+[
+  {
+    "run_id": "stage4_topic06c_20260404T183408Z",
+    "stage": "4",
+    "topic_or_module": "section06_topic06c_cnn_performance",
+    "metric_name": "best_val_accuracy",
+    "before_value": 0.9270833333333334,
+    "after_value": 0.9166666666666666,
+    "delta": -0.01041666666666674,
+    "dataset_or_eval_set": "digits_val_split",
+    "seed_or_config_id": "seed306",
+    "decision": "hold",
+    "diagnosis": "overfitting_or_instability_risk",
+    "device": "cpu",
+    "max_vram_gb": 0.0,
+    "before_step_time_s": 0.0017528243048824759,
+    "after_step_time_s": 0.0019048569451519547,
+    "before_throughput_samples_s": 36512.501465051915,
+    "after_throughput_samples_s": 33598.323571166955
+  }
+]

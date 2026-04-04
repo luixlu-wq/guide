@@ -1,0 +1,19 @@
+[
+  {
+    "run_id": "stage4_topic05c_20260404T183442Z",
+    "stage": "4",
+    "topic_or_module": "section05_topic05c_mlp_optimized",
+    "metric_name": "val_f1_macro",
+    "before_value": 0.9512347759326426,
+    "after_value": 0.9860094593851398,
+    "delta": 0.034774683452497235,
+    "dataset_or_eval_set": "digits_val_split",
+    "seed_or_config_id": "seed503",
+    "decision": "promote",
+    "diagnosis": "healthy_optimized_training",
+    "device": "cpu",
+    "use_amp": false,
+    "max_vram_gb": 0.0,
+    "runtime_seconds": 1.1590867000049911
+  }
+]

@@ -1,0 +1,2 @@
+run_id,stage,topic_or_module,metric_name,before_value,after_value,delta,dataset_or_eval_set,seed_or_config_id,decision,diagnosis,runtime_seconds,device
+stage4_topic05b_20260404T183359Z,4,section05_topic05b_mlp_pytorch,val_f1_macro,0.8045668737176257,0.9618256866631014,0.15725881294547572,digits_val_split,seed205,promote,healthy_training_signal,0.18207159999292344,cpu

@@ -1,8 +1,8 @@
 # Error Analysis
 
 ## Observations
-- ShallowMLP: train-val gap 0.0226 -> 0.0217; test accuracy 0.9556 -> 0.9611.
-- DeepMLP: train-val gap 0.0286 -> 0.0243; test accuracy 0.9694 -> 0.9667.
+- ShallowMLP: train-val gap 0.0051 -> 0.0217; test accuracy 0.9333 -> 0.9611.
+- DeepMLP: train-val gap 0.0234 -> 0.0312; test accuracy 0.9583 -> 0.9556.
 
 ## Diagnosis
 - If train-val gap remains high, overfitting still exists and stronger regularization may be needed.

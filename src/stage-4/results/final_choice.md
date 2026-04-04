@@ -1,7 +1,7 @@
 # Final Model Selection
 
-Chosen model: DeepMLP
-Test accuracy: 0.9667
+Chosen model: ShallowMLP
+Test accuracy: 0.9611
 
 Rationale:
 - Chosen by highest test accuracy under fixed split and same epoch budget.

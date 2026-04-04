@@ -1,0 +1,2 @@
+run_id,stage,topic_or_module,metric_name,before_value,after_value,delta,dataset_or_eval_set,seed_or_config_id,decision,diagnosis,device,use_amp,max_vram_gb,runtime_seconds
+stage4_topic05c_20260404T183442Z,4,section05_topic05c_mlp_optimized,val_f1_macro,0.9512347759326426,0.9860094593851398,0.034774683452497235,digits_val_split,seed503,promote,healthy_optimized_training,cpu,False,0.0,1.1590867000049911

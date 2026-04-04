@@ -1,0 +1,8 @@
+source_file,metric_name,before_value,after_value,delta
+red-book\src\stage-4\results\stage4\topic01a_before_after_metrics.csv,train_mse,71.73791666666668,0.0182501586314496,-71.71966650803523
+red-book\src\stage-4\results\stage4\topic01_before_after_metrics.csv,val_mse,0.3100443649291992,0.023893502180775,-0.2861508627484242
+red-book\src\stage-4\results\stage4\topic05a_before_after_metrics.csv,train_bce,0.7712004719780235,0.3720525605324562,-0.3991479114455673
+red-book\src\stage-4\results\stage4\topic05b_before_after_metrics.csv,val_f1_macro,0.8045668737176257,0.9618256866631014,0.1572588129454757
+red-book\src\stage-4\results\stage4\topic05c_optimized_metrics.csv,val_f1_macro,0.9512347759326426,0.9860094593851398,0.0347746834524972
+red-book\src\stage-4\results\stage4\topic06b_cnn_baseline_metrics.csv,test_accuracy,,0.85,
+red-book\src\stage-4\results\stage4\topic06c_performance_metrics.csv,best_val_accuracy,0.9270833333333334,0.9166666666666666,-0.0104166666666667

@@ -16,12 +16,27 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 
+def pick_device() -> torch.device:
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def print_hardware_profile(device: torch.device) -> None:
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
+        print(f"Device: {torch.cuda.get_device_name(0)}")
+        torch.backends.cudnn.benchmark = True
+    else:
+        print("Device: CPU fallback path")
+
+
 # Workflow:
 # 1) Load a small binary subset (digits 0 vs 1).
 # 2) Train a one-hidden-layer MLP with cross-entropy loss.
 # 3) Evaluate accuracy on held-out test data.
 def main() -> None:
     torch.manual_seed(21)
+    device = pick_device()
+    print_hardware_profile(device)
 
     data = load_digits()
     mask = data.target <= 1
@@ -35,12 +50,16 @@ def main() -> None:
     x_train, x_test, y_train, y_test = train_test_split(
         x, y, test_size=0.2, random_state=21, stratify=y
     )
+    x_train = x_train.to(device)
+    x_test = x_test.to(device)
+    y_train = y_train.to(device)
+    y_test = y_test.to(device)
 
     model = torch.nn.Sequential(
         torch.nn.Linear(64, 16),
         torch.nn.ReLU(),
         torch.nn.Linear(16, 2),
-    )
+    ).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     loss_fn = torch.nn.CrossEntropyLoss()
 
@@ -53,9 +72,11 @@ def main() -> None:
 
     with torch.no_grad():
         pred = model(x_test).argmax(dim=1)
-        acc = accuracy_score(y_test.numpy(), pred.numpy())
+        acc = accuracy_score(y_test.cpu().numpy(), pred.cpu().numpy())
 
     print(f"test_accuracy={acc:.4f}")
+    if device.type == "cuda":
+        print(f"Max VRAM Allocated: {torch.cuda.max_memory_allocated(device) / 1e9:.3f} GB")
     print("Interpretation: simple MLP already solves an easy binary vision task.")
 
 

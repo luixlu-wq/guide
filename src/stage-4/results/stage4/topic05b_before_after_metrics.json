@@ -1,0 +1,17 @@
+[
+  {
+    "run_id": "stage4_topic05b_20260404T183359Z",
+    "stage": "4",
+    "topic_or_module": "section05_topic05b_mlp_pytorch",
+    "metric_name": "val_f1_macro",
+    "before_value": 0.8045668737176257,
+    "after_value": 0.9618256866631014,
+    "delta": 0.15725881294547572,
+    "dataset_or_eval_set": "digits_val_split",
+    "seed_or_config_id": "seed205",
+    "decision": "promote",
+    "diagnosis": "healthy_training_signal",
+    "runtime_seconds": 0.18207159999292344,
+    "device": "cpu"
+  }
+]

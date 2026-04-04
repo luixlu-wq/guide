@@ -63,8 +63,8 @@ powershell -ExecutionPolicy Bypass -File .\run_ladder_stage4.ps1 -Preset quick
 ## Topic Mapping
 
 - Topic 1 (training loop anatomy):
-  - `topic01a_loop_anatomy_simple.py`
-  - `topic01_loop_anatomy.py`
+  - `topic01a_loop_anatomy_simple.py` (NumPy math-first neural anatomy)
+  - `topic01_loop_anatomy.py` (PyTorch baseline neural anatomy)
   - `topic01c_loop_anatomy_advanced.py`
 - Topic 2 (MLP ladder):
   - `topic02a_mlp_simple.py`
@@ -90,6 +90,15 @@ powershell -ExecutionPolicy Bypass -File .\run_ladder_stage4.ps1 -Preset quick
   - `topic07_failure_modes.py`
   - `topic08_project_baseline.py`
 
+Section-focused supplemental scripts (industry-style chapter aliases):
+
+- `topic05a_mlp_simple.py` (NumPy MLP math-first simple lab)
+- `topic05b_mlp_pytorch.py` (shape-first MLP baseline with failure-lab diagnostics)
+- `topic05c_mlp_optimized.py` (MLP optimized with BN/Dropout/Scheduler/AMP path)
+- `topic06a_cnn_anatomy.py` (manual Sobel filter anatomy demo)
+- `topic06b_cnn_cifar10.py` (CNN baseline with CIFAR10-local preference and digits fallback)
+- `topic06c_cnn_performance.py` (CNN performance lab with AMP/pin-memory profiling)
+
 ## Outputs
 
 `topic08_project_baseline.py` creates:
@@ -101,6 +110,26 @@ powershell -ExecutionPolicy Bypass -File .\run_ladder_stage4.ps1 -Preset quick
 - `results/error_analysis.md`
 - `results/final_choice.md`
 - `results/reproducibility.md`
+
+Topic 01 scripts create:
+
+- `results/stage4/topic01a_numpy_loss_trace.csv`
+- `results/stage4/topic01a_before_after_metrics.csv`
+- `results/stage4/topic01_loop_training_trace.csv`
+- `results/stage4/topic01_before_after_metrics.csv`
+- `results/stage4/topic01_before_after_metrics.json`
+- `results/stage4/topic05b_before_after_metrics.csv`
+- `results/stage4/topic05b_before_after_metrics.json`
+- `results/stage4/topic05a_numpy_trace.csv`
+- `results/stage4/topic05a_before_after_metrics.csv`
+- `results/stage4/topic05c_optimized_metrics.csv`
+- `results/stage4/topic05c_optimized_metrics.json`
+- `results/stage4/topic06a_sobel_demo.png`
+- `results/stage4/topic06a_sobel_summary.csv`
+- `results/stage4/topic06b_cnn_baseline_metrics.csv`
+- `results/stage4/topic06b_cnn_baseline_metrics.json`
+- `results/stage4/topic06c_performance_metrics.csv`
+- `results/stage4/topic06c_performance_metrics.json`
 
 ## Data Source and Structure Summary
 

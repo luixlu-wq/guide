@@ -1,0 +1,2 @@
+run_id,stage,topic_or_module,metric_name,before_value,after_value,delta,dataset_or_eval_set,seed_or_config_id,decision,diagnosis,device,max_vram_gb,before_step_time_s,after_step_time_s,before_throughput_samples_s,after_throughput_samples_s
+stage4_topic06c_20260404T183408Z,4,section06_topic06c_cnn_performance,best_val_accuracy,0.9270833333333334,0.9166666666666666,-0.01041666666666674,digits_val_split,seed306,hold,overfitting_or_instability_risk,cpu,0.0,0.0017528243048824759,0.0019048569451519547,36512.501465051915,33598.323571166955

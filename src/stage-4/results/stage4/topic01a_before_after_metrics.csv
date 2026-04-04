@@ -1,0 +1,2 @@
+run_id,stage,topic_or_module,metric_name,before_value,after_value,delta,dataset_or_eval_set,seed_or_config_id,decision,failure_class,diagnosis
+stage4_topic01a_20260404T181401Z,4,topic01a_numpy_neural_anatomy,train_mse,71.73791666666668,0.018250158631449662,-71.71966650803523,synthetic_1d_regression,deterministic_handcrafted_data,promote,training_or_optimization,healthy_convergence

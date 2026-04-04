@@ -1,0 +1,17 @@
+[
+  {
+    "run_id": "stage4_topic01_20260404T182659Z",
+    "stage": "4",
+    "topic_or_module": "topic01_pytorch_neural_anatomy",
+    "metric_name": "val_mse",
+    "before_value": 0.31004436492919923,
+    "after_value": 0.023893502180775007,
+    "delta": -0.2861508627484242,
+    "dataset_or_eval_set": "synthetic_2d_regression",
+    "seed_or_config_id": "seed7",
+    "decision": "promote",
+    "failure_class": "training_or_optimization",
+    "diagnosis": "healthy_convergence",
+    "device": "cpu"
+  }
+]

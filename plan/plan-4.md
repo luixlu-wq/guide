@@ -244,6 +244,26 @@ Section requirements:
 - Section 4 must explicitly define `simple/intermediate/advanced` and complexity dimensions.
 - Section 7 must include exact outputs and acceptance checks.
 
+### Stage 4 Complexity Scale Extension (Hardware-Aware, Mandatory)
+
+Use the existing `simple -> intermediate -> advanced` ladder and add this compute dimension:
+
+- `Simple (CPU-friendly)`:
+  - NumPy-only backprop walkthrough or tiny MLP
+  - objective is concept correctness, not throughput
+- `Intermediate (single-GPU baseline)`:
+  - standard PyTorch `nn.Module` training loop
+  - CUDA optional, CPU fallback required
+- `Advanced (RTX 5090 optimized)`:
+  - AMP + gradient accumulation + profiler-driven tuning
+  - includes memory/latency evidence and throughput comparison
+
+For every topic, include:
+
+- where complexity is in `model`, `data`, `optimization`, and `compute path`
+- one explicit statement of when CPU is still preferable
+- one explicit statement of when GPU acceleration is justified
+
 ---
 
 ## 5) Concept Module Template (Mandatory)
@@ -271,6 +291,8 @@ Core Stage 4 modules:
 - RNN/GRU/LSTM sequence intuition
 - Transformer basics (QKV, attention, positional encoding)
 - GPU/CUDA/AMP basics and pitfalls
+- computation graph tracing (forward graph -> backward gradients)
+- activation comparison (Sigmoid/Tanh/ReLU) and vanishing-gradient intuition
 - Overfitting/underfitting in deep learning
 - Train vs eval mode and checkpointing
 
@@ -355,11 +377,21 @@ Core ladders (simple -> intermediate -> advanced):
 - `topic07_failure_modes.py`
 - `topic08_project_baseline.py`
 
+8. Data pipeline and hardware profiling support
+- `topic09_dataset_dataloader_pipeline.py`
+- `topic10_vram_math_and_profiler.py`
+
 Script requirements:
 
 - All scripts must include clear `# Workflow:` comments.
 - All scripts must print data/shape declarations.
 - All scripts must print expected metrics and short interpretation text.
+- All scripts must include schema-contract headers:
+  - `Data Source`
+  - `Schema`
+  - `Preprocessing`
+  - `Null Handling`
+- All baseline scripts must output one diagnosis line (for example: `underfit`, `overfit`, `unstable gradients`, `data pipeline bottleneck`).
 
 ---
 
@@ -385,6 +417,13 @@ Required workflow:
 6. Add one controlled improvement (augmentation, regularization, lr schedule, architecture change).
 7. Rerun and compare before/after.
 8. Write final model selection rationale with tradeoffs.
+9. Include one hardware-awareness experiment:
+   - compare CPU vs CUDA path for at least one training or tensor workload
+   - record transfer time, compute time, total time, and peak memory
+10. Include one optimization experiment:
+   - before: standard FP32 or untuned LR
+   - after: AMP and/or scheduler and/or gradient accumulation
+   - report before/after delta with same evaluation protocol
 
 Required deliverables:
 
@@ -394,6 +433,9 @@ Required deliverables:
 - `results/error_analysis.md`
 - `results/final_choice.md`
 - `results/reproducibility.md`
+- `results/hardware_profile.csv`
+- `results/hardware_decision.md`
+- `results/evidence_schema_metrics.csv`
 
 Minimum acceptance checks:
 
@@ -401,6 +443,8 @@ Minimum acceptance checks:
 - At least 2 models compared
 - Before/after improvement evidence exists
 - One concrete failure diagnosis + fix is documented
+- Evidence schema fields include `run_id`, `before_value`, `after_value`, `delta`
+- Hardware profile includes memory and timing evidence
 
 ### 8.1 Stage-Specific Industry Pain-Point Matrix (Mandatory)
 
@@ -412,6 +456,10 @@ Minimum acceptance checks:
 | RNN/sequence modeling | Sequence model unstable or slow | Long dependency issues and batching problems | Apply sequence-length policy + gradient clipping | Sequence loss stability report | `topic04_rnn_intermediate.py` |
 | Transformer basics | Attention code works but predictions unstable | Mask/position handling errors | Add mask/position validation tests | Attention mask validity report | `topic05_transformer_intermediate.py` |
 | CUDA/AMP | GPU path faster but numerically unstable | AMP misuse and overflow handling gaps | Add AMP guardrails and fallback execution path | CPU/GPU/AMP comparison report | `topic06_cuda_intermediate.py` |
+| Activation dynamics | Deep network stops learning | Dying ReLU or saturated Sigmoid/Tanh | Add activation audit + initialization/LR review | Activation output histogram + gradient norm report | `topic02c_mlp_advanced.py`, `topic07_failure_modes.py` |
+| Gradient stability | Loss spikes or diverges | Exploding gradients and LR instability | Add gradient clipping + LR schedule comparison | Before/after loss stability and gradient norms | `topic07_failure_modes.py` |
+| Data pipeline throughput | GPU utilization low despite large model | DataLoader bottleneck and host-device transfer inefficiency | Tune `num_workers`, `pin_memory`, `non_blocking=True`, batch sizing | Loader throughput + step-time table | `topic09_dataset_dataloader_pipeline.py` |
+| VRAM planning | OOM in local training despite large VRAM | Incorrect parameter/activation/optimizer-state memory assumptions | Add VRAM math script + validate with runtime memory stats | Estimated vs observed VRAM report | `topic10_vram_math_and_profiler.py` |
 | Failure modes | Team cannot localize deep learning failures | No failure taxonomy | Use structured failure drill and one-change rerun | Failure diagnosis and fix log | `topic07_failure_modes.py` |
 | Project baseline to improvement | Final model chosen without evidence | Missing baseline-vs-improved protocol | Enforce fixed baseline, one controlled improvement, and decision gate | Before/after metrics + final rationale | `topic08_project_baseline.py` |
 
@@ -437,8 +485,10 @@ Required debugging flow:
 
 - model not learning -> check data/labels -> check output/loss pairing -> check gradients -> check LR
 - exploding/vanishing gradients -> inspect gradient norms -> clipping/init/lr adjustments
+- dying ReLU -> inspect activation distributions and dead-neuron ratio -> adjust init/LR/activation
 - suspicious validation behavior -> leakage and split audit
 - CUDA failures -> device mismatch and memory checks
+- throughput collapse -> profile DataLoader and host/device transfer path before changing model
 
 Quality gates:
 
@@ -462,7 +512,15 @@ Quality gates:
 8. Upgrade practice project to operatable spec and file outputs.
 9. Add weighted self-test rubric and remediation flow.
 10. Add resource catalog + link policy + verification date.
-11. Add final QA pass (terminology, encoding, duplicate cleanup).
+11. Add deep-learning intuition visuals:
+   - computation graph trace
+   - activation comparison plots (Sigmoid/Tanh/ReLU)
+   - residual/loss-curve diagnostics where applicable
+12. Add RTX 5090 optimization track:
+   - AMP + gradient accumulation tutorial
+   - PyTorch profiler tutorial
+   - VRAM estimate vs observed memory validation
+13. Add final QA pass (terminology, encoding, duplicate cleanup).
 
 ---
 
@@ -518,6 +576,15 @@ Required content:
 - AMP usage (`autocast` + `GradScaler`) and fallback behavior
 - memory and performance basics (batch size, pin_memory, timing sync)
 - CPU fallback in all GPU scripts
+- `non_blocking=True` transfer guidance and caveats
+- `torch.backends.cudnn.benchmark = True` usage guidance and caveats
+- gradient accumulation guidance for memory-constrained runs
+- profiler basics (`torch.profiler`) for locating bottlenecks
+- VRAM math walkthrough:
+  - parameter memory
+  - gradient memory
+  - optimizer-state memory
+  - activation memory estimate
 
 Required runnable checks:
 
@@ -525,6 +592,8 @@ Required runnable checks:
 - run one CUDA path when available
 - show CPU fallback message when CUDA unavailable
 - optional benchmark output with clear caveat on hardware dependence
+- print peak CUDA memory and compare to VRAM estimate
+- produce a short decision note: `CPU better` vs `GPU better` for the tested workload
 
 ---
 
@@ -676,6 +745,30 @@ If a plan already uses another path, keep it and add a path mapping note in stag
 ## Global Key Request Addendum (2026-04-04)
 
 - Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
+
+## Stage 4 Review Integration Addendum (2026-04-04, Additive-Only)
+
+This addendum applies the latest Stage 4 review comments without removing existing requirements.
+
+1. Deep-learning complexity must include compute-path maturity:
+   - CPU-friendly concept path
+   - single-GPU baseline
+   - RTX 5090 optimized path with AMP/profiler/accumulation
+2. Add mandatory intuition visuals for hard concepts:
+   - computation graph tracing
+   - activation function comparison and vanishing-gradient behavior
+3. Extend troubleshooting to DL-specific failures:
+   - dying ReLU
+   - exploding gradients
+   - deep overfitting controls (dropout, batch norm, early stopping)
+4. Add sovereign-hardware tutorials:
+   - VRAM math vs observed memory from runtime tools
+   - explicit CUDA transfer/throughput optimization guidance
+5. Enforce data-pipeline excellence:
+   - method-chaining-based tabular prep before tensor conversion
+   - custom `Dataset` + efficient `DataLoader` configuration tutorials
+6. Enforce evidence-schema compliance in stage outputs:
+   - `run_id`, `before_value`, `after_value`, `delta` are mandatory in metric tables.
 
 
 
