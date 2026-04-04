@@ -1,916 +1,1048 @@
-# Stage 8 — Fine-Tuning Models
+﻿# Stage 8 - Fine-Tuning Models
 
-*(Week 15–16)*
+(Week 15-16)
 
-## Goal
+## 0) If This Chapter Feels Hard
 
-Understand how to adapt pre-trained models to specific tasks.
+Use this strict 3-pass learning strategy:
 
-You are learning:
+1. Pass 1 (Decision pass)
+   - Study Sections 1, 3, and 7 only.
+   - Goal: decide when to use prompting, RAG, fine-tuning, or hybrid.
+2. Pass 2 (Method pass)
+   - Run one method at a time: SFT -> LoRA -> QLoRA -> Distillation.
+   - Goal: understand tradeoffs by evidence, not by preference.
+3. Pass 3 (Production pass)
+   - Run labs and complete promotion/rollback decision.
+   - Goal: move from concept to production-like operation.
 
-- when to fine-tune vs use RAG
-- how instruction tuning works
-- lightweight tuning methods (LoRA / QLoRA)
-- evaluation of tuned models
-
-This stage is where you move from:
-
-> "I can use a pre-trained model"
-
-to:
-
-> "I understand when model adaptation is worth it, how to do it efficiently, how to avoid common failures, and how to measure whether it actually helped."
+Do not start from QLoRA. Start from baseline and SFT so comparisons are meaningful.
 
 ---
 
-## Quick Summary
+## 1) Learning Targets (Must Achieve)
 
-Fine-tuning means taking a model that already knows general language or task patterns and adapting it to behave better on your specific task.
+By the end of Stage 8, you must be able to:
 
-**Important:** You are **NOT** training from scratch.
+- explain fine-tuning as continued optimization on task-specific distribution
+- decide correctly between prompting, RAG, fine-tuning, and hybrid strategy
+- design and validate instruction-tuning datasets with schema checks
+- run baseline vs tuned comparisons on fixed eval set and fixed config
+- explain and apply LoRA/QLoRA tradeoffs in memory, cost, and quality
+- explain distillation and evaluate teacher-student tradeoffs
+- run PyTorch/CUDA training loops with deterministic CPU fallback
+- use regression gates and make promote/hold/rollback decisions
+- identify failure type from evidence, compare fixes, and verify before/after deltas
 
-Instead, you are starting from a model that already has learned a lot and nudging it toward:
+Readiness checkpoint:
 
-- a better style
-- better task consistency
-- better structure
-- better domain behavior
-- better format following
-
-A beginner should finish this stage understanding:
-
-- what fine-tuning is
-- what instruction tuning is
-- how LoRA works
-- how QLoRA reduces memory usage
-- what distillation is
-- why fine-tuning changes behavior more than knowledge freshness
-- why evaluation matters more than "it looks better to me"
-
-### Topics
-
-- Instruction tuning
-- LoRA
-- QLoRA
-- Distillation
+- if you cannot explain why a model was promoted (with metrics + thresholds), you are not done.
 
 ---
 
-## Study Materials
+## 2) Prerequisites and Environment (Operatable)
 
-**Hugging Face Fine-tuning Guide**
-https://huggingface.co/docs/transformers/training
+Minimum:
 
-**PEFT (LoRA)**
-https://github.com/huggingface/peft
+- Python 3.10+
+- `pip install -r red-book/src/stage-8/requirements.txt`
+- CPU path must work first
 
----
+Optional GPU path:
 
-## Key Knowledge (Deep Understanding)
+- `pip install -r red-book/src/stage-8/requirements-optional.txt`
+- CUDA-compatible PyTorch
+- `python -c "import torch; print(torch.__version__, torch.cuda.is_available())"`
 
-### 1. What is Fine-Tuning
+Run from:
 
-**Fine-tuning = adapting a pre-trained model using new data.**
+- `red-book/src/stage-8`
 
-**Important:** You are NOT training from scratch.
+Recommended execution order:
 
-#### Beginner Explanation
+1. `powershell -ExecutionPolicy Bypass -File .\run_all_stage8.ps1`
+2. `powershell -ExecutionPolicy Bypass -File .\run_ladder_stage8.ps1`
+3. `powershell -ExecutionPolicy Bypass -File .\run_ladder_stage8.ps1 -IncludeLabs`
+4. Optional Qdrant comparison:
+   - `powershell -ExecutionPolicy Bypass -File .\run_ladder_stage8.ps1 -IncludeLabs -IncludeQdrant`
 
-A pre-trained model already learned general patterns such as grammar, common facts, general language behavior, some reasoning patterns, and broad instruction following.
+Validation commands:
 
-Fine-tuning trains it a bit more on your own dataset so it performs better on a narrower task.
-
-Examples:
-
-- make outputs more structured
-- make style more professional
-- make a support assistant answer in your company format
-- make a finance assistant explain indicators consistently
-- make a model produce JSON reliably
-- make a classifier better match your domain labels
-
-#### What Fine-Tuning Is NOT
-
-Fine-tuning is NOT:
-
-- training a giant model from zero
-- magically making the model know all new facts forever
-- automatically improving everything
-- a replacement for retrieval on changing knowledge
-
-#### Simple Mental Model
-
-Think of the base model like a smart university graduate.
-
-Fine-tuning is like giving that graduate:
-
-- your company's writing guide
-- your specific task examples
-- your desired output format
-- your domain-specific response patterns
-
-#### Step-by-Step Mental Model
-
-1. **Start with a base model** — a pre-trained LLM, encoder model, or classifier backbone.
-2. **Prepare task-specific examples** — showing what instruction to follow, what input looks like, and what ideal output looks like.
-3. **Continue training on that dataset** — model parameters are updated to better match your target behavior.
-4. **Evaluate on unseen examples** — compare whether the adapted model is actually better than the base model.
-
-#### Important Algorithms / Mechanisms
-
-**A. Gradient-Based Continued Training** — Core fine-tuning mechanism.
-
-How it works:
-
-1. Feed training example into the model
-2. Compute prediction
-3. Compare prediction to target output
-4. Compute loss
-5. Backpropagate gradients
-6. Update parameters
-7. Repeat over many examples
-
-*Why important: Fine-tuning is still training. It uses the same learning mechanics as other deep learning.*
+- core deliverables:
+  - `powershell -ExecutionPolicy Bypass -File .\verify_stage8_outputs.ps1`
+- include optional Qdrant outputs:
+  - `powershell -ExecutionPolicy Bypass -File .\verify_stage8_outputs.ps1 -IncludeQdrant`
 
 ---
 
-**B. Supervised Fine-Tuning (SFT)** — Most common beginner fine-tuning setup.
+## 3) Adaptation Decision Framework (Prompt vs RAG vs Tune)
 
-*How it works: The model is shown input-output examples and trained to imitate the desired output.*
+Use this strict decision order:
 
-*Why important: This is the simplest and most practical starting point.*
+1. Prompt/system design first.
+2. If knowledge freshness/private-doc grounding is missing, add RAG.
+3. If behavior/format/style consistency is still weak, apply fine-tuning.
+4. If you need both behavior alignment and fresh knowledge, use hybrid.
+
+### Decision Matrix
+
+| Problem pattern | Primary choice | Why |
+|---|---|---|
+| Format inconsistency | Fine-tuning (SFT/LoRA) | Parameter-level behavior alignment |
+| Missing latest knowledge | RAG | External updatable memory |
+| Style inconsistency | Fine-tuning | Stable output behavior |
+| Unsupported factual claims | RAG + grounding policy | Evidence constraints |
+| Inference too expensive | Distillation/quantization | Lower runtime cost |
+
+### Quantitative Trigger Rules (Recommended)
+
+Use these default triggers before starting fine-tuning:
+
+- If prompt-only format-validity < 0.90 and task requires strict schema -> fine-tuning candidate.
+- If factual failures come from missing documents/updates -> RAG first (not fine-tuning).
+- If prompt-only quality is close to target but cost/latency too high -> distillation candidate.
 
 ---
 
-**C. Full-Parameter Fine-Tuning** — All model weights are updated.
+## 3.1) Theory Foundation (Detailed, Mandatory)
 
-*How it works: The entire model is trainable during adaptation.*
+Fine-tuning is continued gradient-based optimization on new objective distribution.
 
-*Why important: Powerful, but expensive in compute and memory.*
+Core objective:
 
-#### Strengths and Weaknesses
+- improve target-task behavior while controlling regressions in general behavior and operations.
 
-| Strengths | Weaknesses |
-|---|---|
-| Improves consistency | Requires high-quality data |
-| Improves style following | Can overfit small datasets |
-| Improves task-specific response patterns | Can be expensive |
-| Can improve structured output behavior | May not help with fresh or private knowledge unless combined with RAG |
+Why this is difficult:
+
+- data quality dominates results
+- optimization can improve train loss while harming real-world generalization
+- evaluation can be invalid if baseline and tuned runs are not controlled
+
+Key theory points:
+
+1. SFT: supervised conditional mapping from instruction/input to target output.
+2. LoRA:
+   - update form: `W' = W + BA`
+   - where `B` and `A` are low-rank trainable matrices.
+3. QLoRA:
+   - base model quantized (often 4-bit variants)
+   - adapters remain trainable.
+4. Distillation:
+   - teacher model supervision for student model tradeoff.
+5. Fine-tuning changes behavior patterns more than knowledge freshness.
+
+Practical implication:
+
+- if your core issue is freshness or private evidence, retrieval layer is mandatory.
 
 ---
 
-### 2. Instruction Tuning
+## 4) Data and Schema Declaration Standard (Mandatory)
 
-**Dataset format:** instruction → input → output
+Every example and lab must declare:
 
-```json
-{
-  "instruction": "Analyze stock trend",
-  "input": "MA20 > MA50, volume rising",
-  "output": "This suggests a bullish trend because short-term momentum is stronger than long-term trend and rising volume supports the move."
-}
+```text
+Data: <name and source>
+Records: <count>
+Input schema: <fields and types>
+Output schema: <fields and types>
+Split/Eval policy: <fixed split or fixed eval IDs>
+Type: <SFT/LoRA/QLoRA/distill/comparison>
 ```
 
-#### Beginner Explanation
+Synthetic-data note:
 
-Instruction tuning is a special kind of fine-tuning where the model learns to follow instructions better.
+- always declare generation method, seed, and purpose.
 
-Instead of just learning raw text continuation, the model learns examples like:
+### Required Dataset Quality Checklist
 
-- user asks something
-- model should answer in a desired way
-
-This is one of the main reasons modern LLMs feel more helpful than plain base models.
-
-#### Why Instruction Tuning Matters
-
-Instruction tuning helps the model become better at:
-
-- following user requests
-- using the right tone
-- giving structured answers
-- staying task-focused
-- behaving consistently across tasks
-
-#### Step-by-Step Mental Model
-
-1. **Define the task behavior** — explanation style, format consistency, safer refusals, better classification wording.
-2. **Write many good examples** — Examples must show the exact style and quality you want.
-3. **Train the model on those examples** — The model learns the mapping from instruction/input to output.
-4. **Test on new instructions** — The real question is whether it generalized, not whether it memorized training examples.
-
-#### Important Algorithms / Mechanisms
-
-**A. Sequence-to-Sequence Supervision** — The model learns to produce the target output conditioned on instruction and input.
-
-*Why important: This is the core training behavior in instruction tuning.*
+1. Schema-valid rows only.
+2. No duplicate near-identical outputs dominating one class/style.
+3. Coverage includes easy, medium, hard, and ambiguous cases.
+4. Train/val/test separation is fixed and logged.
+5. Label policy is documented in one paragraph.
 
 ---
 
-**B. Teacher Forcing** — During training, the model is guided using the true target sequence.
+## 5) Example Complexity Scale (Used in All Modules)
 
-*How it works: Instead of relying fully on its own generated previous token during training, it learns from the true sequence.*
+- Simple:
+  - one method
+  - tiny dataset
+  - one metric family
+- Intermediate:
+  - baseline vs tuned
+  - controlled hyperparameter changes
+  - error analysis
+- Advanced:
+  - prompt vs RAG vs tune vs hybrid
+  - quality/cost/latency tradeoffs
+  - promotion and rollback decision
 
-*Why important: Makes learning more stable and efficient.*
+Where complexity lives:
 
----
-
-**C. Cross-Entropy Loss** — Used to measure how well the model predicts the correct output tokens.
-
-*Why important: This is the usual objective for language-model fine-tuning.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Improves instruction following | Bad examples teach bad behavior |
-| Improves output consistency | Inconsistent examples confuse the model |
-| Very useful for domain-specific assistants | Small datasets can lead to brittle improvements |
-
----
-
-### 3. LoRA (Low-Rank Adaptation)
-
-Instead of updating the full model:
-
-- **freeze** base model
-- **train** small additional layers
-
-| Benefit | Description |
-|---|---|
-| Faster | Fewer parameters to update |
-| Cheaper | Less compute required |
-| Less memory | Smaller training footprint |
-
-#### Beginner Explanation
-
-LoRA keeps the base model frozen and learns a small set of extra trainable parameters.
-
-This makes tuning much cheaper. That is why LoRA is widely used for:
-
-- LLM adaptation
-- domain-specific tuning
-- local experimentation
-- budget-friendly fine-tuning
-
-#### Why LoRA Matters
-
-Large models can be too expensive to fine-tune fully.
-
-LoRA says: *"Do not change everything. Learn a small set of adjustment matrices instead."*
-
-This lets you adapt large models with much less memory and storage.
-
-#### Simple Mental Model
-
-- **Full fine-tuning** — changes the whole machine.
-- **LoRA** — adds a small "adapter" that nudges the machine's behavior without rebuilding everything.
-
-#### Step-by-Step Mental Model
-
-1. **Load the pre-trained model** — This model stays mostly frozen.
-2. **Insert LoRA adapters into selected layers** — Usually attention layers or other important linear modules.
-3. **Train only adapter parameters** — Base weights remain fixed.
-4. **Use the adapted model at inference time** — The adapter changes how the frozen base behaves.
-
-#### Important Algorithms / Mechanisms
-
-**A. Low-Rank Matrix Decomposition** — Core LoRA idea.
-
-*How it works: Instead of learning a full update matrix, LoRA learns two smaller low-rank matrices whose product approximates the update.*
-
-*Why important: This drastically reduces trainable parameter count.*
+- data quality complexity
+- optimization stability complexity
+- memory/compute complexity
+- evaluation/regression complexity
+- operations and release complexity
 
 ---
 
-**B. Frozen Base Model + Trainable Adapters** — The original model weights are not updated.
+## 6) Detailed Concept Modules (Theory + Operation)
 
-*Why important: This lowers memory use and makes training more efficient.*
+## 6.1 Dataset Design and Governance
 
----
+What it is:
+- Build reliable, representative, schema-valid tuning data.
 
-**C. Rank Hyperparameter** — LoRA uses a rank value that controls adapter capacity.
+Why it matters:
+- weak data quality causes weak tuning regardless of algorithm.
 
-*Why important: Higher rank can model more complex updates, but costs more memory.*
+Industry pain point:
+- tuned model works in demo but fails in production traffic.
 
-#### Strengths and Weaknesses
+Root causes:
+- narrow scenario coverage
+- inconsistent label policy
+- hidden contamination between train and eval
 
-| Strengths | Weaknesses |
-|---|---|
-| Far cheaper than full fine-tuning | May not match full fine-tuning on every task |
-| Easier to run on limited hardware | Still depends heavily on dataset quality |
-| Easy to store and swap adapters | Wrong rank or target layers can hurt results |
-| Practical for experimentation | |
+Step-by-step workflow:
 
----
+1. Define task scope and output contract.
+2. Create schema validator.
+3. Run duplicate and class-balance checks.
+4. Freeze split IDs and save snapshot.
+5. Audit 30 random records manually.
 
-### 4. QLoRA
+Expected outputs:
 
-Optimized LoRA with:
+- data declaration printed
+- metrics CSV for baseline/tuned
+- sample outputs JSONL
 
-- **quantization**
-- even lower memory usage
+Related script:
 
-#### Beginner Explanation
+- `topic01_dataset_quality_intermediate.py`
 
-QLoRA takes the LoRA idea and makes it even more memory-efficient.
+Worked example (actual run metrics from `red-book/src/stage-8/results`):
 
-It uses quantization so the base model weights are stored in a lower-precision format, while still training LoRA adapters on top.
+- `topic01a_dataset_schema_simple_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated latency: `45.0 ms`
+- `topic01_dataset_quality_intermediate_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated latency: `50.0 ms`
+- `topic01c_data_governance_advanced_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated latency: `60.0 ms`
 
-This means you can fine-tune bigger models on smaller hardware.
+How to interpret:
 
-#### Simple Mental Model
-
-| Method | What it does |
-|---|---|
-| **LoRA** | Freeze big model, train small adapters |
-| **QLoRA** | Compress the frozen base model + train small adapters = save even more memory |
-
-#### Important Algorithms / Mechanisms
-
-**A. Quantization** — Store weights in lower precision (often 4-bit or related efficient formats).
-
-*How it works: Weights use fewer bits, reducing memory footprint.*
-
-*Why important: This is the key reason QLoRA can run larger models on smaller hardware.*
-
----
-
-**B. Quantized Base + LoRA Adapters** — The base model is compressed, but adapters remain trainable.
-
-*Why important: Combines memory efficiency with task adaptation.*
-
----
-
-**C. Paged Optimizers / Memory Management Tricks** — QLoRA implementations often use memory-saving optimizer and paging strategies.
-
-*Why important: Large-model fine-tuning is constrained not just by model size, but also by optimizer and activation memory.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Very memory efficient | Setup can be more complex |
-| Enables tuning of larger models | Quantization tradeoffs can affect stability or quality |
-| Practical for limited hardware environments | Still not a substitute for good dataset design |
+1. This module teaches quality and governance controls, so the main check is delta stability across complexity levels.
+2. In this deterministic teaching dataset, tuned performance reaches `1.000`, while baseline stays around `0.625`.
+3. If your tuned score is not better than baseline, inspect schema consistency and split contamination first.
 
 ---
 
-### 5. Distillation
+## 6.2 Instruction Tuning (SFT)
 
-Train a **smaller model** using outputs from a **larger model**.
+What it is:
+- supervised instruction-following adaptation.
 
-**Goal:** reduce cost and improve speed.
+Why it matters:
+- improves consistency in requested format and style.
 
-#### Beginner Explanation
+Industry pain point:
+- quality gain appears on seen prompts but collapses on rephrased prompts.
 
-Distillation transfers useful behavior from a bigger model to a smaller model.
+Root causes:
+- template overfitting
+- low instruction diversity
+- poor hold-out evaluation
 
-| Model | Characteristics |
-|---|---|
-| **Teacher** | Strong but expensive |
-| **Student** | Weaker but cheaper |
+Step-by-step workflow:
 
-**Goal:** Make student imitate teacher as much as practical.
+1. Build baseline output snapshot.
+2. Train SFT path on fixed train split.
+3. Evaluate on fixed test split.
+4. Compare base vs tuned on exact same items.
+5. Inspect failure cases and classify errors.
 
-#### Why Distillation Matters
+Expected outputs:
 
-In production, the best model is not always the biggest one. Sometimes you want:
+- baseline outputs JSONL
+- tuned outputs JSONL
+- metrics comparison CSV
+- error case report markdown
 
-- lower latency
-- lower cost
-- on-device inference
-- higher throughput
+Related script/lab:
 
-Distillation helps you keep some of the bigger model's quality while reducing deployment cost.
+- `topic02_sft_intermediate.py`
+- `lab01_instruction_tuning_baseline.py`
 
-#### Step-by-Step Mental Model
+Worked example (actual run metrics):
 
-1. **Use teacher model to generate outputs** — The teacher answers examples.
-2. **Collect teacher outputs** — labels, probabilities, full responses, or explanations.
-3. **Train student model on this signal** — The student learns from teacher behavior.
-4. **Evaluate whether the student is good enough** — The point is useful cost-quality tradeoff, not perfect imitation.
+- `topic02a_sft_baseline_simple_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `1980 MB`
+- `topic02_sft_intermediate_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `2200 MB`
+- `topic02c_sft_eval_advanced_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `2640 MB`
+- `lab1_metrics_comparison.csv`
+  - accuracy delta: `+0.375`
+  - f1_macro delta: `+0.4762`
+  - format-validity delta: `0.0`
 
-#### Important Algorithms / Mechanisms
+How to interpret:
 
-**A. Teacher-Student Training** — Core distillation setup.
-
-*How it works: A stronger model produces supervision for a smaller model.*
-
-*Why important: This is the foundation of distillation.*
-
----
-
-**B. Soft Targets** — Instead of only using hard labels, the student can learn from the teacher's probability distribution.
-
-*Why important: Soft targets contain richer information than a simple correct/incorrect label.*
-
----
-
-**C. Temperature Scaling in Distillation** — A temperature parameter smooths probabilities from the teacher.
-
-*Why important: This can make the teacher's signal more informative for the student.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Reduces inference cost | Student still has limited capacity |
-| Improves speed | Quality drop is common |
-| Useful for deployment and scaling | Teacher errors can be transferred too |
-| Can make smaller models surprisingly strong | |
+1. SFT should improve behavior metrics first (accuracy/f1 for this task), not only style impressions.
+2. Format-validity already starts at `1.0` in this lab, so quality deltas come from label correctness.
+3. If memory budget is constrained, compare SFT with LoRA/QLoRA before final method choice.
 
 ---
 
-### 6. Fine-Tuning vs RAG
+## 6.3 LoRA
 
-| Method | Purpose |
-|---|---|
-| **Fine-tuning** | Change behavior |
-| **RAG** | Add knowledge |
+What it is:
+- train low-rank adapters instead of full model weights.
 
-> **Important:** Do NOT use fine-tuning to add knowledge → use RAG
+Why it matters:
+- major reduction in trainable parameters and cost.
 
-#### Beginner Explanation
+Industry pain point:
+- unstable results across domains and tasks.
 
-**Use fine-tuning when you want the model to:**
+Root causes:
+- wrong target modules
+- rank too low/high
+- no controlled rank sweep
 
-- answer in a certain format
-- behave more consistently
-- follow your style
-- perform a narrow task better
+Step-by-step workflow:
 
-**Use RAG when you want the model to:**
+1. Select target modules and initial rank.
+2. Run rank sweep (`r=4,8,16` minimum).
+3. Track quality + memory + latency together.
+4. Choose smallest passing configuration.
 
-- access private documents
-- know recent information
-- answer from changing knowledge
-- cite real sources
+Expected outputs:
 
-#### Simple Rule
+- per-rank metrics rows
+- comparison summary
+- selected rank rationale
 
-> Use fine-tuning to **change behavior**.
-> Use RAG to **provide knowledge**.
+Related script:
 
-#### Examples
+- `topic03c_lora_rank_sweep_advanced.py`
 
-| Fine-Tuning Use Cases | RAG Use Cases |
-|---|---|
-| Make outputs always follow financial report schema | Answer from your policy documents |
-| Improve support-ticket classification style | Search internal research notes |
-| Improve consistency of internal analysis tone | Answer questions about changing market reports |
-| | Retrieve product documentation |
+Worked example (actual run metrics):
 
-#### Practical Rule for Beginners
+- `topic03a_lora_simple_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `810 MB`
+- `topic03_lora_intermediate_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `900 MB`
+- `topic03c_lora_rank_sweep_advanced_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `1080 MB`
 
-Before fine-tuning, ask:
+How to interpret:
 
-- Is my problem really behavior/style/format?
-- Or is my problem missing/changing knowledge?
-- Can better prompting solve it first?
-- Can structured output solve it first?
-- Can RAG solve it better?
-
-Often the answer is:
-
-1. **prompting first**
-2. **RAG next**
-3. **fine-tuning only if still needed**
-
-#### Important Algorithms / Mechanisms
-
-**A. Parametric Memory vs External Memory**
-
-- Fine-tuning changes what is stored in model parameters.
-- RAG uses external stored knowledge.
-
-*Why important: Fresh knowledge belongs in external retrieval systems, not buried in weights.*
+1. LoRA path in this stage shows lower memory footprint than SFT path for the same quality target.
+2. Treat rank/module sweep as mandatory, even when one configuration already looks strong.
+3. Choose the smallest memory configuration that still passes quality gates.
 
 ---
 
-**B. Retrieval-Augmented Inference** — RAG injects current evidence at answer time.
+## 6.4 QLoRA
 
-*Why important: This is how systems stay updatable.*
+What it is:
+- quantized base model plus trainable low-rank adapters.
 
----
+Why it matters:
+- enables larger-model adaptation on constrained hardware.
 
-**C. Behavior Alignment via Fine-Tuning** — Fine-tuning aligns the style and task behavior of the model.
+Industry pain point:
+- lower memory but quality instability.
 
-*Why important: This is why fine-tuning and RAG solve different problems.*
+Root causes:
+- unsafe quantization/runtime settings
+- no baseline LoRA comparison
+- insufficient stability checks
 
----
+Step-by-step workflow:
 
-## Difficulty Points
+1. Run LoRA baseline first.
+2. Run QLoRA with controlled config.
+3. Compare quality and operations metrics.
+4. Accept QLoRA only if quality gate passes.
 
-### 1. Bad dataset quality
+Expected outputs:
 
-**Why it happens:** Beginners focus on model size or training scripts, but the real problem is low-quality examples.
+- LoRA metrics CSV
+- QLoRA metrics CSV
+- memory/latency report markdown
 
-Examples of bad data: inconsistent outputs, weak instructions, wrong answers, mixed styles, duplicate examples, low-information examples.
+Related script/lab:
 
-**Why it is a problem:** Bad data teaches bad style, bad structure, bad reasoning patterns, and inconsistency.
+- `topic04_qlora_intermediate.py`
+- `lab02_lora_qlora_comparison.py`
 
-**Fix strategy:** Create clear examples, keep output style consistent, remove duplicates and weak examples, review samples manually, start with a small high-quality dataset before growing larger.
+Worked example (actual run metrics):
 
-### 2. Confusing behavior vs knowledge
+- `topic04a_qlora_simple_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `558 MB`
+- `topic04_qlora_intermediate_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `620 MB`
+- `topic04c_qlora_memory_tradeoff_advanced_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `744 MB`
+- `lab2_lora_metrics.csv` vs `lab2_qlora_metrics.csv`
+  - both show accuracy/f1_macro/format-validity at `1.000` in current run
 
-**Why it happens:** It feels intuitive to "teach the model facts" by fine-tuning.
+How to interpret:
 
-**Why it is a problem:** Facts change. Private knowledge changes. New documents appear. Fine-tuning is bad at staying current on changing knowledge.
-
-**Fix strategy:** Use fine-tuning for behavior/style/task pattern. Use RAG for fresh, private, or changing knowledge.
-
-### 3. Overfitting small dataset
-
-**Why it happens:** Small datasets make the model memorize examples instead of learning reusable patterns.
-
-**Why it is a problem:** The model may look better on seen prompts but fail on unseen prompts.
-
-**Fix strategy:** Keep a validation/test split, evaluate on unseen prompts, reduce training intensity if overfitting, increase example variety, use LoRA carefully rather than assuming it prevents overfitting automatically.
-
-### 4. Evaluation difficulty
-
-**Why it happens:** Fine-tuning improvements are often subtle — slightly better structure, slightly better tone, slightly better consistency.
-
-**Why it is a problem:** Without evaluation, you may think the tuned model is better when it is not.
-
-**Fix strategy:** Compare base model vs tuned model on the same prompts and same evaluation rubric. Track format accuracy, task correctness, consistency, and latency/cost if relevant.
-
-### 5. Expecting huge improvement
-
-**Why it happens:** People expect fine-tuning to completely transform the model.
-
-**Why it is a problem:** Unrealistic expectations lead to disappointment and poor decisions.
-
-**Fix strategy:** Expect fine-tuning to improve consistency, style, narrow-task behavior, and format adherence — not to solve all reasoning, knowledge, or system-design problems.
-
-### 6. Mixing multiple goals in one dataset
-
-**Why it happens:** Beginners try to teach style, classification, extraction, reasoning, and safety behavior all at once in a tiny dataset.
-
-**Why it is a problem:** The model receives mixed signals and improvements become hard to measure.
-
-**Fix strategy:** Choose one main goal per fine-tuning experiment.
-
-*Example:*
-
-- experiment A = structured financial summary
-- experiment B = safer refusal behavior
-- experiment C = classification style
-
-### 7. No baseline comparison
-
-**Why it happens:** People start tuning without properly testing the base model.
-
-**Why it is a problem:** You do not know whether tuning actually helped.
-
-**Fix strategy:** Always save baseline outputs on a held-out evaluation set before tuning.
+1. In this controlled setup, QLoRA keeps quality while lowering memory vs LoRA.
+2. In real projects, expect some quality risk and validate with the same fixed eval set.
+3. Never pick QLoRA only by memory gain; apply regression gates first.
 
 ---
 
-## Fine-Tuning Workflow (Real World)
+## 6.5 Distillation
 
-1. Define the behavior goal
-2. Decide whether fine-tuning is actually needed
-3. Choose base model
-4. Design dataset format
-5. Collect and clean examples
-6. Split train / validation / test
-7. Choose tuning method (full / LoRA / QLoRA)
-8. Train carefully
-9. Evaluate base vs tuned model
-10. Inspect failure cases
-11. Improve data or setup
-12. Save artifacts and document results
+What it is:
+- transfer behavior from teacher model to smaller student model.
 
-### Beginner Explanation of Each Step
+Why it matters:
+- reduces inference cost while retaining acceptable quality.
 
-1. **Define the behavior goal** — Be specific. *Bad: "Make model better." Good: "Make model produce a consistent financial analysis JSON schema."*
-2. **Decide whether fine-tuning is actually needed** — Try prompting, structured output, and RAG first when appropriate.
-3. **Choose base model** — Pick a model that already fits your task size and hardware budget.
-4. **Design dataset format** — For instruction tuning, define instruction, input, and output.
-5. **Collect and clean examples** — Quality matters more than raw quantity early on.
-6. **Split train / validation / test** — You need unseen evaluation data.
-7. **Choose tuning method** — full fine-tuning (expensive), LoRA (practical), QLoRA (more memory-efficient).
-8. **Train carefully** — Watch loss, memory usage, and training stability.
-9. **Evaluate base vs tuned model** — Use the same held-out prompts.
-10. **Inspect failure cases** — Do not trust only averages.
-11. **Improve data or setup** — Often the dataset is the main bottleneck.
-12. **Save artifacts and document results** — Keep dataset version, prompt format, hyperparameters, evaluation outputs, and final adapter/checkpoint.
+Industry pain point:
+- student loses quality on difficult segments.
 
----
+Root causes:
+- weak teacher supervision
+- no hard-case coverage
+- only aggregate metric tracking
 
-## Debugging Checklist for Stage 8
+Step-by-step workflow:
 
-If the fine-tuned model is disappointing, check:
+1. Generate teacher outputs.
+2. Build student training signal.
+3. Evaluate teacher and student on fixed eval set.
+4. Compare by segment (not only overall score).
 
-- [ ] Is fine-tuning actually the right solution, or should this be RAG?
-- [ ] Is the dataset high quality?
-- [ ] Are outputs consistent in style and structure?
-- [ ] Are train / validation / test separated properly?
-- [ ] Did you compare against the base model fairly?
-- [ ] Is the model overfitting?
-- [ ] Is the training objective aligned with your real task?
-- [ ] Did you try too many goals in one dataset?
-- [ ] Is LoRA rank / target module choice reasonable?
-- [ ] Is your evaluation set representative?
-- [ ] Are you measuring behavior change or just subjective impressions?
-- [ ] Would better prompting solve the problem more cheaply?
+Expected outputs:
 
----
+- teacher outputs JSONL
+- student outputs JSONL
+- distillation report markdown
 
-## Practice Project
+Related script/lab:
 
-### Project: Financial Instruction-Tuned Model
+- `topic05_distill_intermediate.py`
+- `lab03_distillation_tradeoff_lab.py`
 
-**Goal:** Train a model to analyze financial signals and produce structured outputs.
+Worked example (actual run metrics):
 
-You are not only trying to "fine-tune a model." You are learning:
+- `topic05a_distill_simple_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `432 MB`
+- `topic05_distill_intermediate_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `480 MB`
+- `topic05c_distill_eval_advanced_metrics.csv`
+  - baseline accuracy: `0.625`
+  - tuned accuracy: `1.000`
+  - simulated memory: `576 MB`
+- `lab3_distillation_report.md`
+  - teacher accuracy/f1_macro: `1.0 / 1.0`
+  - student accuracy/f1_macro: `1.0 / 1.0`
 
-- dataset design
-- behavior targeting
-- adapter-based tuning
-- fair evaluation
-- realistic expectations
+How to interpret:
 
-**Step 1 — Define goal**
-
-Good goals:
-
-- "Always return JSON with trend, risk, and recommendation"
-- "Explain technical indicators in beginner-friendly language"
-- "Classify market condition into bullish / neutral / bearish with one-sentence rationale"
-
-*Bad goal: "Make it smarter"*
-
-*Why this step matters: If the goal is vague, the dataset will be vague.*
+1. Distillation is acceptable when student quality remains within your tolerance band.
+2. Student wins are usually operational (cost/latency), not always quality gains.
+3. Always include hard-case segment checks to avoid hidden regressions.
 
 ---
 
-**Step 2 — Create dataset**
+## 6.6 PyTorch and CUDA in Fine-Tuning (Mandatory)
 
-Create 50–200 examples:
+Conceptual loop:
 
-```json
-{
-  "instruction": "Analyze the stock setup and return structured output.",
-  "input": "MA20 > MA50, RSI=68, volume rising, price above resistance",
-  "output": "{\"trend\":\"bullish\",\"risk\":\"moderate\",\"reason\":\"Short-term trend is above long-term trend, momentum is strong, and rising volume confirms the move.\"}"
-}
-```
+1. Move tensors/model to `cpu` or `cuda`.
+2. Forward pass -> logits.
+3. Loss calculation.
+4. Backward pass -> gradients.
+5. Optimizer step.
 
-Your examples should be: consistent, realistic, representative, and varied enough to avoid memorization.
+Industry pain point:
+- CUDA OOM/device mismatch interrupts training.
 
-Include: bullish examples, bearish examples, neutral examples, edge cases, and ambiguous cases.
+Root causes:
+- mixed-device tensors
+- excessive batch size
+- missing memory strategy
 
-*Why this step matters: The dataset teaches the model what "good behavior" means.*
+Resolution workflow:
 
----
+1. print selected device at run start
+2. assert tensor-device consistency
+3. use batch-size ladder and accumulation
+4. enable AMP only after baseline stability
+5. keep CPU fallback for all scripts
 
-**Step 3 — Save dataset**
+Related scripts:
 
-```
-data/processed/dataset.jsonl
-```
+- `topic00a_pytorch_cuda_tuning_simple.py`
+- `topic00_pytorch_cuda_tuning_intermediate.py`
+- `topic00c_pytorch_cuda_tuning_advanced.py`
 
-Also save: dataset version, train/val/test split files, and example generation notes.
+Worked example (actual run metrics):
 
-*Why this step matters: A clean dataset file makes training repeatable.*
+- `topic00a_pytorch_cuda_tuning_simple_metrics.csv`
+  - device: `cpu`
+  - final_loss: `0.327534`
+  - duration: `9.72 ms`
+- `topic00_pytorch_cuda_tuning_intermediate_metrics.csv`
+  - device: `cpu`
+  - final_loss: `0.109524`
+  - duration: `17.87 ms`
+- `topic00c_pytorch_cuda_tuning_advanced_metrics.csv`
+  - device: `cpu`
+  - final_loss: `0.062524`
+  - duration: `31.33 ms`
 
----
+How to interpret:
 
-**Step 4 — Train with LoRA**
-
-Use HuggingFace + PEFT.
-
-What to monitor:
-
-- training loss
-- validation loss
-- GPU memory
-- time per step
-- whether outputs become more consistent
-
-*Why this step matters: LoRA is the most practical starting point for beginners — cheaper and more realistic for local or limited-budget tuning.*
-
----
-
-**Step 5 — Evaluate**
-
-Compare base model vs fine-tuned model on unseen prompts.
-
-Evaluation dimensions:
-
-- structure consistency
-- domain style
-- correctness
-- refusal behavior if relevant
-- output stability
-- whether improvement holds on unseen prompts
-
-*Why this step matters: Without direct comparison, tuning results are meaningless.*
+1. As loop complexity increases, final_loss should decrease on this synthetic task.
+2. Runtime increases with complexity; compare only within same hardware/device.
+3. If CUDA is available on your machine, device may show `cuda` and timing profile will differ.
 
 ---
 
-**Step 6 — Analyze results**
+## 6.7 Evaluation and Regression Gates
 
-Better analysis questions:
+Minimum metrics:
 
-- Did JSON validity improve?
-- Did explanations become more consistent?
-- Did accuracy improve on held-out cases?
-- Did the model become too repetitive?
-- Did it overfit the exact examples?
+- quality:
+  - accuracy or task correctness
+  - format-validity rate
+  - consistency indicator
+- retrieval path (if hybrid):
+  - hit@k
+  - recall@k
+  - citation support rate
+- operations:
+  - latency p50/p95
+  - cost per query
+  - failure rate
 
-*Why this step matters: A model can improve in one dimension and get worse in another.*
+Recommended promotion thresholds (starter policy):
 
-### Deliverables
+1. quality:
+   - no drop in primary quality metric
+2. format:
+   - format-validity >= baseline
+3. operations:
+   - p95 latency increase <= 20%
+   - cost/query increase <= 20%
+4. reliability:
+   - failure rate not worse than baseline
 
-- dataset
-- training script
-- evaluation results
-- README
+Industry pain point:
+- model promoted because outputs look better in manual spot checks.
 
-### Experiment Tasks
+Resolution workflow:
 
-**Experiment 1 — Base vs tuned comparison**
+1. freeze eval set and versions
+2. run baseline and candidate
+3. compute deltas
+4. apply thresholds
+5. decision: promote / hold / rollback
 
-Run the same evaluation prompts on base model and LoRA-tuned model.
+Related script:
 
-- Lesson: Never assume tuning helps without comparison.
+- `topic07c_promotion_gate_advanced.py`
 
-**Experiment 2 — Small dataset vs better dataset**
+Worked example (actual run metrics):
 
-Try a quick weak dataset vs a smaller but better curated dataset.
+- `topic07a_eval_basics_simple_metrics.csv`
+  - baseline accuracy/f1: `0.625 / 0.5238`
+  - tuned accuracy/f1: `1.000 / 1.000`
+- `topic07_eval_regression_intermediate_metrics.csv`
+  - baseline accuracy/f1: `0.625 / 0.5238`
+  - tuned accuracy/f1: `1.000 / 1.000`
+- `topic07c_promotion_gate_advanced_metrics.csv`
+  - baseline accuracy/f1: `0.625 / 0.5238`
+  - tuned accuracy/f1: `1.000 / 1.000`
+- `lab4_metrics_comparison.csv`
+  - accuracy delta: `+0.3667`
+  - f1_macro delta: `+0.4516`
+  - format-validity delta: `0.0`
 
-- Lesson: Quality often beats quantity early on.
+How to interpret:
 
-**Experiment 3 — One-goal dataset vs mixed-goal dataset**
-
-Compare pure structured-finance-output dataset vs mixed finance + summarization + extraction dataset.
-
-- Lesson: Single-goal tuning is easier to evaluate and often works better.
-
-**Experiment 4 — LoRA rank comparison**
-
-Try two or three rank settings.
-
-- Lesson: Adapter capacity affects behavior and cost.
-
-**Experiment 5 — Fine-tuning vs prompt engineering**
-
-See whether a strong prompt plus base model can already solve much of the task.
-
-- Lesson: Fine-tuning should justify its extra complexity.
-
-**Experiment 6 — Fine-tuning vs RAG**
-
-Ask a knowledge-fresh task and compare tuned model only vs RAG system.
-
-- Lesson: Fresh knowledge problems are usually better solved with retrieval.
-
-**Experiment 7 — Distillation-style mini experiment**
-
-Use a stronger model to generate higher-quality target outputs for a small student-training dataset.
-
-- Lesson: Teacher quality influences student quality.
-
-### Common Mistakes
-
-1. **Weak dataset** — Examples are inconsistent, vague, or low quality. *Fix: Improve dataset quality before changing training setup.*
-
-2. **No evaluation** — You cannot tell whether improvement is real. *Fix: Create a held-out prompt set and compare base vs tuned outputs systematically.*
-
-3. **Mixing multiple goals** — Results become noisy and hard to interpret. *Fix: Tune for one main behavior goal at a time.*
-
-4. **Expecting knowledge updates** — The model still will not be a reliable source of fresh, changing facts. *Fix: Use RAG for fresh/private/changing knowledge.*
-
-5. **Overfitting on small data** — The model memorizes instead of generalizing. *Fix: Use better data variety and evaluate on unseen prompts.*
-
-6. **No baseline saved** — You lose the ability to measure improvement fairly. *Fix: Record base-model outputs first.*
-
-7. **Choosing fine-tuning when prompting is enough** — You add cost and complexity unnecessarily. *Fix: Try prompting and structured output first.*
+1. Promotion decision should reference explicit deltas, not subjective review.
+2. In this run, quality and format gates pass, enabling promotion.
+3. If one critical metric regresses, hold or rollback by policy.
 
 ---
 
-## Final Understanding
+## 6.8 Industry Operations and Lifecycle Management
 
-> Fine-tuning improves **how** a model responds, while RAG improves **what** it knows.
+What it is:
+- deploy tuned models with controlled risk.
 
-> Fine-tuning is mainly about behavior adaptation, not magical knowledge updates.
+Key controls:
 
-> The biggest determinants of success are usually **goal clarity**, **dataset quality**, and **fair evaluation**.
+- experiment/version tracking
+- canary release
+- rollback path
+- continuous monitoring
 
----
+Industry pain point:
+- offline gains, production regressions.
 
-## Self Test
+Root causes:
+- no canary or rollback strategy
+- weak observability and alert thresholds
 
-### Questions
+Resolution workflow:
 
-1. What is fine-tuning?
-2. Why is fine-tuning different from training from scratch?
-3. What kinds of problems is fine-tuning good for?
-4. What is instruction tuning?
-5. What fields usually appear in an instruction-tuning dataset?
-6. Why is instruction tuning useful for LLM behavior?
-7. What is supervised fine-tuning?
-8. What is cross-entropy loss used for in language-model fine-tuning?
-9. What is LoRA?
-10. Why is LoRA cheaper than full fine-tuning?
-11. What does "freeze the base model" mean?
-12. What is the meaning of "low-rank" in LoRA?
-13. What is QLoRA?
-14. Why does quantization help in QLoRA?
-15. What is distillation?
-16. What is the teacher-student idea in distillation?
-17. Why are soft targets useful in distillation?
-18. What is the main difference between fine-tuning and RAG?
-19. Why should you not use fine-tuning to add fresh knowledge?
-20. What kind of goal is a good candidate for fine-tuning?
-21. Why is dataset quality so important in fine-tuning?
-22. Why can small datasets cause overfitting?
-23. Why is evaluation difficult in fine-tuning?
-24. Why should you compare base and tuned models on the same prompts?
-25. What is a common mistake when beginners build a fine-tuning dataset?
-26. Why should you usually try prompting before fine-tuning?
-27. What should you save besides the final tuned adapter or checkpoint?
-28. Why can a tuned model still fail on unseen prompts?
-29. What is one main reason fine-tuning projects disappoint?
-30. What is the main lesson of this stage?
+1. register model + config versions
+2. deploy to small traffic slice
+3. monitor quality/cost/latency/failure
+4. rollback on gate violation
 
-### Answers
+Related script/lab:
 
-1. Fine-tuning is adapting a pre-trained model to behave better on a specific task using additional training data.
+- `topic08c_canary_rollback_advanced.py`
+- `lab04_finetune_project_baseline_to_production.py`
 
-2. Because the model already has learned general language or task patterns, and you are only adapting it further instead of starting with random weights.
+Worked example (actual run metrics):
 
-3. It is good for improving style, consistency, output format, instruction following, and narrow task behavior.
+- `topic08a_model_registry_simple_metrics.csv`
+  - baseline accuracy/f1: `0.625 / 0.5238`
+  - tuned accuracy/f1: `1.000 / 1.000`
+  - simulated latency: `48.0 ms`
+- `topic08_ops_observability_intermediate_metrics.csv`
+  - baseline accuracy/f1: `0.625 / 0.5238`
+  - tuned accuracy/f1: `1.000 / 1.000`
+  - simulated latency: `53.33 ms`
+- `topic08c_canary_rollback_advanced_metrics.csv`
+  - baseline accuracy/f1: `0.625 / 0.5238`
+  - tuned accuracy/f1: `1.000 / 1.000`
+  - simulated latency: `64.0 ms`
+- `lab4_verification_report.md`
+  - quality gate pass: `True`
+  - format gate pass: `True`
+  - decision: `promote`
 
-4. Instruction tuning is fine-tuning a model on examples formatted as instructions plus inputs plus desired outputs.
+How to interpret:
 
-5. Usually instruction, input, and output.
-
-6. Because it teaches the model how to respond to user instructions in a more consistent and useful way.
-
-7. It is fine-tuning where the model is trained directly on input-output examples with known target responses.
-
-8. It measures how well the model predicts the correct target tokens during training.
-
-9. LoRA is a parameter-efficient fine-tuning method that freezes the base model and trains small low-rank adapters instead.
-
-10. Because it updates far fewer parameters and uses less memory and compute.
-
-11. It means the original model weights are not updated during training.
-
-12. It means the update is represented using smaller matrices that approximate a full update more efficiently.
-
-13. QLoRA is a more memory-efficient version of LoRA that uses quantized base-model weights.
-
-14. Because lower-precision weights take much less memory.
-
-15. Distillation is training a smaller model to imitate a larger teacher model.
-
-16. A stronger teacher model provides supervision that helps a smaller student model learn better behavior.
-
-17. Because they contain richer information than just hard labels and reveal how the teacher distributes confidence.
-
-18. Fine-tuning changes model behavior through training, while RAG adds external knowledge at inference time.
-
-19. Because model weights are not a reliable or updatable way to handle changing, recent, or private knowledge.
-
-20. A behavior goal such as better structure, better style consistency, or better domain-specific instruction following.
-
-21. Because the model learns directly from those examples, so poor examples teach poor behavior.
-
-22. Because the model may memorize the examples instead of learning a reusable pattern.
-
-23. Because improvements are often subtle and can be mistaken for success without fair comparison.
-
-24. Because otherwise the comparison is unfair and you cannot measure real improvement.
-
-25. They mix too many different goals into one small dataset.
-
-26. Because prompting is cheaper, simpler, and often enough to solve the problem.
-
-27. You should save dataset versions, train/validation/test splits, hyperparameters, prompts, evaluation outputs, and experiment notes.
-
-28. Because it may overfit the training examples or the dataset may not cover enough variation.
-
-29. Poor dataset quality or unclear goals.
-
-30. Fine-tuning is a tool for behavior adaptation, not a universal solution, and success depends on clear goals, strong data, and honest evaluation.
+1. Operations module combines quality and runtime behavior for release readiness.
+2. Canary and rollback controls are required even when offline quality is strong.
+3. Production decision must be traceable to gate outputs in report files.
 
 ---
 
-## What You Must Be Able To Do After Stage 8
+## 7) Industry Pain-Point Playbooks (Detailed)
 
-- [ ] Explain what fine-tuning is in plain English
-- [ ] Explain instruction tuning, LoRA, QLoRA, and distillation at a beginner level
-- [ ] Distinguish full fine-tuning from adapter-based tuning
-- [ ] Explain why fine-tuning changes behavior more than knowledge freshness
-- [ ] Decide when to use prompting, RAG, or fine-tuning
-- [ ] Design a simple instruction-tuning dataset
-- [ ] Compare a base model and a tuned model fairly
-- [ ] Identify overfitting and weak-data problems
-- [ ] Understand that evaluation is mandatory, not optional
-- [ ] Treat fine-tuning as a targeted engineering tool, not magic
+## 7.1 Fine-Tuning Too Early
+
+- Symptom: tuning project starts before baseline diagnosis.
+- Causes: no decision rubric, subjective urgency.
+- Fix: enforce prompt -> RAG -> tune sequence with metrics at each stage.
+- Lab: `topic06a_prompt_vs_tune_simple.py`
+
+## 7.2 Data Leakage in Tuning Evaluation
+
+- Symptom: tuned score looks excellent but production behavior is weak.
+- Causes: overlap across train/test, duplicated templates.
+- Fix: split by scenario IDs and run leakage checks.
+- Lab: `topic01_dataset_quality_intermediate.py`
+
+## 7.3 LoRA Rank Instability
+
+- Symptom: performance swings across runs.
+- Causes: arbitrary rank/module choices.
+- Fix: rank sweep with gate-based selection.
+- Lab: `topic03c_lora_rank_sweep_advanced.py`
+
+## 7.4 QLoRA Quality Regressions
+
+- Symptom: lower memory but weaker outputs.
+- Causes: aggressive quantization without baseline controls.
+- Fix: direct LoRA vs QLoRA comparison on same eval IDs.
+- Lab: `lab02_lora_qlora_comparison.py`
+
+## 7.5 Student Collapse in Distillation
+
+- Symptom: fast model but poor edge-case behavior.
+- Causes: weak teacher labels or missing hard cases.
+- Fix: hard-case segments and segment-wise metrics.
+- Lab: `lab03_distillation_tradeoff_lab.py`
+
+## 7.6 Production Release Risk
+
+- Symptom: promoted model causes cost spike or quality drop.
+- Causes: no release gates, no rollback criteria.
+- Fix: canary + monitoring + rollback playbook.
+- Lab: `lab04_finetune_project_baseline_to_production.py`
+
+---
+
+## 8) Stage 8 Script Mapping (`red-book/src/stage-8`)
+
+Core ladders (simple -> intermediate -> advanced):
+
+0. PyTorch/CUDA tuning
+- `topic00a_pytorch_cuda_tuning_simple.py`
+- `topic00_pytorch_cuda_tuning_intermediate.py`
+- `topic00c_pytorch_cuda_tuning_advanced.py`
+
+1. Data and governance
+- `topic01a_dataset_schema_simple.py`
+- `topic01_dataset_quality_intermediate.py`
+- `topic01c_data_governance_advanced.py`
+
+2. SFT
+- `topic02a_sft_baseline_simple.py`
+- `topic02_sft_intermediate.py`
+- `topic02c_sft_eval_advanced.py`
+
+3. LoRA
+- `topic03a_lora_simple.py`
+- `topic03_lora_intermediate.py`
+- `topic03c_lora_rank_sweep_advanced.py`
+
+4. QLoRA
+- `topic04a_qlora_simple.py`
+- `topic04_qlora_intermediate.py`
+- `topic04c_qlora_memory_tradeoff_advanced.py`
+
+5. Distillation
+- `topic05a_distill_simple.py`
+- `topic05_distill_intermediate.py`
+- `topic05c_distill_eval_advanced.py`
+
+6. Strategy comparison
+- `topic06a_prompt_vs_tune_simple.py`
+- `topic06_tune_vs_rag_intermediate.py`
+- `topic06c_hybrid_strategy_advanced.py`
+
+7. Evaluation and regression
+- `topic07a_eval_basics_simple.py`
+- `topic07_eval_regression_intermediate.py`
+- `topic07c_promotion_gate_advanced.py`
+
+8. Operations
+- `topic08a_model_registry_simple.py`
+- `topic08_ops_observability_intermediate.py`
+- `topic08c_canary_rollback_advanced.py`
+
+9. Labs
+- `lab01_instruction_tuning_baseline.py`
+- `lab02_lora_qlora_comparison.py`
+- `lab03_distillation_tradeoff_lab.py`
+- `lab04_finetune_project_baseline_to_production.py`
+- `lab05_finetune_vs_rag_vs_hybrid_qdrant.py` (optional local Qdrant track)
+
+Hard requirements:
+
+- all scripts include very detailed functional comments
+- all scripts print data/schema declarations
+- all scripts print metrics and interpretation text
+- all scripts include deterministic rerun settings
+
+---
+
+## 9) Practice Labs (Detailed and Operatable)
+
+## Lab 1: Instruction Tuning Baseline
+
+Goal:
+- compare base model vs tuned model on fixed task.
+
+Required workflow:
+
+1. freeze dataset and eval IDs
+2. run baseline snapshot
+3. run tuned path
+4. compare metrics
+5. inspect error cases
+
+Required outputs:
+
+- `results/lab1_base_outputs.jsonl`
+- `results/lab1_tuned_outputs.jsonl`
+- `results/lab1_metrics_comparison.csv`
+- `results/lab1_error_cases.md`
+
+## Lab 2: LoRA vs QLoRA
+
+Goal:
+- compare quality/memory/latency tradeoffs.
+
+Required workflow:
+
+1. run LoRA path
+2. run QLoRA path
+3. compare quality first
+4. compare memory/latency next
+5. choose preferred method by gate policy
+
+Required outputs:
+
+- `results/lab2_lora_metrics.csv`
+- `results/lab2_qlora_metrics.csv`
+- `results/lab2_memory_latency_report.md`
+
+## Lab 3: Distillation Tradeoff
+
+Goal:
+- compare teacher vs student quality and cost profile.
+
+Required workflow:
+
+1. generate teacher outputs
+2. train student with distillation signal
+3. evaluate both on fixed set
+4. inspect hard-case segment behavior
+
+Required outputs:
+
+- `results/lab3_teacher_outputs.jsonl`
+- `results/lab3_student_outputs.jsonl`
+- `results/lab3_distillation_report.md`
+
+## Lab 4: Baseline to Production Improvement
+
+Goal:
+- improve a realistic tuning project with controlled fixes and promotion decision.
+
+Required workflow:
+
+1. baseline measurement
+2. failure classification
+3. option comparison (at least 2)
+4. one controlled improvement
+5. gate check and decision
+
+Required outputs:
+
+- `results/lab4_project_baseline_outputs.jsonl`
+- `results/lab4_project_improved_outputs.jsonl`
+- `results/lab4_solution_options.csv`
+- `results/lab4_metrics_comparison.csv`
+- `results/lab4_verification_report.md`
+- `results/lab4_production_readiness.md`
+
+## Lab 5: Fine-Tuning vs RAG vs Hybrid (Optional Qdrant)
+
+Goal:
+- compare tuned-only, RAG-only, and hybrid pipelines.
+
+Required workflow:
+
+1. run prompt-only baseline
+2. run RAG path
+3. run tuned path
+4. run hybrid path
+5. choose deployment strategy by evidence
+
+Required outputs:
+
+- `results/lab5_compare_prompt_rag_tune.csv`
+- `results/lab5_qdrant_retrieval_metrics.csv`
+- `results/lab5_final_decision.md`
+
+Lab rules:
+
+1. fixed dataset and fixed eval IDs
+2. fixed config versions (`data_v`, `prompt_v`, `method_v`)
+3. one controlled change per rerun
+4. explicit before/after deltas
+
+---
+
+## 10) Troubleshooting and Failure Playbook
+
+Required failure drills:
+
+- malformed dataset rows
+- prompt-template mismatch (train vs eval)
+- overfitting on small data
+- no measurable gain vs baseline
+- format-validity regression
+- catastrophic forgetting indicators
+- unstable loss
+- CUDA OOM/device mismatch
+- QLoRA instability
+- cost/latency regression
+
+Required incident workflow:
+
+1. reproduce with fixed eval IDs and run ID
+2. classify failure type from evidence
+3. inspect data/schema and split integrity
+4. inspect method config and optimization settings
+5. inspect metric deltas and failure examples
+6. compare at least 2 fix options and tradeoffs
+7. apply one fix only
+8. rerun and capture before/after deltas
+9. decision: promote / hold / rollback
+
+Required logs per run:
+
+- run/config version IDs
+- dataset split/version IDs
+- method (`SFT/LoRA/QLoRA/distill/hybrid`)
+- quality metrics
+- memory/latency/cost
+- failure class and chosen fix
+
+---
+
+## 11) Regression Gates and Promotion Policy
+
+Starter gate policy (adjust by task):
+
+- Primary quality metric: no regression allowed.
+- Format-validity: no regression allowed.
+- Cost/query: increase <= 20% unless explicitly approved.
+- p95 latency: increase <= 20% unless explicitly approved.
+- Failure rate: must not worsen.
+
+Decision outcomes:
+
+- `promote`: all gates pass.
+- `hold`: mixed results, needs another controlled experiment.
+- `rollback`: critical gates fail.
+
+---
+
+## 12) Minimal Operatable Baseline Workflow
+
+Use this as first executable path:
+
+1. Build fixed dataset (`train.jsonl`, `val.jsonl`, `test.jsonl`).
+2. Run base model and save outputs.
+3. Run one SFT path.
+4. Evaluate on fixed test set.
+5. Compare metrics and decide if gain is real.
+
+Mandatory comparison outputs:
+
+- format-validity delta
+- task-quality delta
+- latency/cost delta
+- one failure case before/after
+
+---
+
+## 13) Resource Library (High Priority)
+
+Core implementation docs:
+
+- https://platform.openai.com/docs/guides/fine-tuning
+- https://platform.openai.com/docs/api-reference/fine-tuning
+- https://huggingface.co/docs/transformers/training
+- https://huggingface.co/docs/peft/quicktour
+- https://huggingface.co/docs/trl/sft_trainer
+- https://huggingface.co/docs/transformers/quantization/bitsandbytes
+- https://docs.pytorch.org/docs/stable/notes/cuda.html
+- https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+- https://huggingface.co/docs/accelerate/index
+
+Theory and papers:
+
+- https://arxiv.org/abs/2106.09685
+- https://arxiv.org/abs/2305.14314
+- https://arxiv.org/abs/2203.02155
+- https://arxiv.org/abs/2212.10560
+- https://arxiv.org/abs/2210.11416
+- https://arxiv.org/abs/2305.18290
+- https://arxiv.org/abs/1503.02531
+
+Industry and operations references:
+
+- https://docs.aws.amazon.com/bedrock/latest/userguide/custom-model-fine-tuning.html
+- https://docs.aws.amazon.com/sagemaker/latest/dg/jumpstart-fine-tune.html
+- https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/fine-tuning
+- https://cloud.google.com/vertex-ai/generative-ai/docs/models/tune-models
+- https://mlflow.org/docs/latest/ml/model-registry/
+- https://docs.wandb.ai/models/registry
+- https://opentelemetry.io/docs/
+
+Books and structured courses:
+
+- https://www.oreilly.com/library/view/build-a-large/9781633437166/
+- https://www.oreilly.com/library/view/natural-language-processing/9781098136789/
+- https://www.oreilly.com/library/view/hands-on-large-language/9781098150952/
+- https://huggingface.co/learn/nlp-course
+- https://www.deeplearning.ai/short-courses/finetuning-large-language-models/
+
+---
+
+## 14) Self-Test (Weighted)
+
+Scoring:
+
+- decision framework accuracy: 25%
+- method understanding (SFT/LoRA/QLoRA/distill): 30%
+- evaluation/regression discipline: 25%
+- operations and troubleshooting: 20%
+
+Questions:
+
+1. When should you choose fine-tuning over RAG?
+2. Why can LoRA improve cost-efficiency vs full fine-tuning?
+3. What does QLoRA change compared with LoRA?
+4. Why can tuned models fail despite lower training loss?
+5. What fixed artifacts are required for fair baseline vs tuned comparison?
+6. Which metrics are mandatory before model promotion?
+7. What signals suggest catastrophic forgetting?
+8. How do you handle CUDA OOM without invalidating fairness?
+
+Pass rule:
+
+- at least 75/100
+- no critical miss on decision framework and regression-gate questions
+
+---
+
+## 15) What Comes After Stage 8
+
+Stage 9 focuses on model serving, deployment patterns, and production reliability engineering.
+
+Stage 8 to Stage 9 mapping:
+
+- adaptation decisions -> service architecture decisions
+- regression gates -> deployment gates
+- troubleshooting drills -> incident response readiness
+
+Readiness check:
+
+- if you can run one full tuning lab and justify promotion/rollback with evidence, move to Stage 9.

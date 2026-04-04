@@ -1,0 +1,4 @@
+metric,base_value,tuned_value,delta
+accuracy,0.625,1.0,0.375
+f1_macro,0.5238,1.0,0.4762
+format_validity,1.0,1.0,0.0

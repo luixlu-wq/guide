@@ -1,0 +1,2 @@
+topic_id,device,complexity,final_loss,duration_ms
+topic00c_pytorch_cuda_tuning_advanced,cpu,advanced,0.062524,31.33

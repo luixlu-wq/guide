@@ -48,6 +48,8 @@ Additional locked requirements requested later (must remain in scope):
   - how to verify fixes using controlled reruns and before/after metrics
 - Key request: include a new realistic lab that improves a project from beginning to production, with fixed deliverables and production-quality acceptance checks.
 
+- Key request: for each chapter topic, list industry-project pain points, root causes, and practical resolution strategies, and provide related lab practice examples so learners can understand and operate solutions more easily.
+
 This section is a scope guard: future edits should not remove these requirements.
 
 ---

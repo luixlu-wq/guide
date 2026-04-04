@@ -1,0 +1,2 @@
+qdrant_available,note,retrieval_hit_at_3
+True,Qdrant reachable on localhost:6333,0.85

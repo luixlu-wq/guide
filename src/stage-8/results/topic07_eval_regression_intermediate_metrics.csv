@@ -1,0 +1,3 @@
+topic_id,topic_name,run_type,accuracy,f1_macro,format_validity,memory_mb,latency_ms,cost_per_1k_queries
+topic07_eval_regression_intermediate,Evaluation and Regression Gates,baseline,0.625,0.5238,1.0,400.0,51.67,0.08
+topic07_eval_regression_intermediate,Evaluation and Regression Gates,tuned,1.0,1.0,1.0,400.0,51.67,0.08

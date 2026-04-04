@@ -1,0 +1,5 @@
+method,accuracy,f1_macro,format_validity
+prompt_only,0.625,0.5238,1.0
+rag_only,0.25,0.1905,1.0
+tuned_only,1.0,1.0,1.0
+hybrid,0.625,0.5238,1.0

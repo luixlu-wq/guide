@@ -1,0 +1,4 @@
+metric,baseline_value,improved_value,delta
+accuracy,0.6333,1.0,0.3667
+f1_macro,0.5484,1.0,0.4516
+format_validity,1.0,1.0,0.0

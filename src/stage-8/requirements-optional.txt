@@ -1,0 +1,7 @@
+﻿# Optional dependencies for richer Stage 8 experiments.
+torch>=2.2
+transformers>=4.40
+peft>=0.10
+accelerate>=0.30
+trl>=0.9
+bitsandbytes>=0.43

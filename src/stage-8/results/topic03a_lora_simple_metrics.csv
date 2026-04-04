@@ -1,0 +1,3 @@
+topic_id,topic_name,run_type,accuracy,f1_macro,format_validity,memory_mb,latency_ms,cost_per_1k_queries
+topic03a_lora_simple,LoRA Tuning,baseline,0.625,0.5238,1.0,810.0,54.0,0.162
+topic03a_lora_simple,LoRA Tuning,tuned,1.0,1.0,1.0,810.0,54.0,0.162

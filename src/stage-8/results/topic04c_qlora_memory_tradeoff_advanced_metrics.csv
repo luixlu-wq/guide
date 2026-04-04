@@ -1,0 +1,3 @@
+topic_id,topic_name,run_type,accuracy,f1_macro,format_validity,memory_mb,latency_ms,cost_per_1k_queries
+topic04c_qlora_memory_tradeoff_advanced,QLoRA Tuning,baseline,0.625,0.5238,1.0,744.0,66.4,0.1488
+topic04c_qlora_memory_tradeoff_advanced,QLoRA Tuning,tuned,1.0,1.0,1.0,744.0,66.4,0.1488

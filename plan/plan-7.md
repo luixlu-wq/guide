@@ -54,6 +54,8 @@ These requirements are locked and must remain in scope:
   - cost/latency/SLO operations
   - observability and incident response
 
+- Key request: for each chapter topic, list industry-project pain points, root causes, and practical resolution strategies, and provide related lab practice examples so learners can understand and operate solutions more easily.
+
 This section is a scope guard: future edits should not remove these requirements.
 
 ---
