@@ -1,13 +1,15 @@
 ﻿"""Stage 3 Topic 06 (Advanced): K selection with inertia/silhouette/ARI.
 
-Data: sklearn.datasets.make_blobs
-Rows: 1200
-Features: 6 numeric
-Target: true cluster id (used only for validation metric ARI)
-Type: Clustering (advanced evaluation)
+Data Source: sklearn.datasets.make_blobs
+Schema: 6 numeric features | Target true cluster id (validation only)
+Preprocessing: StandardScaler required for fair distance comparisons
+Null Handling: None (synthetic generator produces complete arrays)
 """
 
 from __future__ import annotations
+
+import json
+from pathlib import Path
 
 import pandas as pd
 from sklearn.cluster import KMeans
@@ -21,6 +23,7 @@ from sklearn.preprocessing import StandardScaler
 # 2) Evaluate multiple K values with inertia and silhouette.
 # 3) Add ARI (with known labels) as advanced validation signal.
 def main() -> None:
+    print("Scaling check: distance metrics (inertia/silhouette) require standardized features.")
     X, y_true = make_blobs(
         n_samples=1200,
         centers=4,
@@ -50,6 +53,14 @@ def main() -> None:
     print("Data source: make_blobs (with known clusters for validation)")
     print("Rows: 1200, Features: 6")
     print(df.to_string(index=False, float_format=lambda x: f"{x:.3f}"))
+    out_dir = Path(__file__).parent / "results" / "stage3"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    df.to_csv(out_dir / "topic06c_kmeans_advanced_metrics.csv", index=False)
+    (out_dir / "topic06c_kmeans_advanced_metrics.json").write_text(
+        json.dumps(rows, indent=2), encoding="utf-8"
+    )
+    print(f"Saved: {out_dir / 'topic06c_kmeans_advanced_metrics.csv'}")
+    print(f"Saved: {out_dir / 'topic06c_kmeans_advanced_metrics.json'}")
     print("Interpretation: real projects usually use inertia/silhouette; ARI is only available when true labels exist.")
 
 

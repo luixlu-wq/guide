@@ -1,10 +1,9 @@
 ﻿"""Stage 3 Topic 06 (Simple): KMeans on simple blobs.
 
-Data: sklearn.datasets.make_blobs
-Rows: 300
-Features: 2 numeric
-Target: optional labels for validation only
-Type: Clustering (simple)
+Data Source: sklearn.datasets.make_blobs
+Schema: 2 numeric features | Target optional labels (validation only)
+Preprocessing: scaling optional in this synthetic equal-scale case; required in mixed-scale real data
+Null Handling: None (synthetic generator produces complete arrays)
 """
 
 from __future__ import annotations

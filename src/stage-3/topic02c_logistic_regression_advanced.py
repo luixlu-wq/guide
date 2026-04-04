@@ -1,15 +1,15 @@
 ﻿"""Stage 3 Topic 02 (Advanced): imbalanced classification and threshold tuning.
 
-Data: sklearn.datasets.make_classification
-Rows: 1200
-Features: 20 numeric features
-Target: binary class (imbalanced)
-Type: Classification (advanced)
+Data Source: sklearn.datasets.make_classification
+Schema: 20 numeric synthetic features | Target: binary imbalanced class
+Preprocessing: StandardScaler required and included in pipeline
+Null Handling: None (synthetic generator produces complete arrays)
 """
 
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
@@ -41,6 +41,15 @@ def main() -> None:
         flip_y=0.02,
         random_state=42,
     )
+    X_df = pd.DataFrame(X, columns=[f"f{i:02d}" for i in range(X.shape[1])])
+    summary = (
+        X_df.assign(target=y)
+        .describe()
+        .T[["mean", "std", "50%"]]
+        .rename(columns={"50%": "median"})
+    )
+    print("\n--- Feature Summary (Method Chaining) ---")
+    print(summary.head(8).to_string(float_format=lambda v: f"{v:.3f}"))
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.25, random_state=42, stratify=y
@@ -59,6 +68,10 @@ def main() -> None:
     for th in [0.3, 0.5, 0.7]:
         p, r, f1 = metrics_at_threshold(y_test, y_prob, th)
         print(f"threshold={th:.1f} -> precision={p:.3f}, recall={r:.3f}, f1={f1:.3f}")
+    print(
+        "Business note: in screening-like scenarios, threshold=0.3 can be preferable "
+        "to 0.5 because higher recall reduces missed positive cases."
+    )
 
     print("Interpretation: threshold tuning trades precision vs recall.")
 

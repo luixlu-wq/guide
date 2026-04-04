@@ -1,13 +1,15 @@
 ﻿"""Stage 3 Topic 05 (Advanced): compare SVM kernels with CV and fixed holdout.
 
-Data: sklearn.datasets.load_wine
-Rows: 178
-Features: 13 numeric
-Target: 3 classes
-Type: Classification (advanced SVM comparison)
+Data Source: sklearn.datasets.load_wine
+Schema: 13 numeric features | Target: 3 classes
+Preprocessing: StandardScaler required for fair kernel comparison
+Null Handling: None (dataset is verified clean by source package)
 """
 
 from __future__ import annotations
+
+import json
+from pathlib import Path
 
 import pandas as pd
 from sklearn.datasets import load_wine
@@ -27,6 +29,7 @@ def main() -> None:
     X = data.data
     y = data.target
 
+    print("Scaling check: kernel SVM results are unreliable without StandardScaler.")
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.25, random_state=42, stratify=y
     )
@@ -61,6 +64,19 @@ def main() -> None:
     print("Test accuracy:", round(test_acc, 3))
     print("Top 5 CV configs:")
     print(cv_results[cols].sort_values("mean_test_score", ascending=False).head(5).to_string(index=False))
+
+    out_dir = Path(__file__).parent / "results" / "stage3"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    top5 = cv_results[cols].sort_values("mean_test_score", ascending=False).head(5)
+    top5.to_csv(out_dir / "topic05c_svm_top5_cv.csv", index=False)
+    summary = {
+        "best_params": search.best_params_,
+        "best_cv_score": float(search.best_score_),
+        "test_accuracy": float(test_acc),
+    }
+    (out_dir / "topic05c_svm_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    print(f"Saved: {out_dir / 'topic05c_svm_top5_cv.csv'}")
+    print(f"Saved: {out_dir / 'topic05c_svm_summary.json'}")
 
 
 if __name__ == "__main__":

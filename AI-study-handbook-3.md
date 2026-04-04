@@ -58,6 +58,22 @@ For each module:
    - one mistake you made
    - one fix you applied
 
+### The CI/CD mindset (mandatory workflow habit)
+
+After every major change (feature logic, preprocessing, model params, or evaluation code), run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run_all_stage3.ps1
+```
+
+Why this matters:
+
+- catches regressions early
+- confirms every module still runs
+- mirrors real ML engineering release checks
+
+Do not wait until the end of the week to run the full script set.
+
 ### Time guide
 
 - One algorithm module: 60-90 minutes
@@ -133,6 +149,30 @@ Pass levels:
 - 85-100: Ready for Stage 4
 - 70-84: Continue with targeted remediation
 - <70: Repeat core modules and fair-comparison workflow
+
+Targeted remediation flow (required):
+
+- If you scored low on `Distinguish regression/classification/clustering`:
+  - rerun `topic01a_linear_regression_simple.py`, `topic02a_logistic_regression_simple.py`, `topic06a_kmeans_simple.py`
+  - write one sentence per script: target type and correct metric family
+- If you scored low on `Explain 6 core algorithms at concept level`:
+  - reread Module 1-6 `What it is` and `What this model gets wrong`
+  - create a one-page comparison note (assumptions, strengths, failure mode)
+- If you scored low on `Run complete workflow per module`:
+  - run `run_ladder_stage3.ps1`
+  - fix all failures until full pass
+- If you scored low on `Apply correct preprocessing per model`:
+  - rerun `topic07_fair_model_comparison.py`
+  - document which models required scaling and why
+- If you scored low on `Compare models fairly`:
+  - rerun `topic07_fair_model_comparison.py`
+  - submit one table proving same split, same preprocessing policy, same metrics
+- If you scored low on `Diagnose underfit/overfit/leakage`:
+  - rerun `topic08_failure_modes_overfit_leakage.py`
+  - document the exact evidence used for each diagnosis
+- If you scored low on `Produce model comparison report`:
+  - rebuild Section 11 deliverables with before/after feature-change deltas
+  - include final promote/hold decision and residual risk note
 
 ---
 
@@ -230,11 +270,17 @@ Linear Regression predicts a continuous number by learning a weighted linear com
 
 It is a strong baseline and teaches core ideas: residuals, error minimization, and interpretability.
 
+Visual placeholder (insert in rendered handbook):
+- Linear model fit chart: scatter of true values + fitted line + residual arrows.
+
 ### Data declaration
 
 - Data: Diabetes dataset (`load_diabetes`)
 - Rows: 442
 - Features: 10 numeric standardized features
+- Schema contract: all 10 feature columns numeric (`float`), required
+- Missing Values handling: None in source dataset
+- Scaling: Optional (recommended for stable coefficient magnitude comparison)
 - Target: disease progression score (continuous)
 - Type: Regression
 
@@ -352,6 +398,9 @@ It is one of the best first baselines for classification.
 - Data: Breast Cancer Wisconsin (`load_breast_cancer`)
 - Rows: 569
 - Features: 30 numeric features
+- Schema contract: 30 numeric (`float`) columns, all required
+- Missing Values handling: None in source dataset
+- Scaling: Required/Strongly recommended for stable optimization and regularization behavior
 - Target: malignant/benign (binary)
 - Type: Classification
 
@@ -378,6 +427,14 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 def main():
     data = load_breast_cancer(as_frame=True)
     X, y = data.data, data.target
+
+    # Method-chaining inspection pattern for readable pipeline diagnostics.
+    print(
+        X.describe()
+        .T
+        .assign(missing=X.isna().sum(), dtype=X.dtypes.astype(str))
+        .head(5)
+    )
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
@@ -453,11 +510,17 @@ A Decision Tree recursively splits features into rule-based branches.
 
 Very interpretable and naturally handles nonlinear patterns.
 
+Visual placeholder (insert in rendered handbook):
+- Tree-depth effect chart: `max_depth` vs train/test accuracy with overfit gap annotation.
+
 ### Data declaration
 
 - Data: Breast Cancer Wisconsin (`load_breast_cancer`)
 - Rows: 569
 - Features: 30 numeric features
+- Schema contract: 30 numeric (`float`) feature columns, all required
+- Missing Values handling: None in source dataset
+- Scaling: Optional (tree splits are scale-insensitive)
 - Target: binary class
 - Type: Classification
 
@@ -559,6 +622,9 @@ Strong tabular-data baseline with reduced overfitting compared to one tree.
 - Data: Breast Cancer Wisconsin (`load_breast_cancer`)
 - Rows: 569
 - Features: 30 numeric features
+- Schema contract: 30 numeric (`float`) feature columns, all required
+- Missing Values handling: None in source dataset
+- Scaling: Optional (forest is usually robust without strict scaling)
 - Target: binary class
 - Type: Classification
 
@@ -666,6 +732,9 @@ Can perform very well on medium-size datasets with clear margin structure.
 - Data: Iris (`load_iris`)
 - Rows: 150
 - Features: 4 numeric features
+- Schema contract: 4 numeric (`float`) feature columns, all required
+- Missing Values handling: None in source dataset
+- Scaling: Required for fair distance/margin behavior in SVM
 - Target: 3 classes
 - Type: Classification
 
@@ -774,11 +843,17 @@ KMeans groups similar points into `K` clusters without labels.
 
 A practical first unsupervised method for segmentation tasks.
 
+Visual placeholder (insert in rendered handbook):
+- KMeans diagnostics panel: elbow/inertia curve + silhouette-by-k line chart.
+
 ### Data declaration
 
 - Data: Iris features only (`load_iris`)
 - Rows: 150
 - Features: 4 numeric features
+- Schema contract: 4 numeric (`float`) feature columns, all required
+- Missing Values handling: None in source dataset
+- Scaling: Required for distance-based clustering reliability
 - Target: not used for training (unsupervised)
 - Type: Clustering
 
@@ -860,19 +935,40 @@ A: The objective optimizes assignment for a fixed number of centroids.
 
 ---
 
-## 8) Model Failure Patterns And Fix Playbook
+## 8) Stage-Specific Industry Pain-Point Matrix (Mandatory)
 
 Runnable scripts:
+- [topic01_linear_regression.py](src/stage-3/topic01_linear_regression.py)
+- [topic02_logistic_regression.py](src/stage-3/topic02_logistic_regression.py)
+- [topic03_decision_tree_depth.py](src/stage-3/topic03_decision_tree_depth.py)
+- [topic04_random_forest_baseline.py](src/stage-3/topic04_random_forest_baseline.py)
+- [topic05_svm_tuning.py](src/stage-3/topic05_svm_tuning.py)
+- [topic06_kmeans_silhouette.py](src/stage-3/topic06_kmeans_silhouette.py)
 - [topic07_fair_model_comparison.py](src/stage-3/topic07_fair_model_comparison.py)
 - [topic08_failure_modes_overfit_leakage.py](src/stage-3/topic08_failure_modes_overfit_leakage.py)
+- [topic09_pytorch_cuda_bridge.py](src/stage-3/topic09_pytorch_cuda_bridge.py)
+- [topic09c_pytorch_cuda_advanced.py](src/stage-3/topic09c_pytorch_cuda_advanced.py)
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| Train high, test low | Overfitting | regularization, simpler model, more data |
-| Train and test both low | Underfitting | richer features, less bias, tune hyperparameters |
-| Very high score unexpectedly | Leakage | audit preprocessing and target leakage |
-| SVM unstable | no scaling / bad `C,gamma` | pipeline scaling + CV search |
-| KMeans poor clusters | wrong scale / wrong `k` | scale features, silhouette analysis |
+| Topic | Typical industry pain point | Common root cause | Resolution strategy (operatable) | Verification evidence | Mapped script/lab |
+|---|---|---|---|---|---|
+| Linear regression | Model underfits even with a clean pipeline | Missing interaction terms / weak feature representation | Add residual analysis, engineer one interaction feature, rerun same split | Before/after MSE, MAE, R^2 + residual pattern change | `topic01_linear_regression.py` |
+| Logistic regression | High accuracy but weak minority recall | Class imbalance + default threshold misuse | Use precision/recall/F1 and threshold sweep (`predict_proba`) | Recall/F1 uplift with threshold report | `topic02_logistic_regression.py` |
+| Decision tree | Near-perfect train score but poor test score | Excessive depth and low regularization | Sweep `max_depth`, `min_samples_leaf` with fixed split/CV | Depth vs train/test gap chart | `topic03_decision_tree_depth.py` |
+| Random forest | Good mean score but unstable decisions across runs | Seed/search instability and weak evaluation protocol | Lock random seeds, compare repeated runs, inspect variance | Mean/std metrics table across runs | `topic04_random_forest_baseline.py` |
+| SVM | Performance highly sensitive to parameter choice | Missing scaling and weak `C`/`gamma` search | Enforce scaling pipeline + grid search with fixed folds | CV table + held-out test consistency | `topic05_svm_tuning.py` |
+| KMeans | Clusters are not useful for business segmentation | Wrong `k`, unscaled inputs, metric misuse | Scale data, run silhouette scan, compare cluster stability | Silhouette-by-k and cluster-size diagnostics | `topic06_kmeans_silhouette.py` |
+| Fair comparison | Team compares models on different setups | Split/preprocessing/metric inconsistency | Use one shared split, one shared metrics block, one seed policy | Fair-comparison checklist + unified result table | `topic07_fair_model_comparison.py` |
+| Failure diagnosis | Same regressions keep returning after code changes | No structured diagnosis workflow | Use one-change rerun protocol (overfit/underfit/leakage classification) | Failure-class before/after evidence note | `topic08_failure_modes_overfit_leakage.py` |
+| Local GPU acceleration decision | GPU path is slower than CPU on small jobs | Host->device transfer overhead dominates compute | Benchmark CPU vs GPU and separate transfer time from compute time | CPU/GPU latency + transfer-cost table | `topic09_pytorch_cuda_bridge.py` |
+| PyTorch/CUDA parity | CPU and CUDA runs disagree unexpectedly | Device mismatch, dtype mismatch, nondeterministic setup | Add parity checks, tolerance checks, and strict device-safe tensor path | CPU-vs-GPU parity report with tolerance | `topic09c_pytorch_cuda_advanced.py` |
+
+Required usage workflow (do this whenever a model underperforms):
+
+1. Reproduce the issue with fixed split/CV and random seed.
+2. Capture baseline metrics and failure evidence.
+3. Select one candidate fix from the matrix (change one variable only).
+4. Rerun identical evaluation protocol.
+5. Keep/rollback based on verification evidence, then document decision.
 
 ---
 
@@ -937,14 +1033,14 @@ Use this runnable script set:
   - [topic06c_kmeans_advanced.py](src/stage-3/topic06c_kmeans_advanced.py)
 - [topic07_fair_model_comparison.py](src/stage-3/topic07_fair_model_comparison.py)
 - [topic08_failure_modes_overfit_leakage.py](src/stage-3/topic08_failure_modes_overfit_leakage.py)
-- [topic09a_pytorch_cuda_simple.py](src/stage-3/topic09a_pytorch_cuda_simple.py) (optional bridge simple)
-- [topic09_pytorch_cuda_bridge.py](src/stage-3/topic09_pytorch_cuda_bridge.py) (optional bridge intermediate)
-- [topic09c_pytorch_cuda_advanced.py](src/stage-3/topic09c_pytorch_cuda_advanced.py) (optional bridge advanced)
+- [topic09a_pytorch_cuda_simple.py](src/stage-3/topic09a_pytorch_cuda_simple.py) (bridge simple)
+- [topic09_pytorch_cuda_bridge.py](src/stage-3/topic09_pytorch_cuda_bridge.py) (bridge intermediate)
+- [topic09c_pytorch_cuda_advanced.py](src/stage-3/topic09c_pytorch_cuda_advanced.py) (bridge advanced)
 - [run_all_stage3.ps1](src/stage-3/run_all_stage3.ps1)
 - [run_ladder_stage3.ps1](src/stage-3/run_ladder_stage3.ps1) (`-IncludeGpuBridge` for topic09 ladder)
 - [README.md](src/stage-3/README.md)
 - [requirements.txt](src/stage-3/requirements.txt)
-- [requirements-gpu.txt](src/stage-3/requirements-gpu.txt) (optional)
+- [requirements-gpu.txt](src/stage-3/requirements-gpu.txt) (recommended if CUDA GPU is available)
 
 Expected output style for each script:
 
@@ -1014,7 +1110,7 @@ If results look wrong, check:
 
 ---
 
-## 13) Optional Bridge - PyTorch And CUDA (Concept + Training Flow)
+## 13) Recommended Bridge - PyTorch And CUDA (Concept + Training Flow)
 
 Progressive examples:
 - Simple: [topic09a_pytorch_cuda_simple.py](src/stage-3/topic09a_pytorch_cuda_simple.py)
@@ -1022,7 +1118,21 @@ Progressive examples:
 - Advanced: [topic09c_pytorch_cuda_advanced.py](src/stage-3/topic09c_pytorch_cuda_advanced.py)
 
 Classical scikit-learn algorithms in this chapter are mostly CPU path.
-This bridge helps connect classical ML training concepts to deep learning training loops.
+This bridge is recommended for dedicated-GPU users because it connects classical ML concepts to gradient-based training and device-aware execution.
+
+### Host/Device mental model (must understand first)
+
+```text
+CPU (Host RAM) --copy--> GPU (Device VRAM)
+      |                         |
+  pandas/numpy              torch tensors on cuda
+      |                         |
+ pre-processing           forward/backward/optimizer
+      \------ results copied back for reporting ------/
+```
+
+If compute is small, transfer overhead can dominate and CPU may be faster.
+If compute is large enough, GPU can win.
 
 ### Why This Section Feels Hard
 
@@ -1032,7 +1142,7 @@ Beginners often mix up three things:
 - autograd gradient calculation
 - optimizer parameter updates
 
-If these are mixed up, training appears \"mysterious\".  
+If these are mixed up, training appears "mysterious".  
 Use the 5-step loop below and verify each step with prints.
 
 ### 5-Step Training Loop (Detailed Guide And Instructions)
@@ -1046,7 +1156,7 @@ Use the 5-step loop below and verify each step with prints.
 #### Step 1 - Move tensors to device
 
 What to do:
-- select `device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")`
+- select `device = torch.device("cuda" if torch.cuda.is_available() else "cpu")`
 - move both data and model: `x = x.to(device)`, `model = model.to(device)`
 
 Why it matters:
@@ -1116,6 +1226,79 @@ Debug check:
 Common error:
 - calling `step()` before `backward()`
 
+### Hardware Benchmark Task (CPU vs GPU, mandatory when CUDA exists)
+
+Use this benchmark after you understand the 5-step loop:
+
+1. Run one training loop on CPU and record total time.
+2. Run the same loop on CUDA and record:
+   - host->device transfer time
+   - compute loop time
+   - total time
+3. Compare results and write one decision note:
+   - "GPU wins for this workload" or
+   - "CPU is better due to transfer overhead."
+
+Minimal timing template:
+
+```python
+import time
+import torch
+
+
+def timed_train(device: str):
+    start_total = time.time()
+    x_cpu = torch.randn(200000, 16)
+    y_cpu = torch.randn(200000, 1)
+
+    model = torch.nn.Linear(16, 1)
+    loss_fn = torch.nn.MSELoss()
+    opt = torch.optim.SGD(model.parameters(), lr=0.01)
+
+    transfer_s = 0.0
+    if device == "cuda":
+        t0 = time.time()
+        x = x_cpu.to("cuda")
+        y = y_cpu.to("cuda")
+        model = model.to("cuda")
+        torch.cuda.synchronize()
+        transfer_s = time.time() - t0
+    else:
+        x, y = x_cpu, y_cpu
+
+    t1 = time.time()
+    for _ in range(100):
+        opt.zero_grad()
+        pred = model(x)
+        loss = loss_fn(pred, y)
+        loss.backward()
+        opt.step()
+    if device == "cuda":
+        torch.cuda.synchronize()
+    compute_s = time.time() - t1
+    total_s = time.time() - start_total
+    return transfer_s, compute_s, total_s
+```
+
+### CUDA Troubleshooting (must know)
+
+Common error: `RuntimeError: CUDA out of memory`
+
+Fix order (apply one at a time):
+
+1. Reduce batch size.
+2. Reduce feature/model width.
+3. Use mixed precision (`torch.cuda.amp`) if stable for your task.
+4. Delete unused tensors and clear cache (`torch.cuda.empty_cache()`).
+5. Restart process/kernel to reclaim fragmented VRAM.
+
+Always log:
+
+- batch size
+- model dimensions
+- peak memory (`torch.cuda.max_memory_allocated()` if CUDA used)
+- success/failure outcome
+
 ### Complexity Scale For This Bridge
 
 - `Simple`:
@@ -1125,11 +1308,11 @@ Common error:
 - `Intermediate`:
   - larger synthetic data
   - multi-epoch training loop
-  - optional CPU vs CUDA timing
+  - CPU vs CUDA timing + transfer/compute split
 - `Advanced`:
   - mini-batch DataLoader
   - train/validation loop
-  - gradient clipping + optional AMP on CUDA
+  - gradient clipping + AMP on CUDA
 
 Where complexity is in Topic 09:
 
@@ -1137,7 +1320,7 @@ Where complexity is in Topic 09:
 - loop complexity: one step -> full epochs -> full train/validation lifecycle
 - optimization complexity: plain SGD -> tuned optimizer flow -> clipping/AMP
 - evaluation complexity: print loss -> track first/final loss -> validation loss + R^2
-- system complexity: CPU fallback -> optional CUDA -> optional mixed precision path
+- system complexity: CPU fallback -> CUDA path -> mixed precision and memory constraints
 
 ### Run Instructions (Operatable)
 
@@ -1155,8 +1338,8 @@ With ladder runner:
 powershell -ExecutionPolicy Bypass -File .\run_ladder_stage3.ps1 -IncludeGpuBridge
 ```
 
-If CUDA is available, scripts will automatically use it.
-If CUDA is unavailable, scripts run on CPU path with fallback messages.
+If CUDA is available, scripts should run both CPU and CUDA benchmark paths for comparison.
+If CUDA is unavailable, scripts run CPU fallback path and you must still record baseline timings.
 
 ### Minimal bridge example
 

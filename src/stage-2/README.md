@@ -10,7 +10,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Setup (Optional GPU Bridge)
+## Setup (PyTorch/CUDA Bridge Module)
 
 ```bash
 pip install -r requirements-gpu.txt
@@ -25,7 +25,7 @@ Fail-fast run (CPU topics):
 powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1
 ```
 
-Fail-fast run including optional GPU bridge:
+Fail-fast run including PyTorch/CUDA bridge scripts:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
@@ -42,7 +42,7 @@ powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
 - `topic07_sklearn_split_preprocess.py`: train/test split + preprocessing
 - `topic08_sklearn_pipeline_leakage.py`: wrong vs correct preprocessing order
 - `topic09_stage2_end_to_end_pipeline.py`: full tabular pipeline + metrics artifact
-- `topic10_pytorch_cuda_bridge.py` (optional): tensors/autograd/CUDA bridge
+- `topic10_pytorch_cuda_bridge.py`: DataFrame->NumPy->Tensor bridge, autograd, CPU/GPU timing, VRAM monitoring
 - `topic11_linear_gradient_example.py`: concrete gradient math (manual vs autograd)
 
 ## Outputs Created by Scripts
@@ -51,6 +51,10 @@ powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
 - `topic06_line.png`
 - `topic06_hist.png`
 - `results/topic09_metrics.json`
+- runtime console output for `topic10` includes:
+  - DataFrame->NumPy->Tensor bridge checks
+  - CPU/GPU timing
+  - VRAM metrics when CUDA is available
 
 ## Data Source Summary
 

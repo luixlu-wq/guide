@@ -1,0 +1,7 @@
+{
+  "status": "skipped",
+  "reason": "CUDA unavailable",
+  "tolerance": 0.0001,
+  "max_abs_diff": null,
+  "passed": null
+}

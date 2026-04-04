@@ -926,5 +926,27 @@ This addendum captures review feedback and is additive only.
 - Keep Andrej Karpathy "Zero to Hero" and fast.ai in the recommended track.
 - Prefer official docs and high-signal technical resources over generic summary blogs.
 
+## Cross-Stage Resource Addendum (2026-04-04, Additive-Only)
+
+Add these resources as high-quality bridge material for Stage 1 -> Stage 2 transition:
+
+- Python for Data Analysis, 3rd Edition (Wes McKinney)
+  - https://wesmckinney.com/book/
+  - https://github.com/wesm/pydata-book
+- Effective Pandas: Patterns for Data Manipulation (Matt Harrison)
+  - https://books.google.com/books/about/Effective_Pandas.html?id=bYP0zgEACAAJ
+- Modern Pandas: Method Chaining (Tom Augspurger)
+  - https://tomaugspurger.net/posts/method-chaining/
+- NVIDIA CUDA Refresher: Getting Started with CUDA
+  - https://developer.nvidia.com/blog/cuda-refresher-getting-started-with-cuda/
+- NVIDIA CUDA Refresher: CUDA Programming Model
+  - https://developer.nvidia.com/blog/cuda-refresher-cuda-programming-model/
+
+Usage guidance:
+
+- Stage 1 learners targeting Stage 2 should treat these as optional-then-should resources after completing Stage 1 core modules.
+- Use method-chaining and DataFrame style guidance to improve code quality in Stage 2 preprocessing scripts.
+- Use CUDA refresher posts to strengthen understanding of host->device transfer and runtime behavior before deeper PyTorch/CUDA stages.
+
 
 

@@ -1,0 +1,2 @@
+device,rows,epochs,transfer_time_s,compute_time_s,total_time_s,first_loss,final_loss,learned_w,learned_b,peak_memory_mb
+cpu,25000,250,0.0,0.10824929998489097,0.7989703999774065,2.6555607318878174,0.0400555357336998,2.200439691543579,-0.399923175573349,0.0

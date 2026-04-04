@@ -167,6 +167,8 @@ Link verification status:
   - https://www.statlearning.com/
 - Hands-On Machine Learning (selected algorithm chapters)
   - https://www.oreilly.com/library/view/hands-on-machine-learning/9781098125967/
+- Machine Learning Engineering (Andriy Burkov; focus on deployment/monitoring chapters)
+  - https://www.amazon.com/Machine-Learning-Engineering-Andriy-Burkov/dp/199957950X
 - Python Data Science Handbook (modeling chapters)
   - https://jakevdp.github.io/PythonDataScienceHandbook/
 - ISLP Labs (Python) - hands-on algorithm labs
@@ -178,6 +180,10 @@ Link verification status:
   - https://dl.acm.org/doi/10.1145/2347736.2347755
 - Rules of Machine Learning
   - https://developers.google.com/machine-learning/guides/rules-of-ml/
+- Deepchecks open-source validation framework (drift/validation intuition)
+  - https://github.com/deepchecks/deepchecks
+- Deepchecks documentation
+  - https://docs.deepchecks.com/
 - R2D3 Part 1: Visual Intro to Machine Learning (Decision Trees)
   - https://r2d3.us/visual-intro-to-machine-learning-part-1/
 - R2D3 Part 2: Visual Intro to Machine Learning (Bias-Variance)
@@ -212,6 +218,7 @@ Link verification status:
   - sklearn model evaluation + CV visualizations + grid search + pitfalls + R2D3 Part 2
 - Week 3 project and debugging:
   - sklearn examples + ISLP labs + handson-ml3 selected notebooks + CS229 notes
+  - Deepchecks docs for production-style validation and drift checks
 
 ### H. Comprehension-First Learning Ladder (New)
 
@@ -257,6 +264,8 @@ Should:
 - ISLP selected chapters: 4-6h
 - handson-ml3 algorithm notebooks: 4-6h
 - Domingos + Rules of ML: 2-3h
+- Deepchecks docs + quick validation drill: 1-2h
+- Machine Learning Engineering (deployment/monitoring chapters): 2-4h
 
 Optional:
 
@@ -323,6 +332,7 @@ Each module must include:
 - Demonstration checklist
 - Quick check
 - When to use / when not to use
+- Inference latency note (ms) and scaling expectation
 
 Core Stage 3 modules:
 
@@ -335,7 +345,7 @@ Core Stage 3 modules:
 - Cross-validation and fair model comparison
 - Metric selection by task
 - Bias/variance behavior per algorithm
-- Optional bridge: PyTorch implementation intuition for linear/logistic
+- Recommended bridge for dedicated GPU users: PyTorch/CUDA implementation intuition for linear/logistic
 
 Hard requirement: no module ships with missing fields.
 
@@ -439,6 +449,8 @@ Required outputs:
 | KMeans | Clusters not meaningful for business use | Wrong K and unscaled features | Use silhouette + domain constraints for K selection | Silhouette and cluster diagnostics | `topic06_kmeans_silhouette.py` |
 | Fair comparison | Team compares models on different setups | Split/preprocess inconsistency | Enforce one shared split/preprocess/metric protocol | Fair comparison checklist | `topic07_fair_model_comparison.py` |
 | Failure mode diagnosis | Regressions repeat after small changes | No structured error analysis | Add failure taxonomy and one-change rerun rule | Failure-class before/after report | `topic08_failure_modes_overfit_leakage.py` |
+| Training-serving skew (data drift) | Model quality degrades over time after deployment | Input distribution shift vs training data | Add distribution-check script comparing training stats to new inference batch and set alert thresholds | Drift report (feature-level deltas + threshold flags) | `topic10_distribution_shift_check.py` |
+| Local GPU acceleration decision | GPU path is slower than CPU on some tasks | Data-transfer overhead dominates compute | Benchmark sklearn CPU vs GPU-oriented implementation and log transfer/compute tradeoff | CPU vs GPU latency + throughput + transfer-cost table | `topic09_pytorch_cuda_bridge.py`, `topic11_cpu_gpu_tradeoff_benchmark.py` |
 | PyTorch/CUDA bridge | Classical and PyTorch versions disagree | Implementation mismatch/device errors | Add parity tests and device-safe paths | CPU vs GPU parity + tolerance report | `topic09_pytorch_cuda_bridge.py` |
 
 ### 8.2 Required Matrix Usage Workflow
@@ -472,6 +484,7 @@ Required debugging flow:
 Quality gates before completion:
 
 - all Stage 3 scripts pass fail-fast runner
+- fail-fast runner also validates sanity bounds from metrics artifacts (for example: baseline accuracy > 0.50 on simple tasks, non-negative error metrics)
 - fair comparison rules are followed and documented
 - expected outputs match script runs
 - weighted score meets threshold
@@ -486,14 +499,16 @@ Quality gates before completion:
 3. Add Week 4-6 roadmap.
 4. Refactor algorithm sections into full module template.
 5. Create `red-book/src/stage-3/` scripts + README + runner.
-6. Add fair-comparison rules section.
-7. Add data declaration blocks to all worked examples.
-8. Add expected output documentation for every script.
-9. Add weighted scoring rubric and remediation flow.
-10. Add optional bridge module if needed.
-11. Add glossary/notation consistency pass.
-12. Add smoke-test log and reproducibility notes.
-13. Final QA pass (grammar, UTF-8, link checks, duplicate cleanup).
+6. Upgrade `run_all_stage3.ps1` to parse metric artifacts and enforce sanity bounds.
+7. Add distribution-shift (training-serving skew) check script and report artifact.
+8. Add fair-comparison rules section.
+9. Add data declaration blocks to all worked examples.
+10. Add expected output documentation for every script.
+11. Add weighted scoring rubric and remediation flow.
+12. Add recommended GPU bridge module for dedicated GPU users (with CPU fallback and transfer-overhead benchmark).
+13. Add glossary/notation consistency pass.
+14. Add smoke-test log and reproducibility notes.
+15. Final QA pass (grammar, UTF-8, link checks, duplicate cleanup).
 
 ---
 
@@ -507,9 +522,11 @@ Stage 3 is accepted only if:
 - learning targets are measurable and weighted
 - data source and structure declared in each example
 - Stage 3 scripts run end-to-end via `run_all_stage3.ps1`
+- `run_all_stage3.ps1` validates metric sanity bounds (not only process exit codes)
 - expected outputs documented and aligned with real script runs
 - fair model comparison rules are enforced and evidenced
 - debugging checklist maps to real model failure patterns
+- training-serving skew check is implemented and produces evidence artifacts
 - stage transition section maps Stage 3 to Stage 4
 - handbook passes UTF-8/encoding quality checks
 
@@ -523,6 +540,8 @@ Every example must include:
 Data: <name and source>
 Rows: <count>
 Features: <columns and brief description>
+Schema contract: <column name -> dtype, required/optional>
+Missing values handling: <Drop / Impute / None + rule>
 Target: <name, type, unit if applicable>
 Type: <Regression / Classification / Clustering / Comparison>
 ```
@@ -546,13 +565,19 @@ Handbook must end with "What Comes After Stage 3" and include:
 
 ---
 
-## 14) Optional GPU/Advanced Bridge Spec
+## 14) Recommended GPU/Advanced Bridge Spec (Dedicated GPU Track)
 
-Optional and non-blocking for Stage 3 completion:
+Recommended for users with dedicated GPUs (for example RTX 5090-class hardware); CPU fallback remains required.
 
 - one bridge script to show gradient-based training in PyTorch
+- one benchmark script comparing CPU path (scikit-learn) vs GPU-oriented path (PyTorch linear/logistic baseline, or cuML when available)
 - CUDA checks and CPU fallback behavior
-- explicit statement: classical sklearn algorithms mostly run CPU path
+- explicit statement: classical sklearn algorithms mostly run CPU path unless alternative GPU libraries are used
+- required benchmark outputs:
+  - host->device transfer time
+  - compute time
+  - total latency
+  - decision note: when GPU is worth it vs when CPU is better
 
 ---
 
@@ -568,6 +593,10 @@ Optional and non-blocking for Stage 3 completion:
 - maintain smoke-test command list
 - add validation log for script runs
 - add troubleshooting notes per algorithm
+- add logging standard:
+  - use Python `logging` for structured runtime messages
+  - avoid print-only diagnostics for benchmark/production-style scripts
+  - persist run logs to `results/stage3/logs/`
 
 ### C. Reproducibility Policy
 
@@ -620,12 +649,16 @@ P0 (must do):
 - fair-comparison rules and evidence
 - data declaration enforcement
 - expected output documentation for every script
+- runner sanity-bound checks on metrics artifacts (logic validation, not exit-code only)
+- training-serving skew/drift detection script and evidence artifact
 
 P1 (should do):
 
 - weighted target rubric
 - glossary/notation standard
 - reproducibility and validation log
+- dedicated-GPU bridge benchmark (CPU vs GPU transfer/compute tradeoff)
+- logging standard rollout across stage scripts
 
 P2 (nice to have):
 
@@ -804,6 +837,49 @@ If a plan already uses another path, keep it and add a path mapping note in stag
 ## Global Key Request Addendum (2026-04-04)
 
 - Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
+
+## Cross-Stage Resource Addendum (2026-04-04, Additive-Only)
+
+Add these resources as high-quality supporting material for Stage 3 data/pipeline execution quality:
+
+- Python for Data Analysis, 3rd Edition (Wes McKinney)
+  - https://wesmckinney.com/book/
+  - https://github.com/wesm/pydata-book
+- Effective Pandas: Patterns for Data Manipulation (Matt Harrison)
+  - https://books.google.com/books/about/Effective_Pandas.html?id=bYP0zgEACAAJ
+- Modern Pandas: Method Chaining (Tom Augspurger)
+  - https://tomaugspurger.net/posts/method-chaining/
+- NVIDIA CUDA Refresher: Getting Started with CUDA
+  - https://developer.nvidia.com/blog/cuda-refresher-getting-started-with-cuda/
+- NVIDIA CUDA Refresher: CUDA Programming Model
+  - https://developer.nvidia.com/blog/cuda-refresher-cuda-programming-model/
+
+Usage guidance:
+
+- Use Wes McKinney + method-chaining references to improve tabular pipeline readability and maintainability in Stage 3 labs.
+- Use CUDA refresher posts to strengthen PyTorch/CUDA bridge explanations and device-debugging instruction quality.
+- Keep these additive to existing Stage 3 algorithm resources; do not remove current resource sections.
+
+## Reviewer Integration Addendum (2026-04-04, Additive-Only)
+
+This block captures battle-hardening feedback for Stage 3 plan execution.
+
+### A) Runner Upgrade Requirement
+
+- `run_all_stage3.ps1` must validate both:
+  - process success (exit code), and
+  - metric sanity bounds from artifacts (for example CSV/JSON thresholds).
+- Minimum sanity checks should include:
+  - simple baseline classification accuracy above random baseline
+  - finite/non-NaN metrics
+  - positive latency values where latency is reported.
+
+### B) Drift and Silent Failure Requirement
+
+- Stage 3 must include one explicit drift check workflow:
+  - compare training feature distributions with a synthetic/new serving batch
+  - flag threshold breaches
+  - record decision (`promote`/`hold`/`rollback`) with evidence.
 
 
 

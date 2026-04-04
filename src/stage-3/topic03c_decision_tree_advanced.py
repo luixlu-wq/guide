@@ -1,10 +1,9 @@
 ﻿"""Stage 3 Topic 03 (Advanced): cost-complexity pruning selection.
 
-Data: sklearn.datasets.load_breast_cancer
-Rows: 569
-Features: 30 numeric
-Target: binary class
-Type: Classification (advanced tree tuning)
+Data Source: sklearn.datasets.load_breast_cancer
+Schema: 30 numeric features | Target: binary class
+Preprocessing: Scaling optional for trees; split quality is scale-insensitive
+Null Handling: None (dataset is verified clean by source package)
 """
 
 from __future__ import annotations
@@ -43,6 +42,15 @@ def main() -> None:
         if score > best_cv:
             best_cv = score
             best_alpha = float(alpha)
+
+    # Explain pruning complexity: as ccp_alpha increases, the tree is pruned more aggressively.
+    print("Alpha-vs-tree-complexity snapshot:")
+    for alpha in alphas[:5]:
+        probe = DecisionTreeClassifier(random_state=42, ccp_alpha=float(alpha))
+        probe.fit(X_train, y_train)
+        node_count = probe.tree_.node_count
+        depth = probe.tree_.max_depth
+        print(f"  ccp_alpha={float(alpha):.5f} -> nodes={node_count}, depth={depth}")
 
     final = DecisionTreeClassifier(random_state=42, ccp_alpha=best_alpha)
     final.fit(X_train, y_train)

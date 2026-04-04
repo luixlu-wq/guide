@@ -1,0 +1,6 @@
+mean_test_score,param_svm__kernel,param_svm__C,param_svm__gamma,param_svm__degree
+0.9923076923076923,linear,1.0,,
+0.9923076923076923,linear,10.0,,
+0.9923076923076923,rbf,1.0,0.1,
+0.9849002849002849,rbf,10.0,0.1,
+0.9849002849002849,rbf,1.0,0.01,

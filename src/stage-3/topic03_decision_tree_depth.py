@@ -1,10 +1,9 @@
 ﻿"""Stage 3 Topic 03: Decision Tree depth and overfitting behavior.
 
-Data: sklearn.datasets.load_breast_cancer
-Rows: 569
-Features: 30 numeric features
-Target: binary class
-Type: Classification (model complexity demo)
+Data Source: sklearn.datasets.load_breast_cancer
+Schema: 30 numeric features | Target: binary class
+Preprocessing: Scaling optional for trees (split rules are scale-insensitive)
+Null Handling: None (dataset is verified clean by source package)
 """
 
 from __future__ import annotations
@@ -41,11 +40,25 @@ def main() -> None:
     print("Rows: 569")
     print("Features: 30")
 
+    best_depth = None
+    best_test_acc = -1.0
     for depth in [2, 4, 8, None]:
         train_acc, test_acc = evaluate_depth(depth)
+        gap = train_acc - test_acc
         print(
-            f"max_depth={depth}, train_acc={train_acc:.3f}, test_acc={test_acc:.3f}, gap={(train_acc - test_acc):.3f}"
+            f"max_depth={depth}, train_acc={train_acc:.3f}, test_acc={test_acc:.3f}, gap={gap:.3f}"
         )
+        if test_acc > best_test_acc:
+            best_test_acc = test_acc
+            best_depth = depth
+        if gap > 0.15:
+            print(f"  DIAGNOSIS: Overfitting detected (gap={gap:.3f}). Suggest reducing max_depth.")
+        elif test_acc < 0.6:
+            print("  DIAGNOSIS: Underfitting detected. Model may be too simple.")
+        else:
+            print("  DIAGNOSIS: Fit-quality is acceptable for this depth.")
+
+    print(f"Best test depth candidate: {best_depth} (test_acc={best_test_acc:.3f})")
 
     print("Interpretation: deep trees can overfit; compare train/test gap.")
 

@@ -40,6 +40,9 @@ These requirements are locked and must remain in scope:
 - Key request: include a new realistic lab that improves a project from beginning to production, with fixed deliverables and production-quality acceptance checks.
 
 - Key request: for each chapter topic, list industry-project pain points, root causes, and practical resolution strategies, and provide related lab practice examples so learners can understand and operate solutions more easily.
+- Senior review request: add explicit VRAM-aware planning for 32GB-class GPUs (batch sizing, memory mapping/chunking, RAM-vs-VRAM handling, and fallback strategy).
+- Senior review request: make vectorization performance comparison mandatory (loop vs NumPy vectorized benchmark with measured runtime deltas).
+- Senior review request: prioritize finance/time-series context (OHLCV-style tabular examples) in Stage 2 worked examples and labs, with generic datasets as secondary.
 
 This section is a scope guard: future edits should not remove these requirements.
 
@@ -63,6 +66,9 @@ This section is a scope guard: future edits should not remove these requirements
 - Expected output ranges are not documented for each script.
 - No dedicated Stage 2 GPU/PyTorch implementation spec section.
 - No explicit QA/maintenance framework (glossary, smoke-test log, link policy, encoding checks).
+- No explicit VRAM-budget and batching/chunking decision workflow for 32GB VRAM hardware.
+- No mandatory loop-vs-vectorized performance benchmark requirement.
+- No canonical finance/time-series dataset requirement for Stage 2 examples.
 
 ---
 
@@ -82,6 +88,9 @@ Stage 2 rewrite is complete only when:
 - Every runnable script includes expected output content and interpretation notes.
 - Stage 2 supports a single-command fail-fast runner (`run_all_stage2.ps1`).
 - Self-test includes weighted scoring and remediation actions.
+- At least one required benchmark shows vectorized NumPy operations outperform equivalent Python loops with recorded timings.
+- GPU bridge and data-processing modules include RAM/VRAM observations and a documented batching/chunking strategy.
+- Stage 2 project uses a declared canonical OHLCV/time-series dataset (or equivalent user-provided financial tabular data) with time-aware split rules.
 
 ---
 
@@ -100,6 +109,9 @@ Use this layered stack:
   - https://numpy.org/doc/stable/user/quickstart.html
 - Pandas getting started
   - https://pandas.pydata.org/docs/getting_started/index.html
+- Python for Data Analysis, 3E (Open Access + O'Reilly edition)
+  - https://wesmckinney.com/book/
+  - https://www.oreilly.com/library/view/python-for-data/9781098104023/
 - Matplotlib tutorials
   - https://matplotlib.org/stable/tutorials/index.html
 - scikit-learn user guide
@@ -128,6 +140,13 @@ Use this layered stack:
 
 ### C. Books (Priority Order)
 
+- Python for Data Analysis, 3rd Edition (Wes McKinney)
+  - https://wesmckinney.com/book/
+  - https://github.com/wesm/pydata-book
+- Effective Pandas: Patterns for Data Manipulation (Matt Harrison)
+  - https://books.google.com/books/about/Effective_Pandas.html?id=bYP0zgEACAAJ
+- Modern Pandas (Method Chaining) - Tom Augspurger
+  - https://tomaugspurger.net/posts/method-chaining/
 - Python Data Science Handbook
   - https://jakevdp.github.io/PythonDataScienceHandbook/
 - ISLP
@@ -143,6 +162,10 @@ Use this layered stack:
   - https://developers.google.com/machine-learning/guides/rules-of-ml/
 - A Few Useful Things to Know About Machine Learning
   - https://homes.cs.washington.edu/~pedrod/papers/cacm12.pdf
+- NVIDIA CUDA Refresher: Getting Started with CUDA
+  - https://developer.nvidia.com/blog/cuda-refresher-getting-started-with-cuda/
+- NVIDIA CUDA Refresher: The CUDA Programming Model
+  - https://developer.nvidia.com/blog/cuda-refresher-cuda-programming-model/
 
 ### E. Popular GitHub Resources
 
@@ -161,12 +184,15 @@ Use this layered stack:
 
 - Week 1 core:
   - NumPy quickstart, Pandas getting started, Matplotlib tutorials
+  - Python for Data Analysis (Ch. 4-11: NumPy, pandas, wrangling, time series)
 - Week 1 ML toolkit usage:
   - scikit-learn user guide, common pitfalls
 - Project and applied practice:
   - Kaggle Pandas + Data Visualization + Intro ML
+  - Effective Pandas + Modern Pandas method-chaining patterns for cleaner transformation pipelines
 - Optional deepening:
   - Python Data Science Handbook, handson-ml3, ISLP
+  - CUDA Refresher posts for CPU/GPU memory model and host-device transfer intuition
 
 ### G. Priority and Time Budget (Must / Should / Optional)
 
@@ -174,6 +200,7 @@ Must (complete in Stage 2):
 
 - NumPy quickstart: 2-3h
 - Pandas getting started + user guide basics: 4-6h
+- Python for Data Analysis (selected Stage 2 chapters): 4-6h
 - Matplotlib basics + gallery examples: 2-3h
 - scikit-learn user guide (split/preprocess/evaluation): 4-5h
 - scikit-learn common pitfalls: 1.5-2h
@@ -181,6 +208,8 @@ Must (complete in Stage 2):
 
 Should (high value):
 
+- Effective Pandas + method-chaining practice: 3-5h
+- CUDA Refresher posts (host/device model + kernel execution): 1-2h
 - Python Data Science Handbook (selected chapters): 4-6h
 - handson-ml3 selected notebooks: 3-5h
 - Rules of ML + Domingos paper: 2-3h
@@ -255,6 +284,7 @@ Core Stage 2 modules:
 - Pandas load/inspect/clean
 - Pandas joins/groupby/rolling
 - Feature engineering for tabular/time-series data
+- RAM/VRAM-aware batching and chunked data processing
 - Matplotlib as a debugging tool
 - Train/validation/test preparation in scikit-learn
 - Preprocessing + leakage prevention
@@ -269,11 +299,11 @@ Hard requirement: no module ships with missing fields.
 
 ### Week 1 (Core Stage 2)
 
-- Day 1: NumPy arrays, vectorization, broadcasting
+- Day 1: NumPy arrays, vectorization, broadcasting + mandatory loop-vs-vectorized benchmark
 - Day 2: Pandas load/inspect/clean basics
-- Day 3: Pandas transform/groupby/rolling features
+- Day 3: Pandas transform/groupby/rolling features on time-series/OHLCV data
 - Day 4: Matplotlib visualization for data debugging
-- Day 5: scikit-learn split/preprocess/pipeline basics
+- Day 5: scikit-learn split/preprocess/pipeline basics with time-aware splitting discipline
 - Day 6: leakage pitfalls + debugging checklist drills
 - Day 7: Stage 2 project baseline pipeline + report draft
 
@@ -320,6 +350,7 @@ Required project layout:
 - `project/src/features.py`
 - `project/src/plot.py`
 - `project/src/train_eval.py`
+- `project/data/ohlcv_5m_sample.csv` (or declared equivalent financial time-series dataset)
 - `project/results/metrics.json`
 - `project/results/figures/`
 
@@ -344,16 +375,20 @@ Required outputs:
 - plots with interpretation notes
 - train/validation/test metrics
 - leakage checks and findings
+- vectorization benchmark report (loop vs vectorized, runtime delta)
+- memory profile summary (RAM usage and, when applicable, VRAM usage + batching/chunking decision)
 
 ### 8.1 Stage-Specific Industry Pain-Point Matrix (Mandatory)
 
 | Topic | Typical industry pain point | Common root causes | Resolution strategy (operatable) | Verification evidence | Mapped script/lab |
 |---|---|---|---|---|---|
 | NumPy vectorization | Pipeline is too slow on larger data | Loop-based implementation | Replace loops with vectorized operations and benchmark | Runtime before/after table | `topic01_numpy_vectorization.py` |
+| Memory mapping/batching | Dataset processing fails or stalls due to RAM/VRAM pressure | Full-data in-memory assumptions | Use chunked reads, batch processing, and explicit memory budgeting | RAM/VRAM profile with chosen batch/chunk config | `topic01b_memory_mapping_batching.py` |
 | Shape/broadcasting | Silent shape bugs produce wrong outputs | Weak tensor/array shape discipline | Add shape assertions and broadcast checks | Shape validation log | `topic02_numpy_shape_broadcasting.py` |
 | Data loading/inspection | Wrong dtypes and missing values break downstream steps | No schema checks at load time | Enforce dtype and missing-value audit at ingest | Data profile report | `topic03_pandas_load_inspect.py` |
 | Data cleaning/transforms | Transform logic changes behavior across reruns | In-place mutations and undocumented rules | Standardize transform pipeline and log each step | Transform reproducibility report | `topic04_pandas_clean_transform.py` |
 | Feature engineering | New features add noise not signal | No ablation and weak domain logic | Run feature ablation and keep only validated features | Feature contribution table | `topic05_feature_engineering_time_series.py` |
+| Financial/time-series context | Good offline metrics fail in live market conditions | Random split on temporal data and regime-insensitive features | Enforce chronological splits, rolling-window checks, and OHLCV-aware feature validation | Time-split evaluation report + leakage audit | `topic05_feature_engineering_time_series.py`, `topic07_sklearn_split_preprocess.py` |
 | Visual debugging | Plots look good but hide data issues | Wrong scales/aggregation | Add standardized plot checklist and outlier checks | Plot audit summary | `topic06_matplotlib_data_debugging.py` |
 | Split/preprocess | Validation leakage inflates scores | Fit on full dataset before split | Split first, fit transforms on train only | Leakage audit and corrected metrics | `topic07_sklearn_split_preprocess.py` |
 | Pipeline leakage | Manual steps diverge between train and infer | No pipeline encapsulation | Enforce sklearn pipeline for full transform+model flow | Pipeline parity report | `topic08_sklearn_pipeline_leakage.py` |
@@ -473,11 +508,19 @@ Required items:
   - `torch.cuda.is_available()`
 - installation commands for Windows and Unix
 - CPU fallback path
+- VRAM planning requirements:
+  - define target batch sizes for 32GB VRAM hardware
+  - document OOM fallback sequence (reduce batch -> chunk input -> CPU fallback)
+  - include RAM-vs-VRAM decision notes for data that exceeds system RAM or VRAM
+- precision and memory efficiency notes:
+  - when to consider FP32 vs FP16/BF16 for bridge examples
+  - caution that precision choices must be verified against correctness metrics
 - validation script output must include:
   - torch version
   - CUDA availability
   - device name if CUDA exists
   - simple CPU/GPU timing comparison note
+  - peak memory fields (RAM estimate and VRAM if CUDA is available)
 - integration:
   - one concept module
   - one runnable script
@@ -549,6 +592,9 @@ P0 (must do):
 - data declaration enforcement
 - expected output documentation for every script
 - debugging and quality-gate enforcement
+- mandatory vectorization benchmark with measured before/after runtime
+- canonical time-series/OHLCV example path in Stage 2 project and at least one core module
+- VRAM-aware batching/chunking guidance in GPU bridge and project execution notes
 
 P1 (should do):
 
@@ -654,6 +700,31 @@ If a plan already uses another path, keep it and add a path mapping note in stag
 ## Global Key Request Addendum (2026-04-04)
 
 - Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
+
+
+## Gemini Review Integration Addendum (2026-04-04, Additive-Only)
+
+This addendum captures external review feedback and is additive only.
+
+### A) VRAM-Specific Planning
+
+- Stage 2 must include an explicit RAM/VRAM planning workflow for 32GB VRAM hardware.
+- Learners must practice chunking and batching decisions and record why a chosen strategy was used.
+- GPU bridge outputs must include memory observations, not only correctness metrics.
+- Include explicit scenario handling:
+  - dataset > RAM and > VRAM -> chunked ingest + streaming/batch pipeline
+  - dataset > RAM but <= VRAM-ready batches -> on-disk chunk read + staged transfer
+  - dataset <= RAM but > VRAM -> minibatch training/inference with fixed memory budget
+
+### B) Vectorization as a Core Requirement
+
+- At least one mandatory module/lab must compare Python-loop and NumPy-vectorized implementations with measured runtimes.
+- Performance comparison artifacts are required (before/after runtime and interpretation notes).
+
+### C) Financial Time-Series Context
+
+- Stage 2 should prioritize OHLCV/time-series tabular workflows for primary examples where possible.
+- Generic datasets remain valid for concept isolation, but project and at least one feature-engineering module must use time-aware split discipline.
 
 
 

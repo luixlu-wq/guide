@@ -1,10 +1,9 @@
 ﻿"""Stage 3 Topic 05 (Simple): linear-kernel SVM baseline.
 
-Data: sklearn.datasets.load_iris
-Rows: 150
-Features: 4 numeric
-Target: 3 classes
-Type: Classification (simple SVM)
+Data Source: sklearn.datasets.load_iris
+Schema: 4 numeric features | Target: 3 classes
+Preprocessing: StandardScaler required and included in pipeline
+Null Handling: None (dataset is verified clean by source package)
 """
 
 from __future__ import annotations

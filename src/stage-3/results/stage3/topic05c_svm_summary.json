@@ -1,0 +1,8 @@
+{
+  "best_params": {
+    "svm__C": 1,
+    "svm__kernel": "linear"
+  },
+  "best_cv_score": 0.9923076923076923,
+  "test_accuracy": 0.9555555555555556
+}

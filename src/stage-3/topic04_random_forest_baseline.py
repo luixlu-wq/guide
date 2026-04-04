@@ -1,10 +1,9 @@
 ﻿"""Stage 3 Topic 04: Random Forest baseline and feature importance.
 
-Data: sklearn.datasets.load_breast_cancer
-Rows: 569
-Features: 30 numeric features
-Target: binary class
-Type: Classification
+Data Source: sklearn.datasets.load_breast_cancer
+Schema: 30 numeric features | Target: binary class
+Preprocessing: Scaling optional for tree ensembles
+Null Handling: None (dataset is verified clean by source package)
 """
 
 from __future__ import annotations
@@ -36,7 +35,7 @@ def main() -> None:
     model = RandomForestClassifier(
         n_estimators=300,
         random_state=42,
-        n_jobs=1,
+        n_jobs=-1,  # Use all available CPU cores for local high-performance training.
     )
     model.fit(X_train, y_train)
 
@@ -45,6 +44,11 @@ def main() -> None:
 
     print("Train accuracy:", round(train_acc, 3))
     print("Test accuracy:", round(test_acc, 3))
+    gap = train_acc - test_acc
+    if gap > 0.12:
+        print(f"DIAGNOSIS: Overfitting risk detected (gap={gap:.3f}). Tune depth/min_samples.")
+    else:
+        print("DIAGNOSIS: Generalization gap is in a healthy range.")
 
     importances = pd.Series(model.feature_importances_, index=X.columns)
     print("Top 5 feature importances:")

@@ -1,0 +1,2 @@
+model,cv_score,test_accuracy,best_params
+svm_rbf_tuned,0.975,0.9666666666666667,"{'svm__C': 1, 'svm__gamma': 0.1}"

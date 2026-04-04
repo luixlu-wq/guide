@@ -1,0 +1,3 @@
+scenario,baseline_name,fixed_name,baseline_metric,fixed_metric,delta_metric,diagnosis,root_cause,resolution,verification_evidence
+overfitting_depth_control,deep_tree_unrestricted,shallow_tree_max_depth_4,0.7766666666666666,0.7833333333333333,0.00666666666666671,overfitting,Tree depth too high causes memorization.,Limit model capacity with depth constraints.,Generalization gap shrinks after depth control.
+feature_selection_leakage,wrong_feature_selection_before_split,pipeline_select_on_train_only,0.59,0.49333333333333335,-0.09666666666666662,data_leakage,Feature selection was fitted on full data before split.,"Split first, then fit selection inside training pipeline.",Accuracy drops toward chance after leakage removal.

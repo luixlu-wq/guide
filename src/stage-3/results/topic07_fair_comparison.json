@@ -5,7 +5,18 @@
     "precision": 0.9861111111111112,
     "recall": 0.9861111111111112,
     "f1": 0.9861111111111112,
-    "roc_auc": 0.9953703703703703
+    "roc_auc": 0.9953703703703703,
+    "train_accuracy": 0.989010989010989,
+    "test_accuracy": 0.9824561403508771,
+    "train_precision": 0.9861111111111112,
+    "test_precision": 0.9861111111111112,
+    "train_recall": 0.9964912280701754,
+    "test_recall": 0.9861111111111112,
+    "train_f1": 0.9912739965095986,
+    "test_f1": 0.9861111111111112,
+    "train_roc_auc": 0.9974819401444789,
+    "test_roc_auc": 0.9953703703703703,
+    "generalization_gap_f1": 0.005162885398487416
   },
   {
     "model": "decision_tree",
@@ -13,7 +24,18 @@
     "precision": 0.9577464788732394,
     "recall": 0.9444444444444444,
     "f1": 0.951048951048951,
-    "roc_auc": 0.9341931216931217
+    "roc_auc": 0.9341931216931217,
+    "train_accuracy": 0.9868131868131869,
+    "test_accuracy": 0.9385964912280702,
+    "train_precision": 0.979381443298969,
+    "test_precision": 0.9577464788732394,
+    "train_recall": 1.0,
+    "test_recall": 0.9444444444444444,
+    "train_f1": 0.9895833333333334,
+    "test_f1": 0.951048951048951,
+    "train_roc_auc": 0.9932610939112487,
+    "test_roc_auc": 0.9341931216931217,
+    "generalization_gap_f1": 0.03853438228438233
   },
   {
     "model": "random_forest",
@@ -21,7 +43,18 @@
     "precision": 0.9583333333333334,
     "recall": 0.9583333333333334,
     "f1": 0.9583333333333334,
-    "roc_auc": 0.9937169312169313
+    "roc_auc": 0.9937169312169313,
+    "train_accuracy": 1.0,
+    "test_accuracy": 0.9473684210526315,
+    "train_precision": 1.0,
+    "test_precision": 0.9583333333333334,
+    "train_recall": 1.0,
+    "test_recall": 0.9583333333333334,
+    "train_f1": 1.0,
+    "test_f1": 0.9583333333333334,
+    "train_roc_auc": 1.0,
+    "test_roc_auc": 0.9937169312169313,
+    "generalization_gap_f1": 0.04166666666666663
   },
   {
     "model": "svm_rbf",
@@ -29,6 +62,17 @@
     "precision": 0.9714285714285714,
     "recall": 0.9444444444444444,
     "f1": 0.9577464788732394,
-    "roc_auc": 0.9897486772486772
+    "roc_auc": 0.9897486772486772,
+    "train_accuracy": 1.0,
+    "test_accuracy": 0.9473684210526315,
+    "train_precision": 1.0,
+    "test_precision": 0.9714285714285714,
+    "train_recall": 1.0,
+    "test_recall": 0.9444444444444444,
+    "train_f1": 1.0,
+    "test_f1": 0.9577464788732394,
+    "train_roc_auc": 1.0,
+    "test_roc_auc": 0.9897486772486772,
+    "generalization_gap_f1": 0.04225352112676062
   }
 ]

@@ -1,0 +1,26 @@
+[
+  {
+    "scenario": "overfitting_depth_control",
+    "baseline_name": "deep_tree_unrestricted",
+    "fixed_name": "shallow_tree_max_depth_4",
+    "baseline_metric": 0.7766666666666666,
+    "fixed_metric": 0.7833333333333333,
+    "delta_metric": 0.00666666666666671,
+    "diagnosis": "overfitting",
+    "root_cause": "Tree depth too high causes memorization.",
+    "resolution": "Limit model capacity with depth constraints.",
+    "verification_evidence": "Generalization gap shrinks after depth control."
+  },
+  {
+    "scenario": "feature_selection_leakage",
+    "baseline_name": "wrong_feature_selection_before_split",
+    "fixed_name": "pipeline_select_on_train_only",
+    "baseline_metric": 0.59,
+    "fixed_metric": 0.49333333333333335,
+    "delta_metric": -0.09666666666666662,
+    "diagnosis": "data_leakage",
+    "root_cause": "Feature selection was fitted on full data before split.",
+    "resolution": "Split first, then fit selection inside training pipeline.",
+    "verification_evidence": "Accuracy drops toward chance after leakage removal."
+  }
+]

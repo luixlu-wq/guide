@@ -10,7 +10,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Setup (Optional GPU Bridge)
+## Setup (Recommended GPU Bridge If CUDA Is Available)
 
 ```bash
 pip install -r requirements-gpu.txt
@@ -25,7 +25,9 @@ Fail-fast run (CPU topics):
 powershell -ExecutionPolicy Bypass -File .\run_all_stage3.ps1
 ```
 
-Fail-fast run including optional GPU bridge:
+This runner now validates key artifacts and basic sanity bounds (for example, model-comparison row counts and minimum metric thresholds), not only exit codes.
+
+Fail-fast run including GPU bridge:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\run_all_stage3.ps1 -IncludeGpu
@@ -37,7 +39,7 @@ Run progressive ladders (simple -> intermediate -> advanced):
 powershell -ExecutionPolicy Bypass -File .\run_ladder_stage3.ps1
 ```
 
-Run ladders plus optional PyTorch/CUDA ladder:
+Run ladders plus PyTorch/CUDA ladder:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\run_ladder_stage3.ps1 -IncludeGpuBridge
@@ -71,7 +73,7 @@ powershell -ExecutionPolicy Bypass -File .\run_ladder_stage3.ps1 -IncludeGpuBrid
   - `topic06c_kmeans_advanced.py`
 - `topic07_fair_model_comparison.py`: same-split benchmark across multiple models
 - `topic08_failure_modes_overfit_leakage.py`: overfitting and leakage demos
-- PyTorch/CUDA bridge ladder (optional):
+- PyTorch/CUDA bridge ladder:
   - `topic09a_pytorch_cuda_simple.py`
   - `topic09_pytorch_cuda_bridge.py` (intermediate)
   - `topic09c_pytorch_cuda_advanced.py`
@@ -81,6 +83,27 @@ powershell -ExecutionPolicy Bypass -File .\run_ladder_stage3.ps1 -IncludeGpuBrid
 
 - `results/topic07_fair_comparison.csv`
 - `results/topic07_fair_comparison.json`
+- `results/topic07_fair_comparison_seed_stats.csv`
+- `results/topic07_fair_comparison_seed_stats.json`
+- `results/stage3/topic05_svm_summary.csv`
+- `results/stage3/topic05_svm_summary.json`
+- `results/stage3/topic06_kmeans_k_scan.csv`
+- `results/stage3/topic06_kmeans_k_scan.json`
+- `results/stage3/topic05c_svm_top5_cv.csv`
+- `results/stage3/topic05c_svm_summary.json`
+- `results/stage3/topic06c_kmeans_advanced_metrics.csv`
+- `results/stage3/topic06c_kmeans_advanced_metrics.json`
+- `results/stage3/model_compare_before_after.csv`
+- `results/stage3/model_compare_seed_stability.csv`
+- `results/stage3/fair_comparison_checklist.md`
+- `results/stage3/failure_class_before_after.csv`
+- `results/stage3/failure_class_before_after.json`
+- `results/stage3/pain_point_matrix.md`
+- `results/stage3/failure_diagnosis.md`
+- `results/stage3/cpu_gpu_latency_transfer.csv`
+- `results/stage3/cpu_gpu_latency_transfer.json`
+- `results/stage3/decision_and_risk.md`
+- `results/stage3/cpu_gpu_parity_report.json`
 
 ## Data Source and Structure Summary
 

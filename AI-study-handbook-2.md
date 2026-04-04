@@ -17,7 +17,7 @@ You are learning the Python data stack used in real AI work:
 - Pandas
 - Matplotlib
 - scikit-learn
-- optional PyTorch/CUDA bridge
+- PyTorch/CUDA bridge (mandatory in this handbook track; CPU fallback allowed when CUDA is unavailable)
 
 ### Recommended Order
 
@@ -30,6 +30,16 @@ You are learning the Python data stack used in real AI work:
    - write short interpretation
    - answer quick check
 4. Complete project and self-test before moving on.
+
+### Stage 2 Pipeline Mental Model (ETL)
+
+Treat Stage 2 as one engineering pipeline, not isolated tools:
+
+- Extract: Pandas `read_csv` / `read_sql` and schema inspection
+- Transform: NumPy vectorization + Pandas feature engineering
+- Load: Convert to model-ready arrays/tensors and place on CPU/GPU device correctly
+
+This pipeline view helps you debug by stage: data ingest issues, transformation issues, and device/runtime issues.
 
 ### If You Get Stuck
 
@@ -79,7 +89,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Optional GPU Bridge Setup (PyTorch + CUDA)
+### PyTorch/CUDA Bridge Setup (Mandatory Module for This Track)
 
 ```bash
 pip install -r requirements-gpu.txt
@@ -98,7 +108,7 @@ python -c "import torch; print(torch.__version__); print(torch.cuda.is_available
 powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1
 ```
 
-Optional GPU bridge:
+GPU acceleration run (if CUDA is available on this machine):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
@@ -118,7 +128,7 @@ powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
 | 4 | Feature engineering for time series | topic05 | Explain each engineered column |
 | 5 | Visualization for debugging | topic06 | Interpret line plot and histogram |
 | 6 | scikit-learn split, preprocessing, leakage | topic07, topic08 | Explain wrong vs correct workflow |
-| 7 | End-to-end tabular pipeline | topic09 | Save and interpret metrics artifact |
+| 7 | End-to-end tabular pipeline + bridge basics | topic09, topic10, topic11 | Save metrics artifact + explain CPU fallback and VRAM checks |
 
 ### Optional Extension Week
 
@@ -126,7 +136,7 @@ powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
 |---|---|---|---|
 | 8 | Project expansion and additional features | topic05, topic09 | Updated feature list with rationale |
 | 9 | Error analysis and leakage audit | topic08, topic09 | Leakage prevention checklist |
-| 10 | Optional GPU bridge | topic10 | CPU vs GPU note (if CUDA available) |
+| 10 | GPU bridge deepening and troubleshooting | topic10, topic11 | CPU vs GPU + memory management note |
 | 11 | Documentation and reproducibility | run_all_stage2 | Run log and environment note |
 | 12 | Self-test and weak-topic review | handbook self-test | Score + remediation plan |
 | 13-14 | Final polish and handoff | all | Stage completion checklist |
@@ -139,6 +149,7 @@ powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
 
 - NumPy Quickstart: https://numpy.org/doc/stable/user/quickstart.html
 - Pandas Getting Started: https://pandas.pydata.org/docs/getting_started/index.html
+- Python for Data Analysis (Wes McKinney): https://wesmckinney.com/book/
 - Matplotlib Tutorials: https://matplotlib.org/stable/tutorials/index.html
 - scikit-learn User Guide: https://scikit-learn.org/stable/user_guide.html
 - scikit-learn Common Pitfalls: https://scikit-learn.org/stable/common_pitfalls.html
@@ -150,6 +161,8 @@ powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
 - Python Data Science Handbook: https://jakevdp.github.io/PythonDataScienceHandbook/
 - Kaggle Intro to ML: https://www.kaggle.com/learn/intro-to-machine-learning
 - handson-ml3 examples: https://github.com/ageron/handson-ml3
+- Effective Pandas (Matt Harrison): https://books.google.com/books/about/Effective_Pandas.html?id=bYP0zgEACAAJ
+- Modern Pandas (method chaining): https://tomaugspurger.net/posts/method-chaining/
 
 ### Optional Deepening
 
@@ -157,6 +170,8 @@ powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
 - D2L: https://d2l.ai/
 - PyTorch Tutorials: https://pytorch.org/tutorials/
 - PyTorch CUDA semantics: https://pytorch.org/docs/stable/notes/cuda.html
+- NVIDIA CUDA Refresher (Getting Started): https://developer.nvidia.com/blog/cuda-refresher-getting-started-with-cuda/
+- NVIDIA CUDA Refresher (Programming Model): https://developer.nvidia.com/blog/cuda-refresher-cuda-programming-model/
 
 ---
 
@@ -216,11 +231,12 @@ powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1 -IncludeGpu
 - Inspect saved metrics JSON
 - Pass check: you can explain R2, MAE, and MSE from output
 
-### Target 10 (Optional): PyTorch/CUDA bridge
+### Target 10: PyTorch/CUDA bridge (mandatory module, CPU fallback accepted)
 
 - Run `topic10_pytorch_cuda_bridge.py`
+- Run `topic11_linear_gradient_example.py`
 - Explain tensor/autograd/device concepts
-- Pass check: you can explain CPU fallback when CUDA is unavailable
+- Pass check: you can explain CPU fallback when CUDA is unavailable, and how to monitor memory when CUDA is available
 
 ---
 
@@ -242,7 +258,7 @@ pip install -r requirements.txt
 powershell -ExecutionPolicy Bypass -File .\run_all_stage2.ps1
 ```
 
-Optional GPU bridge:
+GPU acceleration run (if CUDA is available on this machine):
 
 ```bash
 pip install -r requirements-gpu.txt
@@ -272,7 +288,8 @@ pwsh -File ./run_all_stage2.ps1
 | `topic07_sklearn_split_preprocess.py` | Split+preprocess | train/test shapes and strong test metrics printed |
 | `topic08_sklearn_pipeline_leakage.py` | Leakage | wrong vs correct accuracy with small but visible delta |
 | `topic09_stage2_end_to_end_pipeline.py` | End-to-end pipeline | prints `r2`, `mae`, `mse`; saves `results/topic09_metrics.json` |
-| `topic10_pytorch_cuda_bridge.py` | Optional GPU bridge | prints torch/cuda status, autograd demo, learned params near expected values |
+| `topic10_pytorch_cuda_bridge.py` | PyTorch/CUDA bridge | prints torch/cuda status, autograd demo, learned params near expected values; CPU/GPU timing note |
+| `topic11_linear_gradient_example.py` | Gradient verification | compares manual gradient and autograd gradient; shows parameter updates clearly |
 
 ### Data Resource and Data Structure Declarations
 
@@ -283,6 +300,10 @@ All Stage 2 scripts explicitly declare:
 - feature structure
 - target definition (if present)
 - task type
+
+Recommended canonical Stage 2 project dataset:
+
+- `red-book/src/stage-2/data/ohlcv_5m_sample.csv` (or equivalent user-provided OHLCV time-series table)
 
 ---
 
@@ -327,9 +348,11 @@ Quick-check answer:
 
 What it is:
 - Operating on full arrays without Python loops.
+- NumPy arrays are contiguous typed memory blocks managed by optimized native code (C-level loops), not Python object-by-object containers.
 
 Why it matters:
 - Faster and cleaner numeric computation.
+- This is the memory layer of AI data processing: contiguous memory layout + SIMD-friendly operations are the main reason vectorized code is fast.
 
 Data declaration:
 ```
@@ -351,6 +374,11 @@ Demo:
 
 Quick check:
 - Why can vectorized code outperform loops even when operation is the same?
+
+Developer note:
+- Think of NumPy as "C arrays with Python ergonomics."
+- Python loop version: Python interpreter controls each element step.
+- Vectorized version: native kernels operate on whole memory blocks.
 
 Detailed tutorial instructions:
 
@@ -376,6 +404,7 @@ What it is:
 
 Why it matters:
 - Prevents shape bugs and reduces boilerplate code.
+- Broadcasting is the highest-frequency source of silent logic bugs when moving from loop-based code to tensor math.
 
 Data declaration:
 ```
@@ -398,6 +427,22 @@ Demo:
 Quick check:
 - What is output shape of `(3,4) + (4,)`?
 
+Broadcasting rules (must memorize):
+
+1. NumPy compares dimensions from right to left.
+2. Two dimensions are compatible if:
+   - they are equal, or
+   - one of them is `1`.
+3. If neither condition is true, broadcasting fails.
+
+Right-aligned shape examples:
+
+```
+(3,4) + (4,)   -> (3,4)   # row vector across rows
+(3,4) + (3,1)  -> (3,4)   # column vector across columns
+(3,4) + (3,)   -> error    # trailing dims 4 vs 3 are incompatible
+```
+
 Detailed tutorial instructions:
 
 1. Run:
@@ -416,9 +461,11 @@ Detailed tutorial instructions:
 
 What it is:
 - Read CSV and inspect structure before transforming.
+- Use Pandas Index to turn a plain table into a label-aligned data engine for selection, joins, and time-based operations.
 
 Why it matters:
 - Prevents downstream bugs from wrong dtypes/columns.
+- Index quality directly impacts correctness and speed of lookup, alignment, and rolling-window computation.
 
 Data declaration:
 ```
@@ -441,6 +488,39 @@ Demo:
 Quick check:
 - Why is `date` initially `object` after CSV load?
 
+Pandas Index engineering note:
+
+- `RangeIndex` is default integer indexing.
+- `DatetimeIndex` enables fast time slicing, rolling windows, and aligned joins.
+- Conceptually, index labels act like keys in a high-performance lookup/alignment layer.
+
+Quant-oriented operation examples:
+
+```python
+df["date"] = pd.to_datetime(df["date"])
+df = df.sort_values("date").set_index("date")
+
+# Daily return-style change
+df["ret_1"] = df["close"].pct_change()
+
+# 20-period rolling average (classic quant baseline)
+df["ma_20"] = df["close"].rolling(window=20, min_periods=20).mean()
+```
+
+Large-data memory note (operational):
+
+If CSV size can exceed RAM, use chunked extraction:
+
+```python
+import pandas as pd
+
+for chunk in pd.read_csv("big_ohlcv.csv", chunksize=200_000):
+    # transform per chunk, then append/save intermediate results
+    ...
+```
+
+Use chunking on CPU-side ingest and batching on model-side tensor loading.
+
 Detailed tutorial instructions:
 
 1. Run:
@@ -450,7 +530,12 @@ Detailed tutorial instructions:
    - column list and dtypes are printed
 3. Interpret:
    - identify which columns should later be type-converted and why.
-4. Troubleshoot:
+4. Execute quant-style index operations in a scratch cell/script:
+   - convert date to datetime
+   - set datetime index
+   - run `pct_change()` and `rolling(window=20).mean()`
+   - explain why early rolling rows are NaN by design
+5. Troubleshoot:
    - if file path errors occur, run from `red-book/src/stage-2/`.
 
 ---
@@ -713,13 +798,14 @@ Detailed tutorial instructions:
 
 ---
 
-### Module 10 (Optional): PyTorch/CUDA Bridge
+### Module 10: PyTorch/CUDA Bridge (Mandatory for This Track, CPU Fallback Allowed)
 
 What it is:
 - Intro to tensors, autograd, and device placement.
 
 Why it matters:
 - Bridges tabular Python workflows to model-training frameworks.
+- This module is required because real AI pipelines eventually move from DataFrame operations to tensor compute and device/runtime constraints.
 
 Conceptual and theory guide:
 
@@ -740,6 +826,49 @@ Conceptual and theory guide:
   - CPU and GPU have separate memory spaces.
   - Tensors must be moved to same device as model parameters (`.to("cuda")`).
   - GPU acceleration helps mostly for larger batch/matrix workloads due to transfer + kernel overhead.
+
+DataFrame -> NumPy -> Tensor bridge (zero-copy boundary tutorial):
+
+```python
+import pandas as pd
+import torch
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+df = pd.read_csv("topic03_data.csv")
+df["close"] = df["close"].astype("float32")
+
+# Zero-copy (when possible) from pandas-managed memory to NumPy view.
+arr = df[["close"]].to_numpy(dtype="float32", copy=False)
+
+# Zero-copy CPU tensor view over NumPy memory.
+x_cpu = torch.from_numpy(arr)
+
+# Required memory transfer to device if CUDA is used.
+x_dev = x_cpu.to(device)
+```
+
+Important:
+- `from_numpy` shares CPU memory (no copy).
+- Moving to CUDA always performs a device transfer (not zero-copy across CPU->GPU boundary).
+- Goal is to avoid unnecessary extra copies before the device transfer.
+
+VRAM management (required operational checks):
+
+```python
+if torch.cuda.is_available():
+    torch.cuda.reset_peak_memory_stats()
+    before_mb = torch.cuda.memory_allocated() / (1024 ** 2)
+    # ... run batch/tensor operations ...
+    after_mb = torch.cuda.memory_allocated() / (1024 ** 2)
+    peak_mb = torch.cuda.max_memory_allocated() / (1024 ** 2)
+    print("vram_before_mb:", round(before_mb, 2))
+    print("vram_after_mb :", round(after_mb, 2))
+    print("vram_peak_mb  :", round(peak_mb, 2))
+    torch.cuda.empty_cache()  # release cached blocks back to allocator pool
+```
+
+For RTX 5090-class hardware (32GB VRAM), record these values per run to build a memory budget baseline before scaling batch sizes.
 
 How model training works (theory -> execution):
 
@@ -830,7 +959,7 @@ Data: synthetic tensor regression data
 Rows: 30,000
 Features: x tensor [N,1]
 Target: y tensor [N,1]
-Type: optional GPU bridge
+Type: PyTorch/CUDA bridge
 ```
 
 Common mistake:
@@ -841,6 +970,7 @@ Fix:
 
 Demo:
 - `topic10_pytorch_cuda_bridge.py`
+- `topic11_linear_gradient_example.py`
 
 Quick check:
 - What should your script do if CUDA is unavailable?
@@ -896,12 +1026,43 @@ If scripts fail or outputs look wrong:
 - [ ] Are expected artifacts (png/json/csv) created?
 - [ ] Did you rerun from clean environment after dependency changes?
 
+### Shape Mismatch Checklist (High Priority)
+
+Use this checklist whenever you see matrix/tensor errors or suspicious outputs:
+
+- [ ] Print all operand shapes right before the failing line.
+- [ ] Verify matrix multiplication rule:
+  - `(a, b) @ (b, c) -> (a, c)`
+- [ ] Check for common mismatch pattern:
+  - `(64, 10) @ (1, 10)` is invalid; second tensor should be `(10, c)` for matrix multiply.
+- [ ] Verify you did not accidentally keep singleton dimensions (`(n, 1)` vs `(n,)`).
+- [ ] For broadcasting ops, compare trailing dimensions from right to left.
+- [ ] In pandas-to-NumPy conversion, verify final feature matrix shape is `(rows, features)`.
+- [ ] In PyTorch, verify input tensor and model parameters are on the same device.
+
+Quick shape debug snippet:
+
+```python
+print("X shape:", X.shape)
+print("W shape:", W.shape)
+print("b shape:", b.shape)
+print("device X:", getattr(X, "device", "cpu"))
+```
+
 ---
 
 ## 8. Practice Project
 
 Project goal:
 - Build a reproducible data pipeline from raw-like tabular data to evaluated model metrics.
+- Default project context: OHLCV-style time-series data (for example `ohlcv_5m_sample.csv`) with chronological split rules.
+- Starter file in this repo: `red-book/src/stage-2/data/ohlcv_5m_sample.csv`.
+
+Required pipeline framing (ETL):
+
+- Extract: load data, validate schema, inspect dtypes/missing values.
+- Transform: clean data, engineer features, enforce time-aware ordering/splits.
+- Load: prepare model/tensor inputs, run evaluation, save reproducible artifacts.
 
 Required outputs:
 - cleaned and transformed data summary
@@ -909,6 +1070,8 @@ Required outputs:
 - at least two plots
 - metrics JSON artifact
 - short interpretation note (what worked, what failed, what to improve)
+- vectorized vs loop runtime comparison for one transformation step
+- explicit train/validation/test split policy for time-series (no random future leakage)
 
 Quality gates:
 - script runs end-to-end from clean environment
@@ -931,6 +1094,26 @@ Score bands:
 - >= 85: ready for next stage
 - 70-84: proceed with focused review
 - < 70: rerun weak-topic scripts and retake test
+
+### Code Review Checklist (Efficiency + Operability)
+
+Apply this checklist to your Stage 2 scripts and project notebook:
+
+- [ ] Uses vectorized NumPy/Pandas operations for column/array math where possible.
+- [ ] Avoids unnecessary row-wise `.apply()` for operations that can be vectorized.
+- [ ] Declares data source, shape, feature columns, and target clearly.
+- [ ] Uses split-first then fit-transform on train-only to avoid leakage.
+- [ ] Logs or saves key metrics/artifacts for reproducibility.
+- [ ] Documents shape checks at critical boundaries (pre-model and pre-tensor).
+- [ ] Handles CUDA unavailable case safely (CPU fallback path).
+
+Suggested deduction guide (for peer/self review):
+
+- `-10` points: uses row-wise `.apply()` where a clear vectorized expression exists.
+- `-10` points: missing or unclear data declaration.
+- `-15` points: leakage risk (fit on full dataset before split).
+- `-10` points: no saved artifacts/metrics for reproducibility.
+- `-10` points: no shape/device checks at model or tensor boundaries.
 
 ---
 

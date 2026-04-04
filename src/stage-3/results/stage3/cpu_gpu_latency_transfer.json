@@ -1,0 +1,15 @@
+[
+  {
+    "device": "cpu",
+    "rows": 25000,
+    "epochs": 250,
+    "transfer_time_s": 0.0,
+    "compute_time_s": 0.10824929998489097,
+    "total_time_s": 0.7989703999774065,
+    "first_loss": 2.6555607318878174,
+    "final_loss": 0.0400555357336998,
+    "learned_w": 2.200439691543579,
+    "learned_b": -0.399923175573349,
+    "peak_memory_mb": 0.0
+  }
+]
