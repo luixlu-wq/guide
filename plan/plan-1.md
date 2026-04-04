@@ -1,4 +1,4 @@
-# Stage 1 Handbook Improvement Plan (v2)
+﻿# Stage 1 Handbook Improvement Plan (v2)
 
 Target file: `red-book/AI-study-handbook-1.md`  
 Plan owner: You + Codex  
@@ -32,6 +32,9 @@ These requirements come directly from user instructions and must remain in scope
 - Add detailed tutorials for key topics.
 - Examples can be sourced/adapted from websites, tutorials, books, docs, and articles.
 - Key request: all example code must be commented in very detail and clear, so learners can understand functionality line by line.
+
+- Mandatory request: include PyTorch and CUDA conceptual/tutorial content in the chapter.
+- Mandatory request: include runnable PyTorch/CUDA example code (simple -> intermediate -> advanced) with very detailed and clear functional comments.
 
 This section is a scope guard: future edits should not remove these requirements.
 
@@ -636,3 +639,4 @@ P1 (should include):
 
 - Add a tiny "link status table" with last-check date for each primary resource.
 - Add a validation log file template for smoke-test outputs.
+

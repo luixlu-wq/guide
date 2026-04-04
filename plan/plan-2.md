@@ -1,4 +1,4 @@
-# Stage 2 Handbook Improvement Plan (v2)
+﻿# Stage 2 Handbook Improvement Plan (v2)
 
 Target file: `red-book/AI-study-handbook-2.md`  
 Plan owner: You + Codex  
@@ -25,6 +25,9 @@ These requirements are locked and must remain in scope:
 - Declare the data resource and data structure used in examples.
 - Include high-quality resources (tutorials, books, articles, official docs, GitHub).
 - Key request: all example code must be commented in very detail and clear, so learners can understand functionality line by line.
+
+- Mandatory request: include PyTorch and CUDA conceptual/tutorial content in the chapter.
+- Mandatory request: include runnable PyTorch/CUDA example code (simple -> intermediate -> advanced) with very detailed and clear functional comments.
 
 This section is a scope guard: future edits should not remove these requirements.
 
@@ -518,3 +521,4 @@ P2 (nice to have):
 - notebook variants for each topic
 - extra domain datasets
 - optional benchmark/performance mini-study
+

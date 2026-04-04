@@ -1,0 +1,61 @@
+ticket_id,customer_tier,subject,body,created_at
+TKT-1000,free,Cannot login to dashboard,I keep seeing invalid session token and cannot access account.,2026-03-01T09:00:00
+TKT-1001,pro,Invoice mismatch,Billing total is different from contract and needs correction.,2026-03-01T09:15:00
+TKT-1002,enterprise,Production API outage,Our API calls return 500 for all regions. Business blocked.,2026-03-01T09:30:00
+TKT-1003,enterprise,Security alert,Suspicious access from unknown IP. Please investigate immediately.,2026-03-01T09:45:00
+TKT-1004,pro,Feature request,Can you add export filter for monthly reports?,2026-03-01T10:00:00
+TKT-1005,free,Password reset issue,Reset link expires too quickly and fails repeatedly.,2026-03-01T10:15:00
+TKT-1006,enterprise,Data export request,Need full user dump including PII for external audit email.,2026-03-01T10:30:00
+TKT-1007,pro,Latency spike,Response time increased to 8 seconds during peak traffic.,2026-03-01T10:45:00
+TKT-1008,enterprise,Payment failure,Card payment fails only for EU customers after latest release.,2026-03-01T11:00:00
+TKT-1009,free,General question,How do I change notification settings?,2026-03-01T11:15:00
+TKT-1010,free,Cannot login to dashboard,I keep seeing invalid session token and cannot access account.,2026-03-01T11:30:00
+TKT-1011,pro,Invoice mismatch,Billing total is different from contract and needs correction.,2026-03-01T11:45:00
+TKT-1012,enterprise,Production API outage,Our API calls return 500 for all regions. Business blocked.,2026-03-01T12:00:00
+TKT-1013,enterprise,Security alert,Suspicious access from unknown IP. Please investigate immediately.,2026-03-01T12:15:00
+TKT-1014,pro,Feature request,Can you add export filter for monthly reports?,2026-03-01T12:30:00
+TKT-1015,free,Password reset issue,Reset link expires too quickly and fails repeatedly.,2026-03-01T12:45:00
+TKT-1016,enterprise,Data export request,Need full user dump including PII for external audit email.,2026-03-01T13:00:00
+TKT-1017,pro,Latency spike,Response time increased to 8 seconds during peak traffic.,2026-03-01T13:15:00
+TKT-1018,enterprise,Payment failure,Card payment fails only for EU customers after latest release.,2026-03-01T13:30:00
+TKT-1019,free,General question,How do I change notification settings?,2026-03-01T13:45:00
+TKT-1020,free,Cannot login to dashboard,I keep seeing invalid session token and cannot access account.,2026-03-01T14:00:00
+TKT-1021,pro,Invoice mismatch,Billing total is different from contract and needs correction.,2026-03-01T14:15:00
+TKT-1022,enterprise,Production API outage,Our API calls return 500 for all regions. Business blocked.,2026-03-01T14:30:00
+TKT-1023,enterprise,Security alert,Suspicious access from unknown IP. Please investigate immediately.,2026-03-01T14:45:00
+TKT-1024,pro,Feature request,Can you add export filter for monthly reports?,2026-03-01T15:00:00
+TKT-1025,free,Password reset issue,Reset link expires too quickly and fails repeatedly.,2026-03-01T15:15:00
+TKT-1026,enterprise,Data export request,Need full user dump including PII for external audit email.,2026-03-01T15:30:00
+TKT-1027,pro,Latency spike,Response time increased to 8 seconds during peak traffic.,2026-03-01T15:45:00
+TKT-1028,enterprise,Payment failure,Card payment fails only for EU customers after latest release.,2026-03-01T16:00:00
+TKT-1029,free,General question,How do I change notification settings?,2026-03-01T16:15:00
+TKT-1030,free,Cannot login to dashboard,I keep seeing invalid session token and cannot access account.,2026-03-01T16:30:00
+TKT-1031,pro,Invoice mismatch,Billing total is different from contract and needs correction.,2026-03-01T16:45:00
+TKT-1032,enterprise,Production API outage,Our API calls return 500 for all regions. Business blocked.,2026-03-01T17:00:00
+TKT-1033,enterprise,Security alert,Suspicious access from unknown IP. Please investigate immediately.,2026-03-01T17:15:00
+TKT-1034,pro,Feature request,Can you add export filter for monthly reports?,2026-03-01T17:30:00
+TKT-1035,free,Password reset issue,Reset link expires too quickly and fails repeatedly.,2026-03-01T17:45:00
+TKT-1036,enterprise,Data export request,Need full user dump including PII for external audit email.,2026-03-01T18:00:00
+TKT-1037,pro,Latency spike,Response time increased to 8 seconds during peak traffic.,2026-03-01T18:15:00
+TKT-1038,enterprise,Payment failure,Card payment fails only for EU customers after latest release.,2026-03-01T18:30:00
+TKT-1039,free,General question,How do I change notification settings?,2026-03-01T18:45:00
+TKT-1040,free,Cannot login to dashboard,I keep seeing invalid session token and cannot access account.,2026-03-01T19:00:00
+TKT-1041,pro,Invoice mismatch,Billing total is different from contract and needs correction.,2026-03-01T19:15:00
+TKT-1042,enterprise,Production API outage,Our API calls return 500 for all regions. Business blocked.,2026-03-01T19:30:00
+TKT-1043,enterprise,Security alert,Suspicious access from unknown IP. Please investigate immediately.,2026-03-01T19:45:00
+TKT-1044,pro,Feature request,Can you add export filter for monthly reports?,2026-03-01T20:00:00
+TKT-1045,free,Password reset issue,Reset link expires too quickly and fails repeatedly.,2026-03-01T20:15:00
+TKT-1046,enterprise,Data export request,Need full user dump including PII for external audit email.,2026-03-01T20:30:00
+TKT-1047,pro,Latency spike,Response time increased to 8 seconds during peak traffic.,2026-03-01T20:45:00
+TKT-1048,enterprise,Payment failure,Card payment fails only for EU customers after latest release.,2026-03-01T21:00:00
+TKT-1049,free,General question,How do I change notification settings?,2026-03-01T21:15:00
+TKT-1050,free,Cannot login to dashboard,I keep seeing invalid session token and cannot access account.,2026-03-01T21:30:00
+TKT-1051,pro,Invoice mismatch,Billing total is different from contract and needs correction.,2026-03-01T21:45:00
+TKT-1052,enterprise,Production API outage,Our API calls return 500 for all regions. Business blocked.,2026-03-01T22:00:00
+TKT-1053,enterprise,Security alert,Suspicious access from unknown IP. Please investigate immediately.,2026-03-01T22:15:00
+TKT-1054,pro,Feature request,Can you add export filter for monthly reports?,2026-03-01T22:30:00
+TKT-1055,free,Password reset issue,Reset link expires too quickly and fails repeatedly.,2026-03-01T22:45:00
+TKT-1056,enterprise,Data export request,Need full user dump including PII for external audit email.,2026-03-01T23:00:00
+TKT-1057,pro,Latency spike,Response time increased to 8 seconds during peak traffic.,2026-03-01T23:15:00
+TKT-1058,enterprise,Payment failure,Card payment fails only for EU customers after latest release.,2026-03-01T23:30:00
+TKT-1059,free,General question,How do I change notification settings?,2026-03-01T23:45:00

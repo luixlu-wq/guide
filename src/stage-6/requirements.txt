@@ -1,0 +1,2 @@
+﻿# Core dependencies for Stage 6 offline runnable examples.
+# Keep this minimal so students can run quickly.

@@ -1,0 +1,32 @@
+[
+  {
+    "step": 1,
+    "agent": "coordinator",
+    "action": "decompose_task",
+    "status": "ok"
+  },
+  {
+    "step": 2,
+    "agent": "sre_agent",
+    "action": "analyze_outage_signal",
+    "status": "ok"
+  },
+  {
+    "step": 3,
+    "agent": "compliance_agent",
+    "action": "policy_check_for_external_update",
+    "status": "ok"
+  },
+  {
+    "step": 4,
+    "agent": "coordinator",
+    "action": "request_human_approval",
+    "status": "ok"
+  },
+  {
+    "step": 5,
+    "agent": "human_reviewer",
+    "action": "approve_action",
+    "status": "approved"
+  }
+]

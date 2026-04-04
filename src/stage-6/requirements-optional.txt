@@ -1,0 +1,7 @@
+﻿# Optional packages for framework-specific or cloud-integrated extensions.
+torch>=2.2.0
+openai-agents>=0.2.0
+langgraph>=0.2.0
+autogen>=0.4.0
+crewai>=0.100.0
+llama-index>=0.12.0

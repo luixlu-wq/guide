@@ -35,6 +35,9 @@ Additional locked requirements requested later (must remain in scope):
 - Make the practice project section more clear and operatable.
 - PyTorch and CUDA section is hard to understand; provide detailed guide and instructions, and include ladder-complexity examples (simple -> intermediate -> advanced).
 
+- Mandatory request: include PyTorch and CUDA conceptual/tutorial content in the chapter.
+- Mandatory request: include runnable PyTorch/CUDA example code (simple -> intermediate -> advanced) with very detailed and clear functional comments.
+
 This section is a scope guard: future edits should not remove these requirements.
 
 ---
@@ -668,4 +671,5 @@ Use in this strict order when learner is stuck:
 - Add one minimum runnable script per algorithm in `red-book/src/stage-3/`.
 - Add one fairness benchmark script comparing at least 4 classifiers on same split.
 - Add one failure-mode script showing overfitting and leakage examples.
+
 

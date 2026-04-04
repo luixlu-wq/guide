@@ -1,901 +1,1033 @@
-# Stage 6 — AI Agents
+﻿# Stage 6 - AI Agents
 
 *(Week 12)*
 
 ## Goal
 
-Understand AI agents and how they interact with tools, memory, and workflows.
-
-This stage is critical for building real AI systems such as trading assistants.
+Understand AI agents from both theory and industry implementation, then build operatable agent systems with clear guardrails, evaluation, and troubleshooting.
 
 You are learning:
 
-- how agents work
-- how tools are used
-- when to use workflows vs agents
+- what an AI agent is and is not
+- how tools, memory, and orchestration loops work
+- when to use workflow vs single-agent vs multi-agent
+- how to evaluate reliability, cost, and safety
+- how to debug real production-like failures
 
-This stage is where you move from:
+This stage moves you from:
 
-> "I can ask ChatGPT questions"
+> "I can prompt an LLM"
 
 to:
 
-> "I understand how LLMs process text, why they fail, how prompting changes behavior, and how to build reliable systems around them."
+> "I can build, evaluate, and operate an AI agent system with clear limits and recovery paths."
+
+---
+
+## If This Chapter Feels Hard
+
+Use 3 passes:
+
+1. Pass 1 (concept pass): only read `Quick Summary`, `Key Knowledge`, and `Workflow vs Agent`.
+2. Pass 2 (operation pass): read `Practice Lab` and run one baseline workflow with fixed outputs.
+3. Pass 3 (reliability pass): run failure drills in `Troubleshooting Playbook` and record before/after metrics.
+
+Do not start from multi-agent systems. Start from deterministic workflow first.
+
+---
+
+## Prerequisites and Environment Setup
+
+Required:
+
+- Python 3.10+
+- Basic prompt engineering understanding (Stage 5)
+- JSON and API basics
+
+Suggested setup:
+
+```powershell
+cd red-book
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -U pip
+pip install -r .\src\stage-6\requirements.txt
+# Optional (includes torch and agent frameworks):
+pip install -r .\src\stage-6\requirements-optional.txt
+```
+
+If you use framework examples (optional):
+
+- OpenAI Agents SDK
+- LangGraph
+- LlamaIndex / AutoGen / CrewAI (compare only after baseline)
+
+Operational rule:
+
+- Every experiment must log version IDs: prompt version, tool schema version, model version.
 
 ---
 
 ## Quick Summary
 
-An AI agent is **not "just a chatbot."**
+An AI agent is an LLM-based system that can decide actions, call tools, inspect results, update state, and continue until a stop condition.
 
-It is a system where an LLM can:
+A reliable agent system must include:
 
-- interpret a user request
-- decide what action is needed
-- choose a tool
-- call that tool
-- inspect the result
-- continue or stop
-
-This makes agents powerful, but also harder to control.
+- clear tool schema
+- clear state/memory design
+- explicit stop rules
+- policy checks and optional HITL approval
+- observability (trace/log/metrics)
+- evaluation and regression gates
 
 A beginner should finish this stage understanding:
 
-- what an agent is
-- what tools are
-- why deterministic workflows should come first
-- what memory means in agent systems
-- how RAG and tools combine with agents
-- why agents are useful but risky
-- how to design safe, traceable agent systems
+- agent loop anatomy
+- workflow vs agent vs multi-agent choices
+- tool and memory design
+- RAG + tools integration
+- guardrails and security boundaries
+- MCP vs A2A interoperability concepts
+- realistic troubleshooting workflow
 
 ---
 
 ## Study Materials
 
-**LangChain Documentation**
-https://python.langchain.com/docs/get_started/introduction
+Core tutorials:
 
-### Concepts
+- OpenAI agents best practices:
+  - https://platform.openai.com/docs/guides/agents/best-practices
+- DeepLearning.AI AI Agents in LangGraph:
+  - https://www.deeplearning.ai/short-courses/ai-agents-in-langgraph/
+- DeepLearning.AI Long-Term Agentic Memory:
+  - https://www.deeplearning.ai/alpha/short-courses/long-term-agentic-memory-with-langgraph/
 
-- Agents
-- Tools
-- Memory
-- RAG
-- Workflows
+Protocol and interoperability:
+
+- MCP intro + spec:
+  - https://modelcontextprotocol.io/docs/getting-started/intro
+  - https://modelcontextprotocol.io/specification/2025-06-18
+- A2A spec:
+  - https://a2a-protocol.org/dev/specification/
+
+Industry operations references:
+
+- AWS Bedrock Agents:
+  - https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html
+- Azure Foundry Agents overview:
+  - https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview
+- Google Vertex Agent Engine overview:
+  - https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/use/overview
+
+Evaluation and theory:
+
+- ReAct: https://arxiv.org/abs/2210.03629
+- Toolformer: https://arxiv.org/abs/2302.04761
+- AgentBench: https://arxiv.org/abs/2308.03688
+- WebArena: https://arxiv.org/abs/2307.13854
+- SWE-bench: https://arxiv.org/abs/2310.06770
+- GAIA: https://arxiv.org/abs/2311.12983
+
+PyTorch and CUDA references:
+
+- PyTorch local install guide:
+  - https://pytorch.org/get-started/locally/
+- PyTorch CUDA semantics:
+  - https://pytorch.org/docs/stable/notes/cuda.html
+- `torch.nn.functional` API reference:
+  - https://pytorch.org/docs/stable/nn.functional.html
+
+---
+
+## Example Complexity Scale (Used in All Modules)
+
+- Simple:
+  - one agent
+  - 1-2 tools
+  - fixed stop rule
+  - no long-term memory
+- Intermediate:
+  - routing across tools
+  - retrieval memory
+  - retries/fallback
+  - structured outputs
+- Advanced:
+  - multi-agent orchestration
+  - policy gates + HITL
+  - eval harness + incident logging
+  - budget control (latency/cost/steps)
+
+Where complexity is:
+
+- orchestration logic
+- tool/schema design
+- memory/state consistency
+- safety/policy enforcement
+- operations and cost control
+- protocol interoperability
 
 ---
 
 ## Key Knowledge (Deep Understanding)
 
-### 1. What is an AI Agent
+### 0. PyTorch and CUDA for Agent Systems
 
-An AI agent is an LLM that can **decide what actions to take**.
+Runnable examples:
 
-Instead of just answering questions, it:
+- [topic00a_pytorch_cuda_agent_simple.py](src/stage-6/topic00a_pytorch_cuda_agent_simple.py)
+- [topic00_pytorch_cuda_agent_intermediate.py](src/stage-6/topic00_pytorch_cuda_agent_intermediate.py)
+- [topic00c_pytorch_cuda_agent_advanced.py](src/stage-6/topic00c_pytorch_cuda_agent_advanced.py)
 
-- selects tools
-- executes actions
-- returns results
+Short answer:
 
-#### Beginner Explanation
+- Yes, PyTorch and CUDA are applicable to AI agents.
 
-A normal LLM-only system works like this:
+Where they are used:
 
-```
-user input → LLM → response
-```
+- local model inference inside agent loops
+- embedding and reranking for retrieval memory
+- local classification/scoring tools used by the agent
+- latency optimization for high-throughput operations
 
-An agent system is different:
+When they are not required:
 
-```
-user input → LLM decides → tool call → result → LLM decides again → final answer
-```
+- if your agent only calls hosted APIs and does not run local neural computation
 
-The model is not only generating language — it is also **participating in a control loop**. That control loop is what makes it an agent.
+Agent training/inference workflow (device-aware):
 
-#### Simple Mental Model
+1. Select device (`cpu` or `cuda`).
+2. Move tensors/model to same device.
+3. Run forward pass for scoring/inference.
+4. Optionally run backward pass if training/fine-tuning local components.
+5. Use outputs inside tool decisions, retrieval ranking, or policy scoring.
 
-Think of an agent like a junior analyst with access to tools.
+Why this matters for Stage 6:
 
-The analyst can:
+- Many real industry agents are hybrid systems:
+  - LLM API for reasoning
+  - local PyTorch components for retrieval/reranking/scoring
+- CUDA availability can directly improve p95 latency in retrieval-heavy pipelines.
 
-- read the request
-- decide whether data is needed
-- open a calculator
-- fetch stock prices
-- search a document
-- summarize results
+Common beginner mistake:
 
-Without tools, the analyst can only guess. With tools, the analyst can act.
+- Mistake: thinking PyTorch/CUDA is only for model training.
+- Fix: treat PyTorch/CUDA as a runtime acceleration layer for agent subcomponents too.
 
-#### Why Agents Matter
+How this works when training local agent submodules:
 
-Agents are useful when a task requires:
+1. Build tensors from training/eval samples.
+2. Move model and tensors to same device (`cpu` or `cuda`).
+3. Forward pass computes predictions or similarity scores.
+4. Loss compares prediction vs target for supervised tasks.
+5. Backward pass computes gradients (`loss.backward()`).
+6. Optimizer updates parameters (`optimizer.step()`).
+7. Export updated component for agent pipeline use.
 
-- multiple steps
-- outside information
-- calculation
-- retrieval
-- dynamic decision-making
+Quick run commands:
 
-Examples: market assistant, coding assistant, document Q&A assistant, research assistant, internal enterprise automation assistant.
-
-#### Step-by-Step Agent Flow
-
-1. **Receive user goal** — e.g. "Analyze NVDA and tell me whether momentum looks strong."
-2. **Decide what is needed** — fetch recent stock data, compute indicators, summarize findings.
-3. **Call tool** — A tool gets real data.
-4. **Observe tool result** — The agent sees the output of the tool.
-5. **Decide whether more action is needed** — It may call another tool or stop.
-6. **Produce final answer** — The agent explains results to the user.
-
-#### Important Algorithms / Mechanisms
-
-**A. ReAct-style Reason-and-Act Loop** — A very important agent pattern.
-
-How it works:
-
-1. Think about what to do
-2. Choose an action/tool
-3. Observe the result
-4. Think again
-5. Repeat until done
-
-*Why important: This is one of the clearest conceptual foundations for tool-using agents.*
-
----
-
-**B. Planner-Executor Pattern** — Used in more structured agents.
-
-How it works:
-
-1. Planner breaks task into steps
-2. Executor performs each step
-3. Results are combined
-
-*Why important: Separates reasoning from execution and can make agents easier to debug.*
-
----
-
-**C. Single-Step Tool Routing** — A simpler agent pattern.
-
-*How it works: The LLM chooses one tool directly based on the user query.*
-
-*Why important: Useful when you want limited agent behavior without full autonomy.*
-
----
-
-**D. Multi-Step Decision Loop** — The agent can call several tools in sequence.
-
-*Why important: Supports dynamic tasks, but increases complexity and failure risk.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Flexible | Harder to control |
-| Can use real tools and real data | Harder to debug |
-| Can handle multi-step tasks | Can choose wrong tools |
-| More powerful than plain prompting | May loop unnecessarily |
-| | Can produce unstable behavior without guardrails |
-
----
-
-### 2. Tools
-
-Tools are **functions the agent can call**.
-
-Examples: fetch stock data, search documents, calculate indicators.
-
-**Key idea:** Tools extend LLM capability.
-
-#### Beginner Explanation
-
-A tool is just a function or external capability the agent can use.
-
-Examples:
-
-- a Python function
-- a search API
-- a database query
-- a stock data fetcher
-- a calculator
-- a file retriever
-- a weather API
-
-> LLM = language reasoning/generation
-> Tool = action or external capability
-
-#### Simple Mental Model
-
-If the LLM is the "brain," tools are the "hands and instruments."
-
-| Tool | Purpose |
-|---|---|
-| calculator tool | do accurate math |
-| retrieval tool | access documents |
-| market data tool | fetch real prices |
-| indicator tool | compute RSI, moving averages, returns |
-
-#### What Makes a Good Tool
-
-| Good Tool | Bad Tool |
-|---|---|
-| One clear purpose | Vague purpose |
-| Clear inputs | Mixed responsibilities |
-| Clear outputs | Unclear return structure |
-| Reliable behavior | Hidden side effects |
-| Useful error handling | |
-
-#### Step-by-Step Tool Design Thinking
-
-1. **Define one job** — `fetch_stock_price(symbol)` should fetch data, not also summarize.
-2. **Define input schema** — What input is needed? (e.g. ticker symbol, time range)
-3. **Define output schema** — What exactly comes back? (e.g. rows of prices, or a dictionary with fields)
-4. **Define failure behavior** — What happens if ticker is invalid? API fails? No data exists?
-5. **Keep tool deterministic when possible** — Tools should usually be more reliable than the LLM itself.
-
-#### Important Algorithms / Mechanisms
-
-**A. Tool Selection / Routing** — The agent chooses which tool to call.
-
-*How it works: The LLM matches the user request to tool descriptions.*
-
-*Why important: If routing is bad, even good tools fail in practice.*
-
----
-
-**B. Function Calling / Structured Arguments** — The LLM provides arguments in a structured format.
-
-Instead of free-form text, the model outputs fields like:
-
-```
-symbol = "NVDA"
-period = "1mo"
+```powershell
+python .\src\stage-6\topic00a_pytorch_cuda_agent_simple.py
+python .\src\stage-6\topic00_pytorch_cuda_agent_intermediate.py
+python .\src\stage-6\topic00c_pytorch_cuda_agent_advanced.py
 ```
 
-*Why important: This reduces ambiguity and makes tool use safer.*
+Complete inline examples (operatable):
 
----
+Example A - Simple: device-aware risk scoring tool
 
-**C. Input Validation** — The tool checks whether inputs are valid before running.
+```python
+# Complete runnable example:
+# 1) selects cpu/cuda device
+# 2) computes a weighted risk score with torch tensors
+# 3) prints a policy decision that an agent can use
 
-*Why important: Prevents garbage input from silently causing bad downstream results.*
+import torch
 
----
 
-**D. Output Normalization** — Tool outputs should be returned in consistent structure.
+def compute_risk_score(features: dict[str, float]) -> float:
+    # Select CUDA when available; otherwise use CPU.
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-*Why important: The agent and downstream logic should not need to guess how to parse tool results.*
+    # Convert feature dictionary into tensor in fixed field order.
+    x = torch.tensor(
+        [
+            features["security_signal"],
+            features["outage_signal"],
+            features["billing_signal"],
+        ],
+        dtype=torch.float32,
+        device=device,
+    )
 
-#### Strengths and Weaknesses
+    # Model weights are fixed for this teaching example.
+    w = torch.tensor([0.6, 0.25, 0.15], dtype=torch.float32, device=device)
 
-| Strengths | Weaknesses |
-|---|---|
-| Give LLMs access to real-world data and actions | Poor tool design causes fragile agents |
-| Reduce hallucination when used correctly | Unclear tool descriptions cause wrong calls |
-| Support automation | Side effects can create risk |
-| Enable powerful workflows | Tools need monitoring and validation too |
+    # Dot product computes a single risk score.
+    score = torch.dot(x, w).item()
+    return float(score)
 
----
 
-### 3. Workflow vs Agent
-
-```
-Workflow (recommended first):  input → step1 → step2 → output
-Agent (dynamic):               input → decide → tool → decide → output
-```
-
-#### Beginner Explanation
-
-**A workflow is fixed.** You already know the steps:
-
-1. get input
-2. fetch data
-3. compute indicators
-4. send summary prompt
-5. return output
-
-**An agent is dynamic.** It decides what to do next — more flexibility, but also more unpredictability.
-
-#### Why Workflow Should Come First
-
-Beginners often jump into agents too early because agents sound powerful.
-
-But most real systems should start as workflows, because workflows are:
-
-- easier to test
-- easier to debug
-- easier to trust
-- easier to monitor
-- often fully sufficient
-
-Then, only add agent behavior if true dynamic decision-making is needed.
-
-#### Comparison
-
-| Aspect | Workflow | Agent |
-|---|---|---|
-| Steps | Fixed | Dynamic |
-| Debugging | Easier | Harder |
-| Control | High | Lower |
-| Flexibility | Lower | Higher |
-| Recommended for beginners | Yes | After workflow |
-
-#### When to Use Each
-
-**Use a workflow when:**
-
-- steps are known in advance
-- you need reliability
-- you need traceability
-- task is repeatable
-
-**Use an agent when:**
-
-- steps vary by request
-- tool choice is dynamic
-- user intent is open-ended
-- flexibility is worth extra complexity
-
-#### Important Algorithms / Mechanisms
-
-**A. Deterministic Pipeline** — The system always runs the same sequence of steps.
-
-*Why important: This is the safest starting point for production-grade AI systems.*
-
----
-
-**B. Rule-Based Router** — A hybrid approach.
-
-Example:
-
-```
-if user asks for stock analysis  → market workflow
-if user asks for document Q&A    → retrieval workflow
+if __name__ == "__main__":
+    sample = {
+        "security_signal": 0.9,
+        "outage_signal": 0.3,
+        "billing_signal": 0.2,
+    }
+    risk = compute_risk_score(sample)
+    print("risk_score:", round(risk, 4))
+    print("needs_human_approval:", risk >= 0.7)
 ```
 
-*Why important: Often better than a full agent for many business systems.*
+Example B - Intermediate: retrieval reranking with cosine similarity
 
----
+```python
+# Complete runnable example:
+# 1) builds query/doc vectors
+# 2) runs cosine similarity in torch
+# 3) returns ranking for agent retrieval context
 
-**C. LLM-Based Router** — The LLM classifies the request and selects a path.
+import torch
 
-*Why important: More flexible than rules, but also less deterministic.*
 
----
+def cosine_rank(query_vec, doc_vecs):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-**D. Agentic Orchestration** — A fully dynamic decision loop selects next steps during execution.
+    # Move query and documents to same device for consistent compute.
+    q = torch.tensor(query_vec, dtype=torch.float32, device=device)
+    d = torch.tensor(doc_vecs, dtype=torch.float32, device=device)
 
-*Why important: Useful for open-ended tasks, but should be introduced carefully.*
+    # Normalize vectors before dot product to obtain cosine similarity.
+    qn = q / (q.norm() + 1e-12)
+    dn = d / (d.norm(dim=1, keepdim=True) + 1e-12)
+    scores = dn @ qn
 
-#### Strengths and Weaknesses
+    # Sort descending: higher score means more relevant document.
+    order = torch.argsort(scores, descending=True).detach().cpu().tolist()
+    return [(idx, float(scores[idx].detach().cpu().item())) for idx in order]
 
-| Workflow-First Strengths | Going Full Agent Too Early |
-|---|---|
-| Easier to build | Unpredictable behavior |
-| Easier to evaluate | Debugging becomes difficult |
-| Easier to deploy safely | Harder to measure failure points |
-| Lower operational risk | Can waste tokens and tool calls |
 
----
-
-### 4. Memory
-
-Memory allows the agent to remember past steps and maintain conversation context.
-
-| Type | Description |
-|---|---|
-| Short-term | Conversation / session memory |
-| Long-term | Stored knowledge across sessions |
-
-#### Beginner Explanation
-
-Without memory, every step is isolated. With memory, the system can remember:
-
-- what the user asked earlier
-- what tools were already called
-- what results were found
-- user preferences
-- long-term stored knowledge
-
-#### Two Main Types
-
-**A. Short-Term Memory** — Session or conversation memory.
-
-Examples: earlier user messages, current task state, current tool outputs.
-
-*This helps the agent stay coherent during one interaction.*
-
----
-
-**B. Long-Term Memory** — Stored across sessions.
-
-Examples: user preferences, saved summaries, persistent notes, prior research results, indexed knowledge base.
-
-*This helps the system improve continuity over time.*
-
-#### Important Design Question
-
-Not everything should be remembered.
-
-Too much memory causes:
-
-- noise
-- confusion
-- cost
-- privacy risk
-- retrieval clutter
-
-> Good memory design means storing only useful, relevant information.
-
-#### Important Algorithms / Mechanisms
-
-**A. Conversation Buffer Memory** — Store recent conversation turns.
-
-*How it works: The system includes previous messages in future prompts.*
-
-*Why important: Simplest form of memory.*
-
----
-
-**B. Summary Memory** — Compress long history into shorter summaries.
-
-*How it works: Older content is summarized and retained compactly.*
-
-*Why important: Helps with long conversations and context limits.*
-
----
-
-**C. Retrieval-Based Memory** — Store memories externally and retrieve relevant ones when needed.
-
-How it works:
-
-1. Store memory entries
-2. Search relevant entries later
-3. Inject them into context
-
-*Why important: Scales better than stuffing all past text into prompts.*
-
----
-
-**D. State Memory / Task State Tracking** — Track what the agent has already done.
-
-Examples: tool already called, documents already searched, hypothesis already tested.
-
-*Why important: Prevents repeated work and supports multi-step execution.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Improves continuity | Irrelevant memory can confuse the model |
-| Supports multi-step tasks | Too much memory increases cost |
-| Avoids repeating work | Long-term memory needs retrieval quality |
-| Can personalize behavior | Privacy and correctness matter |
-
----
-
-### 5. RAG + Agent
-
-Agents often use both **retrieval (RAG)** and **tools** together.
-
-```
-Combined system = more powerful + more complex
+if __name__ == "__main__":
+    query = [0.9, 0.1, 0.0, 0.2]
+    docs = [
+        [0.8, 0.1, 0.0, 0.3],
+        [0.1, 0.9, 0.2, 0.1],
+        [0.7, 0.2, 0.1, 0.1],
+    ]
+    ranked = cosine_rank(query, docs)
+    print("ranked_docs:", [(i, round(s, 4)) for i, s in ranked])
 ```
 
-#### Beginner Explanation
+Example C - Advanced: mini training loop for agent policy scoring
 
-A strong real-world agent often needs both:
+```python
+# Complete runnable example:
+# 1) creates synthetic training data
+# 2) trains a tiny linear model with forward/backward/optimizer steps
+# 3) predicts risk probability for one new case
 
-- **RAG** for knowledge access
-- **Tools** for actions and computation
+import torch
 
-*Example: A user asks "Summarize recent NVDA performance and compare it with our internal research note."*
 
-The system may need to:
+def train_policy_model(epochs: int = 120):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-1. fetch market data with tools
-2. retrieve internal note with RAG
-3. compare both
-4. summarize findings
+    # Synthetic dataset:
+    # columns = [security_signal, outage_signal, billing_signal]
+    # target  = 1 if case should be escalated to human approval
+    X = torch.tensor(
+        [
+            [0.9, 0.2, 0.1],
+            [0.8, 0.4, 0.2],
+            [0.2, 0.8, 0.2],
+            [0.1, 0.2, 0.9],
+            [0.7, 0.6, 0.2],
+            [0.2, 0.1, 0.7],
+        ],
+        dtype=torch.float32,
+        device=device,
+    )
+    y = torch.tensor([[1.0], [1.0], [1.0], [0.0], [1.0], [0.0]], dtype=torch.float32, device=device)
 
-This is more capable than prompt-only, tool-only, or retrieval-only — but also harder to design correctly.
+    # Tiny model for binary risk scoring.
+    model = torch.nn.Sequential(torch.nn.Linear(3, 1), torch.nn.Sigmoid()).to(device)
+    loss_fn = torch.nn.BCELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.05)
 
-#### Typical Combined Flow
+    # Standard training loop.
+    for epoch in range(epochs):
+        optimizer.zero_grad()       # clear old gradients
+        pred = model(X)             # forward pass
+        loss = loss_fn(pred, y)     # compute loss
+        loss.backward()             # backward pass
+        optimizer.step()            # update parameters
 
+        if epoch % 30 == 0:
+            print(f"epoch={epoch:03d} loss={loss.item():.4f}")
+
+    return model, device
+
+
+if __name__ == "__main__":
+    model, device = train_policy_model()
+
+    # New case for inference in agent pipeline.
+    x_new = torch.tensor([[0.85, 0.30, 0.15]], dtype=torch.float32, device=device)
+    prob = float(model(x_new).item())
+    print("predicted_risk_probability:", round(prob, 4))
+    print("needs_human_approval:", prob >= 0.7)
 ```
-user query
-→ decide if retrieval is needed
-→ retrieve documents
-→ decide if tool action is needed
-→ call tool
-→ combine retrieved context + tool results
-→ final answer
+
+CUDA troubleshooting quick checks:
+
+- verify device: `torch.cuda.is_available()`
+- avoid device mismatch: model/tensors must be on same device
+- if OOM: reduce batch size or vector count
+- synchronize before timing CUDA paths for accurate latency
+
+---
+
+### 1. Agent Fundamentals
+
+Runnable examples:
+
+- [topic01a_workflow_first_simple.py](src/stage-6/topic01a_workflow_first_simple.py)
+- [topic01_workflow_vs_agent_intermediate.py](src/stage-6/topic01_workflow_vs_agent_intermediate.py)
+- [topic01c_multi_step_agent_advanced.py](src/stage-6/topic01c_multi_step_agent_advanced.py)
+
+What it is:
+
+- An LLM in a control loop that can choose actions, call tools, observe, and continue.
+
+Why it matters:
+
+- Most industry AI products now require action-taking systems, not only text generation.
+
+Beginner mental model:
+
+- `LLM` is planner/reasoner.
+- `Tools` are capabilities.
+- `State` is working memory.
+- `Loop` is decision-execution cycle.
+
+Core loop:
+
+1. Read user goal.
+2. Decide next action.
+3. Call tool or answer.
+4. Observe result.
+5. Update state.
+6. Check stop rule.
+
+Important mechanisms:
+
+- ReAct-style think-act-observe loops.
+- Planner-executor split.
+- Router-based single-step tool calling.
+
+Common beginner mistake:
+
+- Mistake: treating agent output as always reliable.
+- Fix: require tool evidence and policy checks for critical actions.
+
+When to use:
+
+- tasks require dynamic steps and external data.
+
+When not to use:
+
+- tasks are deterministic and can be solved by fixed workflow.
+
+---
+
+### 2. Workflow vs Agent vs Multi-Agent
+
+Runnable examples:
+
+- [topic01a_workflow_first_simple.py](src/stage-6/topic01a_workflow_first_simple.py)
+- [topic01_workflow_vs_agent_intermediate.py](src/stage-6/topic01_workflow_vs_agent_intermediate.py)
+- [topic01c_multi_step_agent_advanced.py](src/stage-6/topic01c_multi_step_agent_advanced.py)
+- [lab03_multi_agent_ops_assistant.py](src/stage-6/lab03_multi_agent_ops_assistant.py)
+
+Decision framework:
+
+- Use workflow when steps are known.
+- Use single-agent when tool choice is dynamic.
+- Use multi-agent only when role separation gives measurable value.
+
+Operatable rule:
+
+- Build baseline workflow first, then compare agent variant on same eval set.
+
+Comparison table:
+
+| System | Strength | Risk | Best use |
+|---|---|---|---|
+| Workflow | stable, testable | less flexible | known repeated tasks |
+| Single-agent | adaptive | tool mistakes | moderate dynamic tasks |
+| Multi-agent | scalable specialization | high coordination complexity | large role-divided tasks |
+
+Common beginner mistake:
+
+- Mistake: starting with multi-agent because it looks advanced.
+- Fix: prove single-agent gains first.
+
+---
+
+### 3. Tool Design and Schema Discipline
+
+Runnable examples:
+
+- [topic02a_tool_schema_simple.py](src/stage-6/topic02a_tool_schema_simple.py)
+- [topic02_tool_validation_intermediate.py](src/stage-6/topic02_tool_validation_intermediate.py)
+- [topic02c_tool_failure_recovery_advanced.py](src/stage-6/topic02c_tool_failure_recovery_advanced.py)
+
+What a good tool has:
+
+- clear name
+- clear description
+- strict input schema
+- strict output schema
+- explicit error codes
+- timeout and retry policy
+
+Data declaration template for every tool example:
+
+```text
+Data: <name and source>
+Records/Samples: <count>
+Input schema: <fields and types>
+Output schema: <fields and types>
+Split/Eval policy: <fixed set rule>
+Type: <workflow/agent/multi-agent/eval>
 ```
 
-#### Why This Matters
+Operatable mini tool contract:
 
-Many enterprise AI systems are combinations of:
+```json
+{
+  "name": "get_stock_snapshot",
+  "input_schema": {
+    "symbol": "string",
+    "start_date": "YYYY-MM-DD",
+    "end_date": "YYYY-MM-DD"
+  },
+  "output_schema": {
+    "symbol": "string",
+    "rows": "int",
+    "close_prices": "array<float>",
+    "return_5d": "float"
+  },
+  "errors": ["INVALID_SYMBOL", "TIMEOUT", "EMPTY_DATA"]
+}
+```
 
-- LLM
-- retrieval
-- tools
-- workflow/agent controller
-- logging
-- validation
+Common beginner mistake:
 
-> That is the practical architecture of modern AI apps.
-
-#### Important Algorithms / Mechanisms
-
-**A. Retrieval Step** — Search relevant documents before answer generation.
-
-*Why important: Provides knowledge grounding.*
-
----
-
-**B. Tool-Augmented Reasoning** — Use tools for real actions or calculations.
-
-*Why important: Retrieval alone cannot compute or act.*
-
----
-
-**C. Context Fusion** — Combine retrieved documents, tool outputs, conversation state, and user request.
-
-*Why important: The final answer quality depends on how well these sources are combined.*
+- Mistake: vague tool descriptions and weak schema.
+- Fix: explicit fields, types, and error outputs.
 
 ---
 
-**D. Multi-Stage Orchestration** — Different stages decide: retrieve? act? ask follow-up? stop?
+### 4. Memory and State Management
 
-*Why important: This is the heart of more advanced agent systems.*
+Runnable examples:
 
-#### Strengths and Weaknesses
+- [topic03a_memory_basics_simple.py](src/stage-6/topic03a_memory_basics_simple.py)
+- [topic03_memory_retrieval_intermediate.py](src/stage-6/topic03_memory_retrieval_intermediate.py)
+- [topic03c_memory_policy_advanced.py](src/stage-6/topic03c_memory_policy_advanced.py)
 
-| Strengths | Weaknesses |
-|---|---|
-| Highly capable | More moving parts |
-| Grounded + actionable | Harder evaluation |
-| Useful for enterprise assistants, research tools, analysts, copilots | Retrieval can fail |
-| | Tool use can fail |
-| | Orchestration can fail |
+Two memory scopes:
+
+- short-term: current thread/session context
+- long-term: persisted user/project facts
+
+Core risk:
+
+- memory pollution (irrelevant stale data influences decisions)
+
+Required controls:
+
+- memory write policy
+- memory TTL/expiry
+- source tagging and confidence score
+
+Simple memory policy example:
+
+- write only verified facts from tool output
+- never persist speculative model-only statements
+- expire low-confidence items
+
+Common beginner mistake:
+
+- Mistake: storing everything.
+- Fix: define `what can be stored` and `when to discard`.
 
 ---
 
-## Difficulty Points
+### 5. RAG + Agent Integration
 
-### 1. Starting with agents too early
+Runnable examples:
 
-**Why it happens:** Agents sound more advanced and exciting.
+- [topic03_memory_retrieval_intermediate.py](src/stage-6/topic03_memory_retrieval_intermediate.py)
+- [lab02_finance_research_agent.py](src/stage-6/lab02_finance_research_agent.py)
 
-**Why it is a problem:** You may build something flexible but impossible to debug.
+Why combine:
 
-**Fix strategy:** Start with plain functions, deterministic workflow, logging, and evaluation. Only then add agent behavior if you truly need dynamic decision-making.
+- RAG provides grounded context.
+- Agent decides when retrieval is needed and how to use results.
 
-### 2. Too many tools
+Recommended flow:
 
-**Why it happens:** Beginners think more tools = more power.
+1. classify query intent
+2. decide retrieve or not
+3. retrieve top-k chunks
+4. cite evidence IDs
+5. answer with confidence note
 
-**Why it is a problem:** Too many tools increase wrong tool selection, confusion, debugging complexity, and overlapping functionality.
+Minimum reliability checks:
 
-**Fix strategy:** Start with a small toolset — one tool per clear purpose, no overlapping tools, strong descriptions, strong schemas.
+- no citation -> low-confidence warning
+- conflicting chunks -> surface ambiguity
+- missing evidence -> abstain or ask follow-up
 
-### 3. No control over agent behavior
+Common beginner mistake:
 
-**Why it happens:** LLMs are probabilistic and may misroute or over-act.
+- Mistake: assuming retrieved text is always correct.
+- Fix: add source quality checks and conflict handling.
 
-**Why it is a problem:** The agent may call unnecessary tools, skip needed steps, loop, answer without grounding, or misuse a tool.
+---
 
-**Fix strategy:** Add guardrails: max steps, allowed tool list, structured tool arguments, stopping rules, fallback to workflow, human review for high-risk actions.
+### 6. Guardrails and Human-in-the-Loop (HITL)
 
-### 4. Debugging difficulty
+Runnable examples:
 
-**Why it happens:** There are more moving parts — prompts, routing, tool calls, memory, retrieval, outputs.
+- [topic04a_guardrails_simple.py](src/stage-6/topic04a_guardrails_simple.py)
+- [topic04_hitl_intermediate.py](src/stage-6/topic04_hitl_intermediate.py)
+- [topic04c_policy_gated_actions_advanced.py](src/stage-6/topic04c_policy_gated_actions_advanced.py)
 
-**Why it is a problem:** A failure could come from bad tool, bad routing, bad prompt, bad retrieval, or bad memory injection.
+Guardrail layers:
 
-**Fix strategy:** Log everything:
+- input policy checks
+- tool permission checks
+- output policy checks
+- action-level approvals (HITL)
 
-- user input
-- tool chosen
-- tool input
-- tool output
-- retrieved docs
-- final response
-- errors
-- step count
+HITL checkpoints (example):
 
-### 5. Poor tool design
+- external transaction above threshold
+- sensitive data export
+- irreversible action
 
-**Why it happens:** People wrap messy code as "tools" without clear interface design.
+Operatable gate example:
 
-**Why it is a problem:** The agent cannot reliably use tools if descriptions are vague, input schema is unclear, output format changes, or error behavior is inconsistent.
+```text
+if action in ["send_email", "create_ticket", "execute_trade"] and risk_score >= 0.7:
+    require_human_approval = true
+```
 
-**Fix strategy:** Design tools like APIs — one purpose, explicit schema, explicit errors, stable outputs, easy examples.
+Common beginner mistake:
 
-### 6. Memory overload
+- Mistake: using only text moderation, no action gating.
+- Fix: enforce policy at tool execution boundary.
 
-**Why it happens:** People think remembering more is always better.
+---
 
-**Why it is a problem:** The model may get distracted by irrelevant context or exceed token budget.
+### 7. Observability, Eval, and Regression
 
-**Fix strategy:** Use selective memory, summarization, retrieval-based memory, expiration rules, and relevance filtering.
+Runnable examples:
 
-### 7. Confusing autonomy with reliability
+- [topic05a_trace_basics_simple.py](src/stage-6/topic05a_trace_basics_simple.py)
+- [topic05_eval_metrics_intermediate.py](src/stage-6/topic05_eval_metrics_intermediate.py)
+- [topic05c_regression_suite_advanced.py](src/stage-6/topic05c_regression_suite_advanced.py)
+- [topic08c_slo_regression_gate_advanced.py](src/stage-6/topic08c_slo_regression_gate_advanced.py)
 
-**Why it happens:** Agent demos make autonomy look impressive.
+Trace per run must include:
 
-**Why it is a problem:** In production, reliability often matters more than flexibility.
+- query_id, run_id, trace_id
+- step index
+- chosen tool + arguments
+- tool latency + return status
+- token/cost summary
+- final decision path
 
-**Fix strategy:** Prefer the simplest system that solves the task:
+Core metrics:
 
-1. rules first
-2. workflow second
-3. agent third
+- task success rate
+- tool call accuracy
+- policy violation rate
+- average steps per task
+- p95 latency
+- cost per task
+
+Regression rule:
+
+- block promotion when safety drops or cost explodes beyond threshold.
+
+Common beginner mistake:
+
+- Mistake: evaluating only answer quality.
+- Fix: evaluate quality + safety + cost + latency together.
+
+---
+
+### 8. Interoperability: MCP vs A2A
+
+Runnable examples:
+
+- [topic07a_mcp_tooling_simple.py](src/stage-6/topic07a_mcp_tooling_simple.py)
+- [topic07_protocol_interop_intermediate.py](src/stage-6/topic07_protocol_interop_intermediate.py)
+- [topic07c_a2a_collaboration_advanced.py](src/stage-6/topic07c_a2a_collaboration_advanced.py)
+
+MCP (Model Context Protocol):
+
+- standard interface for models/agents to use external context and tools.
+- strongest use: tool and resource interoperability.
+
+A2A (Agent2Agent):
+
+- protocol for communication/collaboration between agents.
+- strongest use: multi-agent task coordination.
+
+Simple distinction:
+
+- MCP: agent/tool boundary standard.
+- A2A: agent/agent boundary standard.
+
+When to use MCP:
+
+- you need consistent tool/resource access across stacks.
+
+When to use A2A:
+
+- you need independent agents to coordinate tasks.
+
+Common beginner mistake:
+
+- Mistake: treating protocol choice as main goal.
+- Fix: pick protocol only after architecture and reliability goals are clear.
+
+---
+
+### 9. Industry Architecture Patterns
+
+Runnable examples:
+
+- [topic06_industry_patterns.py](src/stage-6/topic06_industry_patterns.py)
+- [lab01_support_triage_agent.py](src/stage-6/lab01_support_triage_agent.py)
+- [lab03_multi_agent_ops_assistant.py](src/stage-6/lab03_multi_agent_ops_assistant.py)
+
+Pattern A: Support triage agent
+
+- intent classify
+- retrieve policy docs
+- draft response
+- route by severity
+
+Pattern B: Research analyst agent
+
+- retrieve documents
+- run calculation tools
+- produce cited summary and uncertainty note
+
+Pattern C: Ops assistant with policy gates
+
+- coordinator agent
+- specialist agents (SRE, compliance, reporting)
+- HITL for high-risk actions
+
+Industry reality:
+
+- most successful deployments combine deterministic workflows with bounded agent autonomy.
+
+---
+
+### 10. Security Threat Model for Agents
+
+Runnable examples:
+
+- [topic09a_prompt_injection_defense_simple.py](src/stage-6/topic09a_prompt_injection_defense_simple.py)
+- [topic09_policy_and_permissions_intermediate.py](src/stage-6/topic09_policy_and_permissions_intermediate.py)
+- [topic09c_incident_response_advanced.py](src/stage-6/topic09c_incident_response_advanced.py)
+- [lab04_secure_agent_operations.py](src/stage-6/lab04_secure_agent_operations.py)
+
+High-frequency risks:
+
+- prompt injection
+- tool abuse
+- data exfiltration
+- secret leakage
+- over-permissioned tools
+- retry storms under failure
+
+Mitigation baseline:
+
+- strict allowlist tools
+- least privilege credentials
+- policy checks before tool execution
+- output sanitization
+- audit log for every high-risk action
+
+Incident response mini workflow:
+
+1. freeze risky tool path
+2. capture trace/log evidence
+3. classify incident type
+4. patch policy or schema
+5. rerun red-team case
+6. publish postmortem
 
 ---
 
 ## Agent Workflow (Real World)
 
-1. Define the task
-2. Decide whether workflow or agent is needed
-3. Design tools
-4. Define tool schemas
-5. Build deterministic version first
-6. Add logging and validation
-7. Add agent loop carefully
-8. Add memory only if needed
-9. Add retrieval if knowledge access is needed
-10. Evaluate failure cases
-11. Add guardrails
-12. Deploy with monitoring
+Reference runbook:
 
-### Beginner Explanation of Each Step
-
-1. **Define the task** — e.g. "Analyze stock trend and explain risk."
-2. **Decide whether workflow or agent is needed** — Do not assume agent first.
-3. **Design tools** — Create clear functions: `fetch_stock`, `compute_indicators`, `search_notes`.
-4. **Define tool schemas** — Specify inputs/outputs clearly.
-5. **Build deterministic version first** — Prove the system can work without autonomy.
-6. **Add logging and validation** — Make each step observable.
-7. **Add agent loop carefully** — Allow the model to choose actions only after basics work.
-8. **Add memory only if needed** — Avoid unnecessary complexity.
-9. **Add retrieval if knowledge access is needed** — Especially for internal or changing knowledge.
-10. **Evaluate failure cases** — Invalid symbol, empty result, irrelevant docs, unclear user query.
-11. **Add guardrails** — Limits, fallbacks, validation, refusal conditions.
-12. **Deploy with monitoring** — Watch real behavior over time.
+1. Define task and success metric.
+2. Build deterministic baseline workflow.
+3. Add one agent decision point only.
+4. Add strict tool schema and policy gates.
+5. Add trace + metrics logging.
+6. Evaluate on fixed test set.
+7. Inject failures and verify recovery paths.
+8. Promote only if quality/safety/cost gates pass.
 
 ---
 
-## Debugging Checklist for Stage 6
+## Stage 6 Script Mapping (`/red-book/src/stage-6`)
 
-If an agent behaves badly, check:
+Required ladders:
 
-- [ ] Does the task really need an agent?
-- [ ] Could a workflow solve this more reliably?
-- [ ] Are tool descriptions clear enough?
-- [ ] Are tool inputs validated?
-- [ ] Are tool outputs consistent?
-- [ ] Is the agent choosing the wrong tool?
-- [ ] Is retrieval poor?
-- [ ] Is memory injecting irrelevant context?
-- [ ] Is the agent looping too long?
-- [ ] Are logs complete enough to trace the failure?
-- [ ] Are stopping rules defined?
-- [ ] Does the system have safe fallback behavior?
+0. PyTorch/CUDA in agent systems
+- `topic00a_pytorch_cuda_agent_simple.py`
+- `topic00_pytorch_cuda_agent_intermediate.py`
+- `topic00c_pytorch_cuda_agent_advanced.py`
+
+1. Workflow vs agent
+- `topic01a_workflow_first_simple.py`
+- `topic01_workflow_vs_agent_intermediate.py`
+- `topic01c_multi_step_agent_advanced.py`
+
+2. Tooling and schema
+- `topic02a_tool_schema_simple.py`
+- `topic02_tool_validation_intermediate.py`
+- `topic02c_tool_failure_recovery_advanced.py`
+
+3. Memory
+- `topic03a_memory_basics_simple.py`
+- `topic03_memory_retrieval_intermediate.py`
+- `topic03c_memory_policy_advanced.py`
+
+4. Guardrails and HITL
+- `topic04a_guardrails_simple.py`
+- `topic04_hitl_intermediate.py`
+- `topic04c_policy_gated_actions_advanced.py`
+
+5. Observability and eval
+- `topic05a_trace_basics_simple.py`
+- `topic05_eval_metrics_intermediate.py`
+- `topic05c_regression_suite_advanced.py`
+
+6. Protocol and interoperability
+- `topic07a_mcp_tooling_simple.py`
+- `topic07_protocol_interop_intermediate.py`
+- `topic07c_a2a_collaboration_advanced.py`
+
+7. Operations and security
+- `topic08a_budget_controls_simple.py`
+- `topic08_latency_cost_optimization_intermediate.py`
+- `topic09a_prompt_injection_defense_simple.py`
+- `topic09_policy_and_permissions_intermediate.py`
+
+8. Labs
+- `lab01_support_triage_agent.py`
+- `lab02_finance_research_agent.py`
+- `lab03_multi_agent_ops_assistant.py`
+- `lab04_secure_agent_operations.py`
+
+Detailed comment standard (mandatory):
+
+- explain purpose of each function
+- explain each workflow step and expected state transition
+- explain why each guardrail exists
+- explain failure paths and fallback behavior
+- explain metric calculations and interpretation
 
 ---
 
-## Example Code
+## Practice Lab (Clear and Operatable)
 
-```python
-from langchain.agents import initialize_agent
+Primary runnable lab script:
 
-# (Simple placeholder — full implementation comes in project)
+- [lab01_support_triage_agent.py](src/stage-6/lab01_support_triage_agent.py)
+
+Additional runnable labs:
+
+- [lab02_finance_research_agent.py](src/stage-6/lab02_finance_research_agent.py)
+- [lab03_multi_agent_ops_assistant.py](src/stage-6/lab03_multi_agent_ops_assistant.py)
+- [lab04_secure_agent_operations.py](src/stage-6/lab04_secure_agent_operations.py)
+
+Run commands:
+
+```powershell
+python .\src\stage-6\lab01_support_triage_agent.py
+python .\src\stage-6\lab02_finance_research_agent.py
+python .\src\stage-6\lab03_multi_agent_ops_assistant.py
+python .\src\stage-6\lab04_secure_agent_operations.py
 ```
 
-**Beginner Explanation:**
+### Lab: Build a Support Triage Agent with Safety and Eval
 
-Importing an agent framework does **not** create a good agent automatically.
+#### Lab goal
 
-A good agent still depends on:
+Build one operatable agent pipeline that:
 
-- tool design
-- prompt design
-- schemas
-- logging
-- control logic
-- evaluation
+- classifies support ticket priority
+- routes ticket to queue
+- drafts response with citation to policy snippets
+- enforces action policy gate
+- logs metrics and failure classes
 
-> The framework is only infrastructure. The real engineering work is in system design.
+#### Fixed dataset and schema
 
----
+Data source:
 
-## Practice Project
+- local file: `red-book/data/stage-6/tickets_sample.csv` (create if missing)
 
-### Project: Tool-Based Market Assistant
+Input schema:
 
-**Goal:** Build an AI assistant that fetches stock data, analyzes trends, and provides a summary.
+- `ticket_id: string`
+- `customer_tier: string`
+- `subject: string`
+- `body: string`
+- `created_at: datetime`
 
-**Step 1 — Build plain functions (NO agent yet)**
+Output schema:
 
-```python
-def fetch_stock(symbol):
-    pass
+- `ticket_id: string`
+- `predicted_priority: enum(low, medium, high, critical)`
+- `queue: enum(general, billing, outage, security)`
+- `draft_reply: string`
+- `citations: array<string>`
+- `needs_human_approval: bool`
+- `failure_class: string|null`
 
-def calculate_indicators(df):
-    pass
+Eval split policy:
 
-def summarize(df):
-    pass
-```
+- fixed 30-ticket eval subset, saved as `eval_ids_stage6.txt`
 
-*Why this step matters: This forces you to separate the system into clear components and proves the core logic works before adding agent complexity.*
+#### Required workflow (strict)
 
-*Start with ordinary Python functions — one gets data, one computes indicators, one summarizes findings. If these functions are weak, the agent version will also be weak.*
+1. Load fixed eval IDs.
+2. Run deterministic baseline workflow.
+3. Run agent-enabled workflow (same inputs).
+4. Compare metrics.
+5. Add one controlled improvement (example: better tool schema).
+6. Rerun and explain delta.
 
----
+#### Required deliverables
 
-**Step 2 — Build deterministic workflow**
+- `results/stage6_lab_outputs.jsonl`
+- `results/stage6_lab_metrics.csv`
+- `results/stage6_lab_trace.json`
+- `results/stage6_lab_failure_log.md`
+- `results/stage6_lab_before_after.md`
 
-```
-input → fetch → indicators → LLM summary → output
-```
+#### Minimum metrics
 
-*This is your FIRST working version.*
+- task success rate
+- tool call accuracy
+- citation presence rate
+- policy violation rate
+- p95 latency
+- average steps per ticket
+- cost per ticket (if API-based)
 
-*Why this step matters: This gives you a stable baseline. Before making the system dynamic, make it correct.*
+#### Controlled improvement examples
 
-> **Beginner rule:** If the deterministic workflow is not working well, do not build the agent yet. Fix the workflow first.
+Choose exactly one:
 
----
+- stronger tool descriptions + schema constraints
+- memory write filtering
+- guardrail rule tuning
+- retry/backoff tuning
 
-**Step 3 — Add LLM explanation**
+#### Where complexity is in this lab
 
-Use prompt:
-
-```
-Given these indicators, explain trend and risk.
-```
-
-Better structured prompt version:
-
-```
-Given these stock indicators, explain the current trend and risk in simple language for a beginner investor.
-Include:
-1. trend direction
-2. momentum interpretation
-3. main risk
-4. one cautious conclusion
-```
-
-*Why this step matters: The LLM is used where it is strongest — language explanation. The deterministic steps fetch and compute real data first. That is good system design.*
-
----
-
-**Step 4 — Convert functions into tools**
-
-Wrap functions for agent use.
-
-*Why this step matters: You now expose your reliable functions to the LLM as callable actions. Do not let the agent directly "do everything" — let it choose among well-designed capabilities.*
+- routing quality vs stability tradeoff
+- tool/schema rigidity vs flexibility
+- safety gates vs automation speed
+- cost/latency vs answer quality
 
 ---
 
-**Step 5 — Build simple agent**
+## Troubleshooting and Realistic Problem Playbook
 
-Agent decides: which tool to use, when to stop.
+Failure scenarios you must test:
 
-*Why this step matters: This introduces dynamic behavior gradually.*
+1. Wrong tool selected.
+2. Malformed tool arguments.
+3. Tool timeout.
+4. Retrieval returns irrelevant context.
+5. Memory pollution.
+6. Loop runs too long.
+7. Hallucinated action claim.
+8. Prompt injection success.
+9. Data exfiltration attempt.
+10. Retry storm after transient failure.
+11. Device mismatch between tensors and model (`cpu` vs `cuda`).
+12. CUDA out-of-memory during batched scoring/reranking.
 
-*Start with: only 2–3 tools, max step limit, simple user queries, logs turned on.*
+Standard troubleshooting workflow:
+
+1. Reproduce with fixed input and trace ID.
+2. Classify failure type.
+3. Inspect schema and tool arguments.
+4. Inspect routing and stop conditions.
+5. Inspect memory read/write path.
+6. Inspect guardrail decisions.
+7. Apply one targeted fix only.
+8. Rerun exact same case and record delta.
+9. If GPU path fails, validate CPU fallback behavior.
+
+Required run logs:
+
+- `run_id`, `trace_id`, `query_id`
+- `step_index`
+- `selected_tool`
+- `tool_args`
+- `tool_status`
+- `latency_ms`
+- `token_cost`
+- `policy_decision`
+- `failure_class`
 
 ---
 
-**Step 6 — Add logging**
+## Common Mistakes
 
-Track: tool calls, inputs, outputs.
-
-Suggested log fields:
-
-- timestamp
-- user query
-- chosen tool
-- tool input
-- tool output summary
-- final answer
-- error if any
-- number of steps used
-
-*Why this step matters: Without logs, agent debugging becomes guesswork.*
-
----
-
-**Step 7 — Test failures**
-
-Test: invalid ticker, missing data, unclear query.
-
-Also test:
-
-- tool timeout
-- empty retrieval result
-- unsupported user request
-- contradictory data
-- repeated tool loop
-
-*Why this step matters: Good systems are tested not only on success cases, but also on failure cases.*
-
-### Deliverables
-
-- tool functions
-- workflow script
-- agent version
-- logs
-- README
-
-### Experiment Tasks
-
-**Experiment 1 — Workflow vs agent comparison**
-
-Build both versions and compare: reliability, complexity, quality, debuggability.
-
-- Lesson: Agent is not automatically better.
-
-**Experiment 2 — Add too many tools on purpose**
-
-Add several overlapping tools.
-
-- Purpose: See how routing quality degrades.
-- Lesson: Tool minimalism matters.
-
-**Experiment 3 — Add memory vs no memory**
-
-Compare whether memory helps or only adds noise.
-
-- Lesson: Memory should be added intentionally, not automatically.
-
-**Experiment 4 — Add retrieval**
-
-Let the assistant search one small research-note corpus.
-
-- Lesson: RAG + tools can be powerful, but adds failure modes.
-
-**Experiment 5 — Force invalid inputs**
-
-Use bad tickers and empty results.
-
-- Lesson: Tool error handling is essential.
-
-**Experiment 6 — Add step limit**
-
-Compare behavior with and without maximum step constraints.
-
-- Lesson: Guardrails reduce runaway loops.
-
-### Common Mistakes
-
-1. **Skipping workflow stage** — You lose a stable baseline and make debugging harder. *Fix: Always build deterministic workflow first.*
-
-2. **Too many tools** — Tool routing becomes noisy and unreliable. *Fix: Start with minimal, non-overlapping tools.*
-
-3. **No logging** — You cannot trace why the system failed. *Fix: Log every decision and tool call.*
-
-4. **Unclear tool schema** — The agent passes bad arguments or misreads outputs. *Fix: Use explicit schemas and stable return structures.*
-
-5. **Letting the agent act without limits** — The agent may loop, overuse tools, or make unsafe calls. *Fix: Use max steps, allowed tools, stop conditions, and fallbacks.*
-
-6. **Using memory without relevance filtering** — Irrelevant context hurts decision quality. *Fix: Store selectively and retrieve only relevant memory.*
-
-7. **No failure-case testing** — Production failures appear later and are harder to explain. *Fix: Test negative and edge cases intentionally.*
+- building multi-agent first without baseline
+- vague tool schema and no error contract
+- no explicit stop rule
+- no policy checks before action tools
+- no fixed eval set (cannot compare versions)
+- no observability (cannot debug failures)
+- optimizing quality only, ignoring cost/latency/safety
 
 ---
 
 ## Final Understanding
 
-> Agents extend LLMs by allowing them to take actions using tools, but require careful control and design.
+You should now be able to:
 
-> The best agent systems are usually built on top of clear tools, deterministic workflows, logging, and guardrails — not pure autonomy.
+- design workflow-first agent systems
+- choose between workflow, single-agent, and multi-agent
+- design tools and memory with strict schemas
+- apply guardrails and HITL correctly
+- evaluate with quality/safety/cost/latency metrics
+- troubleshoot realistic failure modes using traces
+- explain MCP and A2A roles in interoperable systems
 
 ---
 
@@ -903,110 +1035,36 @@ Compare behavior with and without maximum step constraints.
 
 ### Questions
 
-1. What is an AI agent?
-2. How is an agent different from a plain LLM chatbot?
-3. What is a tool in an agent system?
-4. Why do tools extend LLM capability?
-5. What makes a good tool?
-6. Why should workflows usually come before agents?
-7. What is the difference between a workflow and an agent?
-8. When should you choose a workflow instead of an agent?
-9. What is short-term memory in an agent?
-10. What is long-term memory in an agent?
-11. Why can too much memory be harmful?
-12. What is retrieval-based memory?
-13. Why is RAG useful in agent systems?
-14. What does RAG + agent allow that prompt-only systems cannot do as well?
-15. What is ReAct-style reasoning?
-16. What is the planner-executor pattern?
-17. Why can too many tools hurt performance?
-18. Why is logging critical in agent systems?
-19. What kinds of things should you log?
-20. Why is tool schema clarity important?
-21. What is tool routing?
-22. Why do agents need stopping rules?
-23. What is a max-step limit for?
-24. Why is workflow-first design safer?
-25. What is a common failure mode when beginners start with agents too early?
-26. Why is deterministic output often easier to trust?
-27. What should you test besides happy-path success cases?
-28. Why is autonomy not the same as reliability?
-29. What is the simplest safe build order for an agent system?
-30. What is the main lesson of this stage?
+1. Why should deterministic workflow come before multi-agent design?
+2. What fields must every tool contract include to be operatable?
+3. What is the practical difference between MCP and A2A?
+4. Why is answer-quality-only evaluation insufficient for agents?
+5. Give one example where HITL approval is mandatory.
+6. What is memory pollution and one mitigation strategy?
+7. What should you log to debug wrong-tool selection?
+8. Why must experiments use fixed eval sets?
+9. Give one prompt-injection defense at tool boundary.
+10. What metric would detect runaway loops quickly?
 
 ### Answers
 
-1. An AI agent is an LLM-based system that can decide which actions to take, often by selecting and using tools before producing a final answer.
-
-2. A plain LLM chatbot mostly generates text directly from the prompt. An agent can also choose actions, call tools, inspect results, and continue step by step.
-
-3. A tool is a callable function or external capability the agent can use, such as fetching stock data, searching documents, or doing calculations.
-
-4. Because tools let the LLM access real data, perform computations, and take actions that text generation alone cannot do reliably.
-
-5. A good tool has one clear purpose, clear inputs, clear outputs, reliable behavior, and good error handling.
-
-6. Because workflows are easier to test, debug, monitor, and trust. They give you a stable baseline before adding dynamic agent behavior.
-
-7. A workflow follows fixed steps. An agent decides dynamically which steps or tools to use next.
-
-8. When the steps are already known, reliability matters more than flexibility, and the task does not require open-ended dynamic decisions.
-
-9. Short-term memory is temporary context from the current conversation or task, such as recent messages or recent tool outputs.
-
-10. Long-term memory is persistent stored information that can be reused later, such as user preferences, saved notes, or indexed past knowledge.
-
-11. Because it can add irrelevant context, increase token cost, confuse the model, and reduce answer quality.
-
-12. It is a memory system where stored memories are searched and only relevant items are retrieved and injected into the current context.
-
-13. Because it lets the agent access external knowledge sources and ground its answers in retrieved documents instead of relying only on model memory.
-
-14. It allows a system to both retrieve knowledge and take actions, combining grounding with computation or external operations.
-
-15. It is an agent pattern where the model alternates between thinking about what to do, taking an action, observing results, and continuing until completion.
-
-16. It is a pattern where one component plans the steps and another component executes them, making the system more structured and often easier to debug.
-
-17. Because the agent may choose the wrong one, tool descriptions may overlap, and the routing problem becomes harder.
-
-18. Because without logs you cannot trace how the agent made decisions, which tools it called, or where the failure happened.
-
-19. You should log user input, chosen tool, tool input, tool output, retrieved context, final response, errors, and step count.
-
-20. Because agents need clear argument and output formats. If schemas are vague, tool calls become unreliable.
-
-21. Tool routing is the process of deciding which tool should be used for a given request.
-
-22. Because otherwise they may keep calling tools unnecessarily, loop, waste cost, or fail to terminate correctly.
-
-23. It limits how many reasoning/action steps an agent can take, helping control loops and runaway behavior.
-
-24. Because it keeps behavior deterministic and easier to inspect before introducing dynamic control decisions.
-
-25. They build something flexible but unstable, with unclear tool use, poor traceability, and hard-to-debug failures.
-
-26. Because you know exactly what the system will do under the same conditions, which makes testing and operational reliability easier.
-
-27. You should test invalid input, empty data, tool errors, unclear requests, bad retrieval, unsupported requests, and loop behavior.
-
-28. Because a system can make more decisions on its own while still making poor or inconsistent decisions. More freedom does not guarantee correctness.
-
-29. Build plain functions first, then a deterministic workflow, then add logging and validation, then add agent behavior only if needed.
-
-30. Agents are powerful because they let LLMs use tools and take actions, but good agent systems require careful tool design, workflow-first thinking, logging, validation, and guardrails.
+1. Workflow establishes baseline reliability and makes later agent gains measurable.
+2. Name, description, input schema, output schema, and explicit error contract.
+3. MCP standardizes tool/resource interaction; A2A standardizes agent-to-agent collaboration.
+4. Agents can look good in text while failing on safety, cost, latency, or tool correctness.
+5. Any high-risk or irreversible action, such as transaction execution or sensitive export.
+6. Irrelevant stale state affecting decisions; mitigate with strict write policy + TTL.
+7. Step index, selected tool, tool args, routing rationale, and tool return status.
+8. Without fixed eval sets, metric changes are not comparable and regressions are hidden.
+9. Validate arguments against allowlist schema and block sensitive commands by policy.
+10. Average steps per task (and max steps threshold breaches).
 
 ---
 
 ## What You Must Be Able To Do After Stage 6
 
-- [ ] Explain what an AI agent is in plain English
-- [ ] Explain the difference between a workflow and an agent
-- [ ] Explain what tools are and why they matter
-- [ ] Design a small, clear tool set
-- [ ] Explain short-term vs long-term memory
-- [ ] Explain why RAG and agents are often combined
-- [ ] Build a deterministic tool-based workflow first
-- [ ] Identify common agent failure modes
-- [ ] Explain why logging, schemas, and guardrails are essential
-- [ ] Understand that real agent engineering is about controlled orchestration, not just autonomy
+- Build one end-to-end agent pipeline with strict tool and output schemas.
+- Run before/after experiments with fixed data and measurable deltas.
+- Add policy gates and HITL checkpoints for high-risk actions.
+- Diagnose failures using trace evidence and targeted fixes.
+- Explain industry patterns and protocol choices (MCP vs A2A) with practical tradeoffs.

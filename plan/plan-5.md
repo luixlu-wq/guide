@@ -60,6 +60,9 @@ Stage-5-specific locked requirements:
   - runnable examples that print selected device and training behavior
   - simple/intermediate/advanced PyTorch/CUDA example ladder in `red-book/src/stage-5`
 
+- Mandatory request: include PyTorch and CUDA conceptual/tutorial content in the chapter.
+- Mandatory request: include runnable PyTorch/CUDA example code (simple -> intermediate -> advanced) with very detailed and clear functional comments.
+
 This section is a scope guard: future edits should not remove these requirements.
 
 ---
@@ -582,3 +585,4 @@ Per-module must include:
 - `why this is hard`
 - one checkpoint question before moving forward
 - one explicit `do not trust this blindly` reliability note for LLM outputs
+

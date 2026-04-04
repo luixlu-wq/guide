@@ -35,6 +35,9 @@ Carry-over quality requirements from successful Stage 3 pattern (apply to Stage 
 - Make practice project section clear and operatable with exact workflow and deliverables.
 - PyTorch and CUDA content must include detailed step-by-step instruction and ladder-complexity examples.
 
+- Mandatory request: include PyTorch and CUDA conceptual/tutorial content in the chapter.
+- Mandatory request: include runnable PyTorch/CUDA example code (simple -> intermediate -> advanced) with very detailed and clear functional comments.
+
 This section is a scope guard: future edits should not remove these requirements.
 
 ---
@@ -542,3 +545,4 @@ Use this for every hard section:
 5. Failure pattern and fix
 
 Per-module must include `why this is hard` and one checkpoint question before moving forward.
+

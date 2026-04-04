@@ -1,0 +1,3 @@
+decision_id,check,result
+PD-1,external_notification_requires_approval,pass_with_human_approval
+PD-2,sensitive_data_export_blocked,blocked
