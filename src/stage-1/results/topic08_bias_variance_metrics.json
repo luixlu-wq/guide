@@ -1,0 +1,114 @@
+{
+  "timestamp_utc": "2026-04-04T17:06:37.575925+00:00",
+  "script": "topic08_bias_variance",
+  "dataset": "make_classification(n=1500,d=20)",
+  "input_rows_or_samples": 1500,
+  "quality_metric_name": "best_validation_error",
+  "quality_metric_value": 0.16000000000000003,
+  "metrics": {
+    "best_depth_by_val_error": 8,
+    "depth_sweep": [
+      {
+        "depth": 1,
+        "train_error": 0.2571428571428571,
+        "val_error": 0.23777777777777775
+      },
+      {
+        "depth": 2,
+        "train_error": 0.20190476190476192,
+        "val_error": 0.20666666666666667
+      },
+      {
+        "depth": 3,
+        "train_error": 0.1885714285714286,
+        "val_error": 0.22888888888888892
+      },
+      {
+        "depth": 4,
+        "train_error": 0.13714285714285712,
+        "val_error": 0.19333333333333336
+      },
+      {
+        "depth": 5,
+        "train_error": 0.1104761904761905,
+        "val_error": 0.1844444444444444
+      },
+      {
+        "depth": 6,
+        "train_error": 0.08571428571428574,
+        "val_error": 0.19111111111111112
+      },
+      {
+        "depth": 7,
+        "train_error": 0.06285714285714283,
+        "val_error": 0.17333333333333334
+      },
+      {
+        "depth": 8,
+        "train_error": 0.04190476190476189,
+        "val_error": 0.16000000000000003
+      },
+      {
+        "depth": 9,
+        "train_error": 0.03142857142857147,
+        "val_error": 0.16888888888888887
+      },
+      {
+        "depth": 10,
+        "train_error": 0.02190476190476187,
+        "val_error": 0.1711111111111111
+      },
+      {
+        "depth": 11,
+        "train_error": 0.014285714285714235,
+        "val_error": 0.18222222222222217
+      },
+      {
+        "depth": 12,
+        "train_error": 0.007619047619047636,
+        "val_error": 0.1955555555555556
+      },
+      {
+        "depth": 13,
+        "train_error": 0.0028571428571428914,
+        "val_error": 0.2022222222222222
+      },
+      {
+        "depth": 14,
+        "train_error": 0.0019047619047618536,
+        "val_error": 0.1955555555555556
+      },
+      {
+        "depth": 15,
+        "train_error": 0.0009523809523809268,
+        "val_error": 0.20444444444444443
+      },
+      {
+        "depth": 16,
+        "train_error": 0.0,
+        "val_error": 0.1955555555555556
+      },
+      {
+        "depth": 17,
+        "train_error": 0.0,
+        "val_error": 0.1955555555555556
+      },
+      {
+        "depth": 18,
+        "train_error": 0.0,
+        "val_error": 0.1955555555555556
+      },
+      {
+        "depth": 19,
+        "train_error": 0.0,
+        "val_error": 0.1955555555555556
+      },
+      {
+        "depth": 20,
+        "train_error": 0.0,
+        "val_error": 0.1955555555555556
+      }
+    ]
+  },
+  "decision_note": "choose capacity where validation error is minimized, not training error"
+}

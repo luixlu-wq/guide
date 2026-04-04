@@ -1,0 +1,34 @@
+{
+  "timestamp_utc": "2026-04-04T17:06:50.504522+00:00",
+  "script": "topic12_pytorch_cuda",
+  "quality_metric_name": "final_training_loss",
+  "quality_metric_value": 0.040802277624607086,
+  "hardware": {
+    "cuda_available": false,
+    "device": "cpu",
+    "gpu_name": null
+  },
+  "metrics": {
+    "autograd_demo": {
+      "x": 3.0,
+      "y": 16.0,
+      "dy_dx": 8.0
+    },
+    "training": {
+      "learned_w": 2.500000238418579,
+      "learned_b": 0.9983120560646057,
+      "initial_loss": 7.357617378234863,
+      "final_loss": 0.040802277624607086,
+      "train_time_ms": 191.24810001812875
+    },
+    "cpu_matmul": {
+      "avg_time_sec": 0.0018820933337944249,
+      "memory_before_mb": 0.0,
+      "memory_after_mb": 0.0,
+      "memory_peak_mb": 0.0
+    },
+    "gpu_matmul": null,
+    "cpu_gpu_speedup_x": null
+  },
+  "decision_note": "use VRAM and timing metrics to verify CUDA path and estimate scaling headroom"
+}

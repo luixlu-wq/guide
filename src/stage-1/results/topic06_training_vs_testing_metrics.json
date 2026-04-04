@@ -1,0 +1,16 @@
+{
+  "timestamp_utc": "2026-04-04T17:06:34.768881+00:00",
+  "script": "topic06_training_vs_testing",
+  "dataset": "diabetes",
+  "input_rows_or_samples": 442,
+  "quality_metric_name": "test_r2",
+  "quality_metric_value": 0.060653981041140725,
+  "metrics": {
+    "correct_train_r2": 1.0,
+    "correct_test_r2": 0.060653981041140725,
+    "correct_test_mse": 4976.797752808989,
+    "wrong_same_data_r2": 1.0,
+    "leakage_illusion_gap": 0.9393460189588593
+  },
+  "decision_note": "always keep a true holdout set for honest generalization checks"
+}

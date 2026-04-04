@@ -1,10 +1,19 @@
+"""Topic 08: Bias-variance trade-off via tree-depth sweep."""
+
+from __future__ import annotations
+
 from sklearn.datasets import make_classification
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
+from common.runtime import create_logger, write_json_artifact
 
-def main():
+
+def main() -> None:
+    script_stem = "topic08_bias_variance"
+    logger = create_logger(script_stem)
+
     X, y = make_classification(
         n_samples=1500,
         n_features=20,
@@ -24,17 +33,34 @@ def main():
         model.fit(X_train, y_train)
         train_err = 1 - accuracy_score(y_train, model.predict(X_train))
         val_err = 1 - accuracy_score(y_val, model.predict(X_val))
-        results.append((depth, train_err, val_err))
+        results.append(
+            {
+                "depth": depth,
+                "train_error": float(train_err),
+                "val_error": float(val_err),
+            }
+        )
 
-    best = min(results, key=lambda row: row[2])
-    print("best depth by validation error:", best[0])
-    print("depth | train_error | val_error")
-    for depth, train_err, val_err in results[::3]:
-        print(f"{depth:>5} | {train_err:>11.4f} | {val_err:>8.4f}")
+    best = min(results, key=lambda row: row["val_error"])
+    logger.info("best_depth_by_val_error=%d", best["depth"])
+    logger.info("sample_rows=%s", results[::3])
 
-    print("\nInterpretation:")
-    print("- Very small depth -> high bias (both errors high).")
-    print("- Very large depth -> high variance (train error low, val error worse).")
+    artifact_path = write_json_artifact(
+        script_stem,
+        "metrics",
+        {
+            "dataset": "make_classification(n=1500,d=20)",
+            "input_rows_or_samples": int(X.shape[0]),
+            "quality_metric_name": "best_validation_error",
+            "quality_metric_value": float(best["val_error"]),
+            "metrics": {
+                "best_depth_by_val_error": int(best["depth"]),
+                "depth_sweep": results,
+            },
+            "decision_note": "choose capacity where validation error is minimized, not training error",
+        },
+    )
+    logger.info("artifact_saved=%s", artifact_path)
 
 
 if __name__ == "__main__":

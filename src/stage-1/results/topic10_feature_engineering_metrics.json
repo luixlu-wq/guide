@@ -1,0 +1,16 @@
+{
+  "timestamp_utc": "2026-04-04T17:06:40.142986+00:00",
+  "script": "topic10_feature_engineering",
+  "dataset": "synthetic_tabular_regression",
+  "input_rows_or_samples": 220,
+  "quality_metric_name": "engineered_r2",
+  "quality_metric_value": 0.9712493785819002,
+  "metrics": {
+    "baseline_r2": 0.9682177198017085,
+    "engineered_r2": 0.9712493785819002,
+    "engineered_improvement": 0.003031658780191737,
+    "engineered_plus_noise_r2": 0.9708677111366423,
+    "noise_impact_delta": -0.00038166744525791607
+  },
+  "decision_note": "feature quality matters more than adding random feature count"
+}

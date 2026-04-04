@@ -1,0 +1,20 @@
+{
+  "timestamp_utc": "2026-04-04T17:06:32.913957+00:00",
+  "script": "topic04_cost_function",
+  "quality_metric_name": "mse_manual_vs_sklearn_abs_diff",
+  "quality_metric_value": 0.0,
+  "metrics": {
+    "mse_manual": 0.375,
+    "mse_sklearn": 0.375,
+    "logloss_manual": 0.2540847836081325,
+    "logloss_sklearn": 0.2540847836081325,
+    "vectorized_vs_loop": {
+      "loop_mse": 0.039939147980030544,
+      "vectorized_mse": 0.039939147980031425,
+      "loop_time_ms": 70.54519999655895,
+      "vectorized_time_ms": 3.4983000077772886,
+      "speedup_x": 20.165566086306356
+    }
+  },
+  "decision_note": "vectorized linear algebra is critical for AI performance"
+}

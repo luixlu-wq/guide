@@ -1,0 +1,67 @@
+{
+  "timestamp_utc": "2026-04-04T17:06:31.483756+00:00",
+  "script": "topic03_features_vs_target",
+  "dataset": "breast_cancer",
+  "input_rows_or_samples": 569,
+  "quality_metric_name": "accuracy",
+  "quality_metric_value": 0.9824561403508771,
+  "metrics": {
+    "accuracy_meaningful_features": 0.9824561403508771,
+    "accuracy_shuffled_features": 0.6052631578947368,
+    "accuracy_drop": 0.3771929824561403,
+    "top_features": [
+      {
+        "feature": "worst texture",
+        "abs_coefficient": 1.255088041690125
+      },
+      {
+        "feature": "radius error",
+        "abs_coefficient": 1.0829653362483975
+      },
+      {
+        "feature": "worst concave points",
+        "abs_coefficient": 0.9536863642145657
+      },
+      {
+        "feature": "worst area",
+        "abs_coefficient": 0.9477559027621573
+      },
+      {
+        "feature": "worst radius",
+        "abs_coefficient": 0.9476161496027705
+      },
+      {
+        "feature": "worst symmetry",
+        "abs_coefficient": 0.9391814052053151
+      },
+      {
+        "feature": "area error",
+        "abs_coefficient": 0.9291040183411311
+      },
+      {
+        "feature": "worst concavity",
+        "abs_coefficient": 0.8231506462671373
+      },
+      {
+        "feature": "worst perimeter",
+        "abs_coefficient": 0.763220072443888
+      },
+      {
+        "feature": "worst smoothness",
+        "abs_coefficient": 0.7466248092149421
+      },
+      {
+        "feature": "mean concave points",
+        "abs_coefficient": 0.704156489195534
+      },
+      {
+        "feature": "mean compactness",
+        "abs_coefficient": 0.648341587266056
+      }
+    ]
+  },
+  "figure_paths": [
+    "C:\\Users\\luixj\\AI\\red-book\\src\\stage-1\\results\\topic03_feature_importance.png"
+  ],
+  "decision_note": "feature quality dominates downstream model performance"
+}

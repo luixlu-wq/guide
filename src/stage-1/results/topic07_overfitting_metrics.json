@@ -1,0 +1,29 @@
+{
+  "timestamp_utc": "2026-04-04T17:06:36.028540+00:00",
+  "script": "topic07_overfitting",
+  "dataset": "synthetic_sine",
+  "input_rows_or_samples": 40,
+  "quality_metric_name": "best_cv_mse",
+  "quality_metric_value": 0.06932853314231299,
+  "metrics": {
+    "degree_results": [
+      {
+        "degree": 1,
+        "cv_mse_mean": 0.40803463922926364,
+        "cv_mse_std": 0.26287090943603075
+      },
+      {
+        "degree": 4,
+        "cv_mse_mean": 0.06932853314231299,
+        "cv_mse_std": 0.08602228688699871
+      },
+      {
+        "degree": 15,
+        "cv_mse_mean": 210867866.00893778,
+        "cv_mse_std": 270078652.66742766
+      }
+    ],
+    "best_degree_by_cv_mse": 4
+  },
+  "decision_note": "higher polynomial degree increases variance and overfit risk"
+}

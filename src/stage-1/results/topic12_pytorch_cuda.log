@@ -1,0 +1,10 @@
+2026-04-04 13:06:50,220 | INFO | torch_version=2.9.1+cpu
+2026-04-04 13:06:50,220 | INFO | cuda_available=False
+2026-04-04 13:06:50,220 | INFO | concept_note: torch.tensor is the tensor abstraction used by PyTorch kernels; numpy.array is CPU-only by default.
+2026-04-04 13:06:50,220 | INFO | selected_device=cpu
+2026-04-04 13:06:50,222 | INFO | autograd_demo x=3.0 y=16.0 dy_dx=8.0
+2026-04-04 13:06:50,414 | INFO | training_result w=2.5000 b=0.9983
+2026-04-04 13:06:50,414 | INFO | loss_initial=7.3576 loss_final=0.0408 train_time_ms=191.25
+2026-04-04 13:06:50,476 | INFO | cpu_matmul_avg_time_sec=0.001882
+2026-04-04 13:06:50,504 | INFO | gpu_path_skipped: CUDA unavailable
+2026-04-04 13:06:50,505 | INFO | artifact_saved=C:\Users\luixj\AI\red-book\src\stage-1\results\topic12_pytorch_cuda_metrics.json

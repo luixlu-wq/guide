@@ -1,0 +1,10 @@
+2026-04-04 13:05:48,212 | INFO | learned_w=3.2710 learned_b=3.4779
+2026-04-04 13:05:48,212 | INFO | initial_loss=415.8359 final_loss=4.1837
+2026-04-04 13:05:48,362 | INFO | saved_plot_loss=C:\Users\luixj\AI\red-book\src\stage-1\topic05_loss_curve.png
+2026-04-04 13:05:48,362 | INFO | saved_plot_line_evolution=C:\Users\luixj\AI\red-book\src\stage-1\results\topic05_regression_line_evolution.png
+2026-04-04 13:05:48,364 | INFO | artifact_saved=C:\Users\luixj\AI\red-book\src\stage-1\results\topic05_gradient_descent_metrics.json
+2026-04-04 13:06:33,458 | INFO | learned_w=3.2710 learned_b=3.4779
+2026-04-04 13:06:33,459 | INFO | initial_loss=415.8359 final_loss=4.1837
+2026-04-04 13:06:33,592 | INFO | saved_plot_loss=C:\Users\luixj\AI\red-book\src\stage-1\topic05_loss_curve.png
+2026-04-04 13:06:33,593 | INFO | saved_plot_line_evolution=C:\Users\luixj\AI\red-book\src\stage-1\results\topic05_regression_line_evolution.png
+2026-04-04 13:06:33,594 | INFO | artifact_saved=C:\Users\luixj\AI\red-book\src\stage-1\results\topic05_gradient_descent_metrics.json

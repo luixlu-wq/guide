@@ -1,0 +1,36 @@
+{
+  "timestamp_utc": "2026-04-04T17:06:33.593387+00:00",
+  "script": "topic05_gradient_descent",
+  "input_rows_or_samples": 200,
+  "quality_metric_name": "final_mse",
+  "quality_metric_value": 4.183663590958268,
+  "metrics": {
+    "learned_w": 3.2709674645666604,
+    "learned_b": 3.4779406135753055,
+    "initial_mse": 415.8358618512309,
+    "final_mse": 4.183663590958268,
+    "snapshots": {
+      "1": {
+        "w": 0.24572715434455852,
+        "b": 0.03969779213879496
+      },
+      "100": {
+        "w": 3.6868413543741583,
+        "b": 0.7501571575954673
+      },
+      "1000": {
+        "w": 3.4948691900887416,
+        "b": 2.02350389273352
+      },
+      "3000": {
+        "w": 3.2709674645666604,
+        "b": 3.4779406135753055
+      }
+    }
+  },
+  "figure_paths": [
+    "C:\\Users\\luixj\\AI\\red-book\\src\\stage-1\\topic05_loss_curve.png",
+    "C:\\Users\\luixj\\AI\\red-book\\src\\stage-1\\results\\topic05_regression_line_evolution.png"
+  ],
+  "decision_note": "visualize both loss reduction and line convergence"
+}

@@ -8,7 +8,13 @@
 
 ### Who This Is For
 
-This handbook is designed for beginners who know basic Python (loops, functions, lists, dicts) but have no prior machine learning experience. If you can read and run a Python script, you have enough to start.
+This handbook is designed for **software engineers transitioning to AI systems**. You do not need prior ML experience, but you should be comfortable reading Python, running scripts, and debugging runtime issues.
+
+The learning style is engineering-first:
+- map each ML concept to a software-system concept
+- run code and inspect intermediate artifacts
+- reason about correctness **and** efficiency (time/memory/device)
+- debug with evidence instead of guesswork
 
 ### Recommended Reading Order
 
@@ -28,8 +34,12 @@ For every concept module:
 1. Read the concept section completely.
 2. Run the mapped script from `red-book/src/stage-1/`.
 3. Compare the actual output against the expected output documented in this handbook.
-4. Write 3–5 lines interpreting what you observed.
-5. Answer the quick check question without looking at the answer first.
+4. Open the generated artifacts in `red-book/src/stage-1/results/`:
+   - `topicXX_*.log`
+   - `topicXX_*_metrics.json`
+   - topic-specific figures (if produced)
+5. Write 3–5 lines interpreting what you observed.
+6. Answer the quick check question without looking at the answer first.
 
 ### What to Do If You Are Stuck
 
@@ -47,6 +57,7 @@ For every concept module:
 - Basic Python: variables, loops, functions, lists, dicts
 - Ability to run a `.py` file from the terminal
 - No prior ML knowledge required
+- Basic software engineering habits: versioned code, reproducible runs, and reading logs/metrics
 
 If you are not comfortable with Python basics, complete this first:
 - https://docs.python.org/3/tutorial/ (sections 1–5 are sufficient)
@@ -136,6 +147,56 @@ python topic12_pytorch_cuda.py
 
 Expected: torch version, CUDA availability, autograd demo, and CPU/GPU timing (GPU timing only if CUDA is available).
 
+### Module 0.5: The GPU as a Coprocessor (Mandatory Hardware Layer)
+
+#### Why this exists
+
+In AI engineering, Python orchestrates the workflow, but heavy compute is executed by optimized native kernels (C++/CUDA). If you only reason at Python level, performance behavior will look like a black box.
+
+#### Python logic vs CUDA kernel execution
+
+- Python code defines the graph of operations.
+- PyTorch dispatches tensor ops to backend kernels.
+- On GPU, these kernels run on CUDA cores using massively parallel math.
+- Performance bottlenecks often come from **data movement** and **memory pressure**, not model math alone.
+
+#### Host vs Device memory model
+
+- Host: CPU + system RAM
+- Device: GPU + VRAM
+- Data must be moved explicitly (`cpu` -> `cuda`) before GPU kernels can run.
+
+```python
+import torch
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print("device:", device)
+
+x_cpu = torch.randn(1024, 1024)              # host RAM
+x_dev = x_cpu.to(device)                     # host -> device transfer
+y_dev = x_dev @ x_dev.T                      # GPU kernel if device == cuda
+y_cpu = y_dev.to("cpu")                      # device -> host transfer
+```
+
+#### 32GB VRAM operating rules (RTX 5090 class)
+
+- Always log device and peak memory in scripts.
+- Prefer mixed precision (`torch.float16` / `torch.bfloat16`) when numerically safe.
+- Use smaller batch size first when OOM occurs.
+- Use gradient accumulation for large effective batch sizes.
+- Treat INT8 primarily as inference optimization, not default training precision.
+
+#### Required script preflight (add to every stage script where torch is used)
+
+```python
+import torch
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print("cuda_available:", torch.cuda.is_available())
+if torch.cuda.is_available():
+    print("gpu_name:", torch.cuda.get_device_name(0))
+    torch.cuda.reset_peak_memory_stats()
+```
+
 ---
 
 ## 2. Two-Week Guided Roadmap
@@ -162,7 +223,7 @@ Each day has a primary concept, a script to run, and a deliverable.
 | 9 | Metrics interpretation | Re-read metrics modules, inspect topic01 output | For each metric: write what it measures and when it misleads |
 | 10 | Debugging drills | Run all scripts, apply debugging decision flow | Complete debugging checklist per script |
 | 11 | Feature improvement | Add 1–2 engineered features to your project | Show before/after metric improvement |
-| 12 | Results and charts (+ optional GPU) | Build results table and plots; run topic12 if doing GPU track | results/metrics.json + at least one figure; optional CPU vs GPU notes |
+| 12 | Results and charts (+ optional GPU) | Build results table and plots; run topic12 if doing GPU track | `results/topic*_metrics.json` + figures; optional CPU vs GPU notes |
 | 13 | Self-test | Take the 30-question self-test | Score and identify weak areas |
 | 14 | Final review | Fix gaps, re-run project, check quality gates | All quality gates passed |
 
@@ -210,6 +271,7 @@ Links:
 |---|---|
 | MIT OCW 6.036 — selected lectures | 4–6h |
 | Stanford CS229 handouts | 3–4h |
+| Andrej Karpathy — Neural Networks: Zero to Hero | 4–8h |
 | Rules of Machine Learning (Google) | 1–2h |
 | A Few Useful Things to Know About ML (Domingos) | 1h |
 | Microsoft ML for Beginners — selected lessons | 3–5h |
@@ -219,6 +281,7 @@ Links:
 Links:
 - https://ocw.mit.edu/courses/6-036-introduction-to-machine-learning-fall-2020/
 - https://cs229.stanford.edu/materials.html-full
+- https://karpathy.ai/zero-to-hero.html
 - https://developers.google.com/machine-learning/guides/rules-of-ml/
 - https://homes.cs.washington.edu/~pedrod/papers/cacm12.pdf
 - https://github.com/microsoft/ML-For-Beginners
@@ -230,7 +293,7 @@ Links:
 | Resource | Time |
 |---|---|
 | Dive into Deep Learning (d2l.ai) — selected chapters | 3–5h |
-| fast.ai Practical Deep Learning — Part 1 selected | 4–8h |
+| fast.ai Practical Deep Learning for Coders (developer track) — Part 1 selected | 4–8h |
 | Hands-On Machine Learning (O'Reilly) — selected | 8–15h |
 | fastai book notebooks | 2–4h |
 | Awesome Machine Learning curated list (browse) | 1–2h |
@@ -394,22 +457,41 @@ pwsh -File ./run_all_stage1.ps1 -IncludeGpu
 
 | Script | Topic | Expected Output |
 |---|---|---|
-| `topic01_supervised_learning.py` | Supervised Learning | accuracy ~0.97–0.98, precision ~0.97–0.98, recall ~0.97–0.99, F1 ~0.97–0.98, confusion matrix 2×2 |
+| `topic01_supervised_learning.py` | Supervised Learning | accuracy/precision/recall/F1 printed, plus probability-quality metrics (Brier score, confidence), confusion matrix 2×2 |
 | `topic02_unsupervised_learning.py` | Unsupervised / Clustering | silhouette ~0.40–0.55, ARI ~0.55–0.75, cluster counts near [50, 50, 50] |
-| `topic03_features_vs_target.py` | Features vs Target | meaningful accuracy ~0.97, shuffled accuracy ~0.50–0.55 |
-| `topic04_cost_function.py` | Loss Functions | MSE manual = MSE sklearn = 0.375; LogLoss manual = LogLoss sklearn ≈ 0.254 |
-| `topic05_gradient_descent.py` | Gradient Descent | learned w ≈ 3.0, learned b ≈ 5.0; initial loss ~200–400, final loss ~4–6; loss curve PNG saved |
+| `topic03_features_vs_target.py` | Features vs Target | meaningful accuracy >> shuffled accuracy; feature-importance figure saved (`results/topic03_feature_importance.png`) |
+| `topic04_cost_function.py` | Loss Functions | MSE manual = MSE sklearn; LogLoss manual = LogLoss sklearn; vectorized MSE is much faster than loop MSE |
+| `topic05_gradient_descent.py` | Gradient Descent | learned w/b converge; loss drops strongly; saves loss curve and line-evolution plot (`results/topic05_regression_line_evolution.png`) |
 | `topic06_training_vs_testing.py` | Training vs Testing | train R² ≈ 1.0; test R² ≈ 0.10–0.25; wrong evaluation R² ≈ 1.0 |
 | `topic07_overfitting.py` | Overfitting | degree=1 has higher CV MSE, degree=4 much lower, degree=15 extremely high/unstable CV MSE (overfit) |
-| `topic08_bias_variance.py` | Bias-Variance | best depth often around 6–10; shallow depth: both errors high; deep depth: train low, validation worse |
-| `topic09_validation_set.py` | Validation Set | train ~341, val ~114, test ~114; best C in 0.1–1.0 range; final test accuracy ~0.95–0.98 |
-| `topic10_feature_engineering.py` | Feature Engineering | baseline and engineered R² both typically high (~0.90+); compare whether engineered features improve, stay similar, or degrade slightly |
-| `topic11_regularization.py` | Regularization | table with train/test accuracy per C value; best test at C=0.1–1.0; high C shows small gap growing |
-| `topic12_pytorch_cuda.py` | PyTorch + CUDA | torch version and cuda availability printed; autograd derivative shown; learned w near 2.5 and b near 1.0; CPU timing always printed; GPU timing printed if CUDA available |
+| `topic08_bias_variance.py` | Bias-Variance | depth sweep logs train/validation error; best depth in mid-range; deep depth increases variance |
+| `topic09_validation_set.py` | Validation Set | train/val/test split metrics plus 5-fold CV accuracy mean/std for robustness check |
+| `topic10_feature_engineering.py` | Feature Engineering | baseline vs engineered R² comparison plus negative/noise-feature impact |
+| `topic11_regularization.py` | Regularization | clear `C = 1/lambda` warning; train/test gap across C sweep; balanced C gives best generalization |
+| `topic12_pytorch_cuda.py` | PyTorch + CUDA | autograd demo, training convergence, CPU timing, and GPU VRAM/timing instrumentation when CUDA is available |
+
+### Per-Script Artifact Outputs
+
+Each stage-1 topic script now generates observable artifacts in `red-book/src/stage-1/results/`:
+
+- `topicXX_*.log` — timestamped run logs for console + file traceability
+- `topicXX_*_metrics.json` — structured metrics and run metadata
+- topic-specific figures (when applicable)
 
 ### Plot Output
 
-`topic05_gradient_descent.py` saves a PNG file (`topic05_loss_curve.png`) in the same directory. The plot should show loss curving downward from a high value and flattening near the bottom. If the curve does not decrease, the learning rate may be too large.
+`topic05_gradient_descent.py` saves:
+
+- `topic05_loss_curve.png` (script directory)
+- `results/topic05_regression_line_evolution.png`
+
+The loss curve should decrease and flatten. The line-evolution plot should show early lines far from the data trend and later lines moving closer to the final fit.
+
+`topic03_features_vs_target.py` also saves:
+
+- `results/topic03_feature_importance.png`
+
+Use this figure to identify which features dominate the classifier's decision.
 
 ### Reference Sources for Examples
 
@@ -429,12 +511,37 @@ pwsh -File ./run_all_stage1.ps1 -IncludeGpu
 Each module follows this template:
 - What it is (plain English)
 - Why it matters
+- Engineering parallel (software system equivalent)
 - Worked example (with data declaration)
 - Common beginner mistake + fix
 - Code snippet
+- Performance instrumentation note (time/memory/device where applicable)
 - Demonstration checklist
 - Quick check
 - When to use / when not to use (for algorithms)
+
+---
+
+### Engineering Parallel Map (Mandatory)
+
+| ML Concept | Engineering Parallel | Why this helps |
+|---|---|---|
+| Weights/parameters | Configuration state learned from data | You can reason about model state changes like config evolution |
+| Gradient descent | Iterative optimization loop | Same mental model as control loops with convergence criteria |
+| Loss function | Objective/error budget signal | Defines what the system is optimizing and what failures mean |
+| Training | Offline batch pipeline | Similar to build-time optimization before runtime |
+| Inference | Runtime execution path | Subject to latency/throughput/SLO constraints |
+| Overfitting | Environment-specific technical debt | Works in dev/test split, fails in production distribution |
+| Feature pipeline | Data contract + transform layer | Equivalent to pre-processing services in production systems |
+
+### Vectorization vs Python Loops (Architecture Shift)
+
+For AI workloads, Python loops are usually orchestration, not the compute target.
+
+- Loop-heavy Python code -> higher interpreter overhead
+- Vectorized tensor/array ops -> backend kernels + SIMD/GPU parallelism
+
+Rule of thumb: use Python loops for control flow, use vectorized operations for numerical compute.
 
 ---
 
@@ -459,25 +566,25 @@ Before writing any code, you need the correct mental model. Beginners who think 
 #### Worked Example
 
 ```
-Data: house examples
-Rows: 3
-Features: house_size (sq ft)
-Target: price ($)
+Data: 5-minute stock bars (CSV)
+Rows: 3 (toy illustration)
+Features: close, volume, high_low_range
+Target: next_5m_volatility
 
-| house_size | price  |
-|-----------|--------|
-| 1000      | 200000 |
-| 1500      | 300000 |
-| 2000      | 400000 |
+| close | volume | high_low_range | next_5m_volatility |
+|------:|-------:|---------------:|-------------------:|
+| 100.0 | 120000 | 0.0040         | 0.0032             |
+| 100.3 | 118500 | 0.0036         | 0.0028             |
+| 100.1 | 140200 | 0.0061         | 0.0049             |
 ```
 
-The computer sees these examples and discovers:
+The model learns a numeric mapping:
 
 ```
-price ≈ 200 × house_size
+volatility_hat = f(close, volume, range, ...)
 ```
 
-That learned relationship is the model. The model does not understand houses. It finds a pattern in numbers.
+Engineering parallel: this is a runtime estimator service. It does not "understand markets"; it approximates a mapping learned from historical data.
 
 #### Common Beginner Mistake
 
@@ -489,13 +596,13 @@ That learned relationship is the model. The model does not understand houses. It
 
 - [ ] Read the example above and explain the pattern in your own words
 - [ ] State one thing a model trained on this data could NOT reliably predict and why
-- [ ] State one way the training data could be misleading (e.g., all houses are in one city)
+- [ ] State one way the training data could be misleading (e.g., only calm market sessions and no high-volatility periods)
 
 #### Quick Check
 
-If a model predicts house prices using data from a single expensive city, what problem will it have on houses from a different city?
+If a model is trained only on low-volatility periods and then runs during a high-volatility market shock, what problem appears first?
 
-> Answer: It learned a pattern specific to that city's prices. It will likely overestimate or underestimate prices in a different city because the relationship between size and price differs.
+> Answer: Distribution shift (data drift). The learned pattern does not cover the new regime, so prediction error increases sharply.
 
 ---
 
@@ -655,20 +762,25 @@ Raw features do not always express the relationships a model needs. Feature engi
 #### Worked Example
 
 ```
-Data: Synthetic house dataset (numpy-generated)
-Rows: 300
-Raw features: area (sq ft), rooms (count), age (years)
-Target: price ($)
+Data: 5-minute stock bars (CSV)
+Rows: 2,000+
+Raw features: close, high, low, volume
+Target: next_5m_volatility
 Type: Regression
 ```
 
-Raw features: area=1200, rooms=3, age=20
+Example raw row:
+- close = 100.25
+- high = 100.60
+- low = 99.95
+- volume = 145000
 
 Derived features:
-- `area_per_room = area / rooms = 400` — captures spaciousness per room
-- `log_age = log(1 + 20) = 3.04` — compresses effect of very old buildings
+- `hl_range = (high - low) / close` — intrabar price dispersion
+- `log_volume = log1p(volume)` — compresses heavy-tailed volume values
+- `ret_1 = log(close_t / close_t-1)` — short-term return signal
 
-The model sees the same houses, but now has richer signal. R² improves from ~0.88 to ~0.95.
+The model sees the same market bars, but with more meaningful signal for volatility forecasting.
 
 #### Common Beginner Mistake
 
@@ -976,19 +1088,67 @@ LogLoss = -(1/n) × Σ [y × log(p) + (1-y) × log(1-p)]
 
 **Fix:** Regression problems → MSE or MAE. Binary classification → Log Loss or binary cross-entropy. Multi-class → categorical cross-entropy.
 
+#### Math-to-Code Bridge (Loss + Partial Derivatives)
+
+For linear regression:
+
+```
+y_hat = w*x + b
+```
+
+Think of this as a variable transformation:
+- `w` scales input contribution
+- `b` shifts the baseline
+
+MSE objective:
+
+```
+L = (1/n) * Σ (y_hat - y)^2
+```
+
+Partial derivatives:
+
+```
+dL/dw = (2/n) * Σ (y_hat - y) * x
+dL/db = (2/n) * Σ (y_hat - y)
+```
+
+These are the exact signals gradient descent uses to update parameters.
+
 #### Code Snippet
 
 ```python
 import numpy as np
 
-y_true = np.array([3.0, -0.5, 2.0, 7.0])
-y_pred = np.array([2.5,  0.0, 2.0, 8.0])
+# Linear-regression loss with explicit gradients.
+# This is the algorithm-level view of the math formulas above.
+def mse_and_gradients(x, y, w, b):
+    # Forward pass: y_hat = w*x + b
+    y_hat = w * x + b
 
-mse = np.mean((y_true - y_pred) ** 2)
-print("MSE:", mse)   # 0.8125
+    # Error vector for each sample.
+    error = y_hat - y
+    n = x.shape[0]
 
-mae = np.mean(np.abs(y_true - y_pred))
-print("MAE:", mae)   # 0.5
+    # Mean squared error objective.
+    mse = np.mean(error ** 2)
+
+    # Partial derivatives:
+    # dL/dw = (2/n) * sum(error * x)
+    # dL/db = (2/n) * sum(error)
+    dw = (2.0 / n) * np.sum(error * x)
+    db = (2.0 / n) * np.sum(error)
+    return mse, dw, db
+
+
+x = np.array([1.0, 2.0, 3.0, 4.0])
+y = np.array([3.0, 5.0, 7.0, 9.0])  # roughly y=2x+1
+w, b = 0.5, 0.0
+
+mse, dw, db = mse_and_gradients(x, y, w, b)
+print("mse:", round(mse, 4))
+print("dw :", round(dw, 4))
+print("db :", round(db, 4))
 ```
 
 #### Demonstration Checklist
@@ -1080,6 +1240,11 @@ A model's loss goes from 500 to 490 after 100 epochs. What does this suggest abo
 
 ### Module 10: Regularization
 
+#### Engineering Context
+
+Overfitting is the ML equivalent of technical debt in code: logic that works on known test data but fails in production conditions.
+Regularization is a control mechanism that reduces brittle, over-specialized parameter behavior.
+
 #### What It Is
 
 Regularization adds a penalty to the loss function for model complexity. It prevents the model from fitting the training data too closely.
@@ -1125,6 +1290,7 @@ The gap between train and test accuracy grows as regularization weakens (C incre
 #### Code Snippet
 
 ```python
+import numpy as np
 from sklearn.linear_model import LogisticRegression
 
 # L2 regularization (default), moderate strength
@@ -1135,6 +1301,14 @@ model_strong = LogisticRegression(C=0.01, penalty="l2")
 
 # L1 regularization (drives some weights to zero)
 model_l1 = LogisticRegression(C=1.0, penalty="l1", solver="liblinear")
+
+# Explicit regularized loss (engineering view):
+def loss_with_regularization(y_pred, y_true, weights, lambda_constant=0.01):
+    # Base prediction loss.
+    mse_loss = np.mean((y_pred - y_true) ** 2)
+    # Complexity penalty: discourages very large weights.
+    l2_penalty = lambda_constant * np.sum(weights ** 2)
+    return mse_loss + l2_penalty
 ```
 
 #### Demonstration Checklist
@@ -1160,6 +1334,11 @@ A logistic regression model has train accuracy = 0.99 and test accuracy = 0.84. 
 ---
 
 ### Module 11: Overfitting, Underfitting, Bias, Variance
+
+#### Engineering Context
+
+Overfitting behaves like hardcoded environment assumptions: perfect on development data, unstable in production traffic/distribution.
+Your job is not to maximize training score; your job is to maximize reliable generalization under realistic data drift.
 
 #### What It Is
 
@@ -1537,7 +1716,7 @@ If `torch.cuda.is_available()` is `True`, but your code still runs on CPU, what 
 
 > The model accidentally sees future or hidden information.
 
-**Example:** Predict house prices using a feature computed after the sale.
+**Example:** Predict next 5-minute volatility using a feature that is computed from `close_{t+1}` (future information).
 
 **Why it is dangerous:** The model appears excellent during evaluation but fails completely in deployment.
 
@@ -1626,6 +1805,55 @@ test error UNEXPECTEDLY LOW (too good to be true)
            whether test data was accidentally included in training
 ```
 
+### AI Debugging Loop (Mandatory)
+
+Use this loop for every failed model run:
+
+1. **Identify** failure signal  
+   - metric drop, unstable loss, OOM, or obviously bad predictions
+2. **Classify** failure type  
+   - `data_drift`, `underfitting`, `overfitting`, `gradient_vanishing`, `runtime_resource`
+3. **Collect evidence**  
+   - train/test metrics, learning curves, gradient norms, memory usage, logs
+4. **Compare fixes**  
+   - define at least 2 options with tradeoffs
+5. **Apply one change**  
+   - only one controlled modification per rerun
+6. **Verify on same split/config**  
+   - rerun with fixed seed and same evaluation set
+7. **Decide**  
+   - `promote`, `hold`, or `rollback`
+
+### Required Failure Checks
+
+- **Data drift check:** compare feature distribution between train/test windows.
+- **Underfitting check:** both train and test performance are poor.
+- **Overfitting check:** train performance high, test drops significantly.
+- **Gradient vanishing check (deep models):** gradient norms approach zero across steps/layers.
+- **Resource check:** peak memory and runtime spikes indicate operational bottlenecks.
+
+Example gradient/compute debug snippet:
+
+```python
+import time
+import torch
+
+start = time.perf_counter()
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+if torch.cuda.is_available():
+    torch.cuda.reset_peak_memory_stats()
+
+# ... training step(s) ...
+
+elapsed_ms = (time.perf_counter() - start) * 1000
+print("exec_time_ms:", round(elapsed_ms, 2))
+
+if torch.cuda.is_available():
+    peak_mb = torch.cuda.max_memory_allocated() / (1024 ** 2)
+    print("peak_vram_mb:", round(peak_mb, 2))
+```
+
 ### Beginner Debugging Checklist
 
 If performance is poor, check:
@@ -1663,6 +1891,8 @@ All must pass before moving to Stage 2:
 project/
   README.md
   requirements.txt
+  data/
+    stock_5m_sample.csv
   src/
     train.py
     evaluate.py
@@ -1697,20 +1927,21 @@ python src/evaluate.py
 **Step 1 — Get Data**
 
 ```
-Data: California Housing (sklearn built-in, fetch_california_housing)
-Rows: 20,640
-Features: MedInc (median income), HouseAge, AveRooms, AveBedrms,
-          Population, AveOccup, Latitude, Longitude
-Target: MedHouseVal (median house value in $100k units)
+Data: stock_5m_sample.csv (local CSV)
+Rows: 5-minute bars for one symbol (example starter set)
+Features: timestamp, open, high, low, close, volume
+Target: next_5m_volatility = abs(log(close_t+1 / close_t))
 Type: Regression
+Provided sample path in this repository: red-book/src/stage-1/data/stock_5m_sample.csv
 ```
 
 ```python
-from sklearn.datasets import fetch_california_housing
 import pandas as pd
+import numpy as np
 
-data = fetch_california_housing(as_frame=True)
-df = data.frame
+df = pd.read_csv("data/stock_5m_sample.csv")
+df["timestamp"] = pd.to_datetime(df["timestamp"])
+df = df.sort_values("timestamp").reset_index(drop=True)
 ```
 
 **Step 2 — Inspect**
@@ -1727,8 +1958,18 @@ print(df.isna().sum())
 **Step 3 — Define X and y**
 
 ```python
-X = df.drop(columns=["MedHouseVal"])
-y = df["MedHouseVal"]
+# Feature engineering for short-horizon volatility prediction.
+df["ret_1"] = np.log(df["close"] / df["close"].shift(1))
+df["hl_range"] = (df["high"] - df["low"]) / df["close"]
+df["log_volume"] = np.log1p(df["volume"])
+
+# Target at time t: next 5-minute absolute return magnitude.
+df["target_vol_5m"] = np.log(df["close"].shift(-1) / df["close"]).abs()
+
+df = df.dropna().reset_index(drop=True)
+
+X = df[["ret_1", "hl_range", "log_volume"]]
+y = df["target_vol_5m"]
 ```
 
 *Why this step matters: Separate inputs from output before any splitting or preprocessing.*
@@ -1738,9 +1979,10 @@ y = df["MedHouseVal"]
 ```python
 from sklearn.model_selection import train_test_split
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+# Time-series rule: do not random shuffle; preserve chronology.
+split_idx = int(len(df) * 0.8)
+X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
+y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
 ```
 
 *Why this step matters: Lock away the test set before any preprocessing.*
@@ -1749,15 +1991,25 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 ```python
 from sklearn.linear_model import LinearRegression
+import time
+import torch
 
 model = LinearRegression()
+start = time.perf_counter()
 model.fit(X_train, y_train)
+train_time_ms = (time.perf_counter() - start) * 1000
+print("train_time_ms:", round(train_time_ms, 2))
+
+print("cuda_available:", torch.cuda.is_available())
+if torch.cuda.is_available():
+    print("gpu_name:", torch.cuda.get_device_name(0))
 ```
 
 **Step 6 — Evaluate**
 
 ```python
 from sklearn.metrics import mean_squared_error, r2_score
+import numpy as np
 
 train_preds = model.predict(X_train)
 test_preds = model.predict(X_test)
@@ -1766,9 +2018,10 @@ print("train MSE:", round(mean_squared_error(y_train, train_preds), 4))
 print("test  MSE:", round(mean_squared_error(y_test, test_preds), 4))
 print("train R2 :", round(r2_score(y_train, train_preds), 4))
 print("test  R2 :", round(r2_score(y_test, test_preds), 4))
+print("test MAE :", round(np.mean(np.abs(y_test - test_preds)), 6))
 ```
 
-Expected test R² range for linear regression: ~0.60–0.65
+Expected: stable reproducible metrics (exact values depend on sample window). Focus on leakage-safe setup and consistent before/after deltas.
 
 **Step 7 — Compare a Second Model**
 
@@ -1781,15 +2034,16 @@ tree_test_r2 = r2_score(y_test, tree.predict(X_test))
 print("Decision Tree test R2:", round(tree_test_r2, 4))
 ```
 
-Expected test R² range for depth-5 tree: ~0.65–0.72
+Expected: model comparison table with at least one linear baseline and one nonlinear baseline.
 
 ### Required Outputs
 
 - `results/metrics.json` — train and test metrics for each model
+- `results/perf_metrics.json` — execution time, memory, device info
 - `results/figures/` — at least one visualization (predicted vs actual, or residual plot)
 - Short written error analysis: where does the model make the largest errors?
 - Feature summary: which features are most correlated with the target?
-- Model comparison table: model name, train R², test R²
+- Model comparison table: model name, train R², test R², train_time_ms, peak_memory_mb, device
 
 ### Deliverables
 
@@ -1809,12 +2063,12 @@ Expected test R² range for depth-5 tree: ~0.65–0.72
 **Experiment 2 — Remove some features**
 
 - Purpose: Observe how feature removal affects model quality.
-- Try removing: Latitude and Longitude.
+- Try removing: `hl_range` and compare degradation.
 - Lesson: Some features carry more signal than others.
 
 **Experiment 3 — Add an engineered feature**
 
-- Create `rooms_per_household = AveRooms / AveOccup`
+- Create `range_x_volume = hl_range * log_volume`
 - Compare test R² before and after.
 - Lesson: Derived features can improve performance without changing the model.
 
@@ -1826,7 +2080,7 @@ rf = RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42)
 rf.fit(X_train, y_train)
 ```
 
-Expected test R²: ~0.78–0.83
+Expected: often stronger than shallow tree on nonlinear effects, but verify with leakage-safe split.
 
 Lesson: Ensemble models often outperform single trees on tabular data.
 
@@ -1897,7 +2151,7 @@ Lesson: Ensemble models often outperform single trees on tabular data.
 
 4. Unsupervised learning means training a model on unlabeled data so it can discover hidden patterns, groups, or structure without correct answers.
 
-5. Regression predicts a continuous number (e.g., house price). Classification predicts a category or label (e.g., spam/not spam).
+5. Regression predicts a continuous number (e.g., next 5-minute volatility). Classification predicts a category or label (e.g., spam/not spam).
 
 6. Features are the input variables used by the model to make predictions. They describe each example in the dataset.
 

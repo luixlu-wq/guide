@@ -16,6 +16,9 @@ pip install -r requirements.txt
 pip install -r requirements-gpu.txt
 ```
 
+`requirements-gpu.txt` is pinned to the PyTorch CUDA wheel index (`cu121`).
+If your local CUDA/PyTorch combo is different, update the index URL accordingly.
+
 Verify PyTorch/CUDA:
 
 ```bash
@@ -68,9 +71,33 @@ python topic12_pytorch_cuda.py
 - `topic11_regularization.py`: regularization tradeoffs
 - `topic12_pytorch_cuda.py`: tensors, autograd, device placement, CPU/GPU timing
 
+## Engineering Artifacts
+
+Each script now writes:
+
+- console + file logs: `results/topicXX_*.log`
+- structured metrics: `results/topicXX_*_metrics.json`
+- topic-specific figures (where applicable), for example:
+  - `results/topic03_feature_importance.png`
+  - `results/topic05_regression_line_evolution.png`
+
+Shared helpers are in `common/`:
+
+- `common/runtime.py`: logging, JSON artifact writing, hardware metadata
+- `common/ml_utils.py`: reusable data split and baseline model builders
+
 ## Dataset Explanations
 
 All datasets are built-in `scikit-learn` datasets or synthetic data generated in code.
+The Stage 1 project runbook in Chapter 1 also uses a local finance CSV:
+
+### `data/stock_5m_sample.csv` (used by Stage 1 project runbook)
+
+- Task type: regression
+- Structure: OHLCV bars at 5-minute granularity
+- Columns: `timestamp, open, high, low, close, volume, symbol`
+- Suggested target: `next_5m_volatility = abs(log(close_t+1 / close_t))`
+- Why used here: aligns the Stage 1 pipeline with realistic trading-system style tabular workflows
 
 ### `load_breast_cancer` (used in `topic01`, `topic03`, `topic09`, `topic11`)
 

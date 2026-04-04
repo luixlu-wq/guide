@@ -1,0 +1,6 @@
+2026-04-04 13:05:49,569 | INFO | correct_evaluation train_r2=1.0000 test_r2=0.0607 test_mse=4976.7978
+2026-04-04 13:05:49,569 | INFO | wrong_evaluation_same_data_r2=1.0000
+2026-04-04 13:05:49,570 | INFO | artifact_saved=C:\Users\luixj\AI\red-book\src\stage-1\results\topic06_training_vs_testing_metrics.json
+2026-04-04 13:06:34,767 | INFO | correct_evaluation train_r2=1.0000 test_r2=0.0607 test_mse=4976.7978
+2026-04-04 13:06:34,767 | INFO | wrong_evaluation_same_data_r2=1.0000
+2026-04-04 13:06:34,769 | INFO | artifact_saved=C:\Users\luixj\AI\red-book\src\stage-1\results\topic06_training_vs_testing_metrics.json

@@ -1,0 +1,8 @@
+2026-04-04 13:05:50,895 | INFO | degree= 1 cv_mse_mean=0.4080 cv_mse_std=0.2629
+2026-04-04 13:05:50,900 | INFO | degree= 4 cv_mse_mean=0.0693 cv_mse_std=0.0860
+2026-04-04 13:05:50,905 | INFO | degree=15 cv_mse_mean=210867866.0089 cv_mse_std=270078652.6674
+2026-04-04 13:05:50,906 | INFO | artifact_saved=C:\Users\luixj\AI\red-book\src\stage-1\results\topic07_overfitting_metrics.json
+2026-04-04 13:06:36,018 | INFO | degree= 1 cv_mse_mean=0.4080 cv_mse_std=0.2629
+2026-04-04 13:06:36,023 | INFO | degree= 4 cv_mse_mean=0.0693 cv_mse_std=0.0860
+2026-04-04 13:06:36,028 | INFO | degree=15 cv_mse_mean=210867866.0089 cv_mse_std=270078652.6674
+2026-04-04 13:06:36,029 | INFO | artifact_saved=C:\Users\luixj\AI\red-book\src\stage-1\results\topic07_overfitting_metrics.json

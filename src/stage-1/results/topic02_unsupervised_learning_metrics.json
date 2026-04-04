@@ -1,0 +1,18 @@
+{
+  "timestamp_utc": "2026-04-04T17:06:29.866711+00:00",
+  "script": "topic02_unsupervised_learning",
+  "dataset": "iris",
+  "input_rows_or_samples": 150,
+  "quality_metric_name": "silhouette_score",
+  "quality_metric_value": 0.45994823920518635,
+  "metrics": {
+    "silhouette_score": 0.45994823920518635,
+    "adjusted_rand_index": 0.6201351808870379,
+    "cluster_counts": [
+      53,
+      50,
+      47
+    ]
+  },
+  "decision_note": "baseline unsupervised clustering run"
+}

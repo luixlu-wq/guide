@@ -48,6 +48,11 @@ These requirements come directly from user instructions and must remain in scope
 
 - Key request: for each chapter topic, list industry-project pain points, root causes, and practical resolution strategies, and provide related lab practice examples so learners can understand and operate solutions more easily.
 
+- Senior guardrail request: add an "Engineering Parallel" requirement so every ML concept is mapped to a software-engineering equivalent.
+- Senior guardrail request: add hardware-aware guidance for a 32GB VRAM GPU, including VRAM budgeting and precision strategy (FP16/BF16/INT8).
+- Senior guardrail request: change "runnable code" requirement to "performance-instrumented code" with timing and memory metrics.
+- Senior guardrail request: add an explicit "AI debugging loop" requirement (data drift, underfitting, gradient vanishing, verify-fix cycle).
+
 This section is a scope guard: future edits should not remove these requirements.
 
 ---
@@ -582,6 +587,18 @@ Target: MedHouseVal (median house value in $100k units)
 Type: Regression
 ```
 
+Additional canonical Stage 1 example (finance-oriented):
+
+```
+Data: stock_5m_sample.csv (local file: red-book/src/stage-1/data/stock_5m_sample.csv)
+Rows: 5-minute bars for one symbol
+Features: timestamp, open, high, low, close, volume
+Target: next_5m_volatility = abs(log(close_t+1 / close_t))
+Type: Regression
+```
+
+For handbook examples and project runbook, prioritize the stock-volatility example as the primary operational dataset, while keeping California Housing as an optional comparison example.
+
 This block is required for every worked example, project step, and demonstration task.
 Synthetic data (e.g., `np.random`) must still declare shape, range, and purpose.
 
@@ -683,6 +700,105 @@ P1 (should include):
 
 
 
+---
+
+## 16) Senior Developer Guardrails (New)
+
+This section upgrades Stage 1 from beginner-only content to beginner+engineering-ready content.
+
+### A. Engineering Parallel Requirement (Mandatory)
+
+For every concept module, add an "Engineering Parallel" block with this format:
+
+```
+ML Concept:
+Software Engineering Parallel:
+Why this mapping matters in production:
+What to measure:
+```
+
+Minimum required mappings:
+
+- Model parameters (weights/bias) -> versioned configuration state
+- Gradient descent -> iterative optimization loop with convergence checks
+- Loss function -> objective/error budget signal
+- Training loop -> batch job pipeline with checkpointing
+- Inference -> runtime execution path under latency/throughput constraints
+- Overfitting -> poor generalization/regression outside test fixtures
+- Feature engineering -> data contract + transformation layer
+- Evaluation metrics -> service-level quality KPIs
+
+### B. Hardware-Aware Requirement for 32GB VRAM (Mandatory)
+
+Stage 1 must include practical GPU operation guidance, not only conceptual GPU text.
+
+Required additions:
+
+- VRAM budget planning:
+  - model size estimate
+  - activation/batch contribution
+  - safety headroom policy
+- Precision strategy:
+  - when to use FP32
+  - when to use FP16/BF16
+  - when INT8 is appropriate (inference-focused)
+- OOM recovery checklist:
+  - reduce batch size
+  - gradient accumulation
+  - mixed precision enable/disable
+  - checkpointing and memory cleanup (`torch.cuda.empty_cache()`)
+- Runtime instrumentation:
+  - record `max_memory_allocated`, `max_memory_reserved`
+  - report CPU fallback behavior when CUDA is unavailable
+
+### C. Performance-Instrumented Code Requirement (Mandatory)
+
+Update success criteria from "code runs" to "code runs and reports efficiency metrics."
+
+Every runnable script must log:
+
+- wall-clock execution time
+- memory usage (GPU where applicable, otherwise CPU memory estimate)
+- input size and batch size
+- one quality metric relevant to the task
+
+Recommended output schema extension:
+
+- `run_id`
+- `script`
+- `input_rows_or_samples`
+- `batch_size`
+- `exec_time_ms`
+- `peak_memory_mb`
+- `quality_metric_name`
+- `quality_metric_value`
+- `device`
+- `decision_note`
+
+### D. AI Debugging Loop Requirement (Mandatory)
+
+Add a dedicated section and lab checklist for model-debugging workflow:
+
+1. Identify failure signal (metric drop, unstable loss, OOM, bad outputs)
+2. Classify failure type (`data_drift`, `underfitting`, `overfitting`, `gradient_vanishing`, `runtime_resource`)
+3. Collect evidence (metrics, plots, logs, parameter/loss curves)
+4. Compare at least two fixes with tradeoffs
+5. Apply one change at a time
+6. Rerun same split/config
+7. Record before/after delta and final decision (`promote` / `hold` / `rollback`)
+
+Mandatory debug checks to include in Stage 1 examples:
+
+- Data drift check (distribution shift between train/test)
+- Underfitting check (high train and test error)
+- Gradient vanishing check (near-zero gradients across layers/steps)
+- Resource bottleneck check (CPU/GPU memory and runtime hotspots)
+
+Acceptance gate:
+
+- Stage 1 is not complete unless at least one debugging cycle is documented end-to-end with evidence artifacts.
+
+
 
 ---
 
@@ -771,6 +887,44 @@ If a plan already uses another path, keep it and add a path mapping note in stag
 ## Global Key Request Addendum (2026-04-04)
 
 - Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
+
+## Gemini Review Integration Addendum (2026-04-04, Additive-Only)
+
+This addendum captures review feedback and is additive only.
+
+### A) Hardware and Compute Layer (Mandatory in Chapter 1)
+
+- Keep `Module 0.5: The GPU as a Coprocessor`.
+- Explicitly teach Python orchestration vs backend C++/CUDA kernels.
+- Explicitly teach Host (CPU/RAM) to Device (GPU/VRAM) data movement and its performance impact.
+- Keep a mandatory CUDA preflight snippet in all PyTorch-based scripts.
+
+### B) Math Black-Box to Algorithm Design Bridge
+
+- Keep explicit formula-to-code mapping for linear regression:
+  - `y_hat = w*x + b`
+  - MSE objective
+  - partial derivatives (`dL/dw`, `dL/db`)
+- Keep at least one detailed, commented implementation function (for example `mse_and_gradients`) to connect theory and implementation.
+- Keep regularization as a concrete code-level loss extension (`base_loss + penalty`).
+
+### C) Engineering Persona Shift
+
+- Maintain chapter tone as: software engineers transitioning to AI systems.
+- Keep architecture-level guidance:
+  - vectorization over Python loops for numerical compute
+  - SIMD/GPU execution reasoning
+  - objective/metric-driven debugging and verification
+
+### D) Canonical Data and Relevance
+
+- Use stock/market tabular data as the default operational example in Chapter 1.
+- Keep direct ties to realistic engineering goals (forecasting-oriented targets, temporal split discipline, leakage prevention on future features).
+
+### E) Professional Resource Standard
+
+- Keep Andrej Karpathy "Zero to Hero" and fast.ai in the recommended track.
+- Prefer official docs and high-signal technical resources over generic summary blogs.
 
 
 

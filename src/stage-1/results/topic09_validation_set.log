@@ -1,0 +1,22 @@
+2026-04-04 13:05:53,755 | INFO | train_size=341 validation_size=114 test_size=114
+2026-04-04 13:05:53,758 | INFO | C=  0.001 val_accuracy=0.8509
+2026-04-04 13:05:53,760 | INFO | C=  0.010 val_accuracy=0.9386
+2026-04-04 13:05:53,762 | INFO | C=  0.100 val_accuracy=0.9737
+2026-04-04 13:05:53,766 | INFO | C=  1.000 val_accuracy=0.9912
+2026-04-04 13:05:53,770 | INFO | C= 10.000 val_accuracy=0.9649
+2026-04-04 13:05:53,775 | INFO | C=100.000 val_accuracy=0.9649
+2026-04-04 13:05:53,775 | INFO | best_C_on_validation=1.000 val_accuracy=0.9912
+2026-04-04 13:05:53,775 | INFO | final_test_accuracy=0.9825
+2026-04-04 13:05:53,792 | INFO | cross_val_accuracy_mean=0.9802 std=0.0128 (5-fold on train+val)
+2026-04-04 13:05:53,794 | INFO | artifact_saved=C:\Users\luixj\AI\red-book\src\stage-1\results\topic09_validation_set_metrics.json
+2026-04-04 13:06:38,879 | INFO | train_size=341 validation_size=114 test_size=114
+2026-04-04 13:06:38,882 | INFO | C=  0.001 val_accuracy=0.8509
+2026-04-04 13:06:38,884 | INFO | C=  0.010 val_accuracy=0.9386
+2026-04-04 13:06:38,886 | INFO | C=  0.100 val_accuracy=0.9737
+2026-04-04 13:06:38,889 | INFO | C=  1.000 val_accuracy=0.9912
+2026-04-04 13:06:38,893 | INFO | C= 10.000 val_accuracy=0.9649
+2026-04-04 13:06:38,898 | INFO | C=100.000 val_accuracy=0.9649
+2026-04-04 13:06:38,900 | INFO | best_C_on_validation=1.000 val_accuracy=0.9912
+2026-04-04 13:06:38,900 | INFO | final_test_accuracy=0.9825
+2026-04-04 13:06:38,914 | INFO | cross_val_accuracy_mean=0.9802 std=0.0128 (5-fold on train+val)
+2026-04-04 13:06:38,915 | INFO | artifact_saved=C:\Users\luixj\AI\red-book\src\stage-1\results\topic09_validation_set_metrics.json

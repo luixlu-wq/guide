@@ -1,0 +1,8 @@
+2026-04-04 13:05:46,172 | INFO | accuracy_meaningful_features=0.9825
+2026-04-04 13:05:46,172 | INFO | accuracy_shuffled_features=0.6053
+2026-04-04 13:05:46,172 | INFO | feature_importance_plot=C:\Users\luixj\AI\red-book\src\stage-1\results\topic03_feature_importance.png
+2026-04-04 13:05:46,172 | INFO | artifact_saved=C:\Users\luixj\AI\red-book\src\stage-1\results\topic03_features_vs_target_metrics.json
+2026-04-04 13:06:31,483 | INFO | accuracy_meaningful_features=0.9825
+2026-04-04 13:06:31,483 | INFO | accuracy_shuffled_features=0.6053
+2026-04-04 13:06:31,483 | INFO | feature_importance_plot=C:\Users\luixj\AI\red-book\src\stage-1\results\topic03_feature_importance.png
+2026-04-04 13:06:31,484 | INFO | artifact_saved=C:\Users\luixj\AI\red-book\src\stage-1\results\topic03_features_vs_target_metrics.json

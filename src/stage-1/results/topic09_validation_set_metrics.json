@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "2026-04-04T17:06:38.914317+00:00",
+  "script": "topic09_validation_set",
+  "dataset": "breast_cancer",
+  "input_rows_or_samples": 569,
+  "quality_metric_name": "final_test_accuracy",
+  "quality_metric_value": 0.9824561403508771,
+  "metrics": {
+    "split_sizes": {
+      "train": 341,
+      "validation": 114,
+      "test": 114
+    },
+    "best_c": 1.0,
+    "best_validation_accuracy": 0.9912280701754386,
+    "final_test_accuracy": 0.9824561403508771,
+    "cross_val_accuracy_mean": 0.9802197802197803,
+    "cross_val_accuracy_std": 0.012815278889769896
+  },
+  "decision_note": "validation chooses hyperparameters; test is reserved for final report"
+}

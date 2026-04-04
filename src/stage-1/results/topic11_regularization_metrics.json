@@ -1,0 +1,63 @@
+{
+  "timestamp_utc": "2026-04-04T17:06:41.425006+00:00",
+  "script": "topic11_regularization",
+  "dataset": "breast_cancer",
+  "input_rows_or_samples": 569,
+  "quality_metric_name": "best_test_accuracy",
+  "quality_metric_value": 0.9824561403508771,
+  "metrics": {
+    "best_c": 1.0,
+    "regularization_sweep": [
+      {
+        "C": 0.001,
+        "train_accuracy": 0.8879120879120879,
+        "test_accuracy": 0.9298245614035088,
+        "train_test_gap": -0.04191247349142091,
+        "note": "strong_regularization_underfit_risk"
+      },
+      {
+        "C": 0.01,
+        "train_accuracy": 0.9560439560439561,
+        "test_accuracy": 0.9473684210526315,
+        "train_test_gap": 0.008675534991324563,
+        "note": "strong_regularization_underfit_risk"
+      },
+      {
+        "C": 0.1,
+        "train_accuracy": 0.9868131868131869,
+        "test_accuracy": 0.9736842105263158,
+        "train_test_gap": 0.013128976286871041,
+        "note": "balanced_range_candidate"
+      },
+      {
+        "C": 1.0,
+        "train_accuracy": 0.989010989010989,
+        "test_accuracy": 0.9824561403508771,
+        "train_test_gap": 0.006554848660111912,
+        "note": "balanced_range_candidate"
+      },
+      {
+        "C": 10.0,
+        "train_accuracy": 0.9912087912087912,
+        "test_accuracy": 0.9649122807017544,
+        "train_test_gap": 0.026296510507036852,
+        "note": "balanced_range_candidate"
+      },
+      {
+        "C": 100.0,
+        "train_accuracy": 0.9934065934065934,
+        "test_accuracy": 0.9473684210526315,
+        "train_test_gap": 0.046038172353961904,
+        "note": "weak_regularization_overfit_risk"
+      },
+      {
+        "C": 1000.0,
+        "train_accuracy": 0.9956043956043956,
+        "test_accuracy": 0.9298245614035088,
+        "train_test_gap": 0.06577983420088684,
+        "note": "weak_regularization_overfit_risk"
+      }
+    ]
+  },
+  "decision_note": "pick C in the generalization sweet spot, not based on train score alone"
+}
