@@ -1,0 +1,3 @@
+variant,hit_at_k,recall_at_k,mrr,grounded_rate,citation_coverage,abstention_rate
+baseline_dense,1.0,1.0,1.0,1.0,1.0,0.0
+qdrant_vector_db,1.0,1.0,1.0,1.0,1.0,0.0

@@ -1,0 +1,4 @@
+option_id,change,expected_gain,risk,decision
+A,Increase top-k only,potentially higher recall,higher prompt noise and cost,not selected
+B,Hybrid retrieval + reranking + stricter grounding,better relevance ranking and safer answers,extra compute/latency,selected
+C,Prompt-only tweaks without retrieval changes,faster iteration,does not fix retrieval-root-cause failures,not selected

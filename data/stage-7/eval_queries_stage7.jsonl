@@ -1,0 +1,11 @@
+{"query_id": "q001", "role": "employee", "query_text": "How should contractors access internal systems remotely?", "gold_chunk_ids": ["c001"]}
+{"query_id": "q002", "role": "employee", "query_text": "How often should passwords be rotated?", "gold_chunk_ids": ["c002", "c011"]}
+{"query_id": "q003", "role": "employee", "query_text": "What is the incident reporting time requirement?", "gold_chunk_ids": ["c003"]}
+{"query_id": "q004", "role": "employee", "query_text": "Can we send sensitive customer data via personal email?", "gold_chunk_ids": ["c004"]}
+{"query_id": "q005", "role": "finance", "query_text": "When is finance manager approval required for expenses?", "gold_chunk_ids": ["c005"]}
+{"query_id": "q006", "role": "hr", "query_text": "Do contractors receive paid vacation?", "gold_chunk_ids": ["c006"]}
+{"query_id": "q007", "role": "engineering", "query_text": "What are API reliability targets?", "gold_chunk_ids": ["c007"]}
+{"query_id": "q008", "role": "engineering", "query_text": "What steps happen during severe outage response?", "gold_chunk_ids": ["c008"]}
+{"query_id": "q009", "role": "security", "query_text": "Who can access security audit logs?", "gold_chunk_ids": ["c009"]}
+{"query_id": "q010", "role": "security", "query_text": "How should prompt injection patterns be handled?", "gold_chunk_ids": ["c010"]}
+{"query_id": "q011", "role": "engineering", "query_text": "How often should the knowledge index refresh?", "gold_chunk_ids": ["c012"]}

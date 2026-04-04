@@ -1,1015 +1,1096 @@
-# Stage 7 — RAG Systems
+﻿# Stage 7 - RAG Systems
 
-*(Week 13–14)*
+(Week 13-14)
 
-## Goal
+## 0) If This Chapter Feels Hard
 
-Understand Retrieval-Augmented Generation (RAG), the foundation of most real-world AI applications.
+Use this 3-pass learning strategy:
 
-You are learning:
+1. Pass 1 (Concept pass): read only `What it is` and `Why it matters` in each module.
+2. Pass 2 (Mechanics pass): run `simple` scripts first, then `intermediate`.
+3. Pass 3 (Reliability pass): run `advanced` scripts, failure drills, and lab outputs.
 
-- how to combine an LLM with a knowledge base
-- how retrieval works
-- how to ground LLM outputs with real data
-
-This stage is where you move from:
-
-> "I can ask an LLM questions"
-
-to:
-
-> "I can build a system that retrieves relevant knowledge first, then generates answers grounded in actual documents."
+Do not skip pass order. Stage 7 becomes easier when you learn pipeline order, not isolated concepts.
 
 ---
 
-## Quick Summary
+## 1) Learning Targets (Must Achieve)
 
-**RAG = LLM + External Knowledge**
+By the end of Stage 7, you must be able to:
 
-```
-user query
-↓
-retrieve relevant knowledge
-↓
-construct grounded prompt
-↓
-LLM generates answer
-↓
-return answer + citations
-```
-
-A beginner should finish this stage understanding:
-
-- why RAG is needed
-- what chunking is
-- what embeddings do
-- what a vector database is
-- how retrieval works
-- why retrieval quality often matters more than generation quality
-- how to build grounded prompts
-- how to debug RAG failures systematically
-
-### Tools
-
-- LangChain
-- LlamaIndex
-- FAISS
-- ChromaDB
+- build an end-to-end RAG pipeline with fixed data and fixed eval set
+- compare vector vs reranked vs hybrid retrieval with metric deltas
+- enforce grounded answers with citation policy
+- debug failures using retrieval logs and trace ids
+- run a full troubleshooting loop:
+  - identify problem class from evidence
+  - compare candidate fixes with tradeoffs
+  - verify selected fix with controlled before/after rerun
+- run one production-style operations drill:
+  - index freshness/re-ingestion
+  - permission filtering (ACL)
+  - latency/cost checks
+- explain where PyTorch/CUDA helps in RAG (local embedding/rerank acceleration)
 
 ---
 
-## Study Materials
+## 2) Prerequisites and Environment
 
-**LangChain Docs**
-https://python.langchain.com/docs/
+Minimum:
 
-**LlamaIndex Docs**
-https://docs.llamaindex.ai/
+- Python 3.10+
+- `pip install -r red-book/src/stage-7/requirements.txt`
+- CPU path works first; GPU path is optional and must support fallback
+
+Recommended optional:
+
+- `pip install -r red-book/src/stage-7/requirements-optional.txt`
+- CUDA-enabled PyTorch for local rerank acceleration
+- Local Qdrant vector DB (if installed on your machine)
+
+Local Qdrant check:
+
+1. Ensure service is running on `localhost:6333`.
+2. Open `http://localhost:6333/collections` in browser (or `curl`) and confirm response.
+3. Run:
+   - `python red-book/src/stage-7/topic02d_qdrant_local_index.py`
+   - `python red-book/src/stage-7/topic03d_qdrant_acl_search.py`
+
+If Qdrant is not running, all non-Qdrant scripts still work (offline fallback path).
+
+Run order:
+
+1. `red-book/src/stage-7/run_ladder_stage7.ps1`
+2. `red-book/src/stage-7/run_all_stage7.ps1`
 
 ---
 
-## Key Knowledge (Deep Understanding)
+## 3) RAG Architecture (Mental Model)
 
-### 1. Why RAG is Needed
+RAG is not one model. It is a pipeline.
 
-LLMs have limitations:
-
-- outdated knowledge
-- hallucination
-- no access to private data
-
-RAG solves this by **retrieving relevant information before generating an answer**.
-
-#### Beginner Explanation
-
-An LLM by itself answers from what it learned during training. That means it may:
-
-- not know recent updates
-- not know your private company documents
-- produce answers that sound correct but are unsupported
-
-RAG helps by giving the LLM actual source material at answer time.
-
-#### Simple Mental Model
-
-```
-Without RAG:  question → LLM memory → answer
-
-With RAG:     question → retrieve relevant docs → LLM reads docs → grounded answer
+```text
+query
+ -> retrieval preparation (embed + filters)
+ -> retrieve top-k chunks
+ -> rerank/hybrid merge (optional but high impact)
+ -> construct grounded prompt
+ -> generate answer with citations
+ -> evaluate and log metrics
 ```
 
-#### When RAG is Useful
+If answer quality is poor, debug in this order:
 
-RAG is especially useful when:
-
-- knowledge changes often
-- you need answers from private data
-- citations matter
-- factual grounding matters
-- you want enterprise Q&A
-- you want document-based assistants
-
-#### Important Algorithms / Mechanisms
-
-**A. Retrieval-Augmented Generation Loop** — The core system pattern.
-
-How it works:
-
-1. User asks a question
-2. System searches knowledge base
-3. Top relevant chunks are retrieved
-4. Retrieved text is sent to the LLM
-5. LLM answers from the retrieved context
-
-*Why important: This is the main architecture of modern grounded AI systems.*
-
----
-
-**B. Grounded Generation** — Generation constrained by retrieved context.
-
-*How it works: The prompt instructs the LLM to answer based on the provided documents.*
-
-*Why important: This reduces unsupported guessing.*
-
----
-
-**C. External Knowledge Injection** — Instead of depending only on model weights, inject current knowledge into the prompt.
-
-*Why important: This makes systems more updatable and useful for private knowledge bases.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Improves factual grounding | Retrieval can fail |
-| Gives access to private documents | Bad chunking can ruin answer quality |
-| Avoids retraining for every knowledge update | Generated answer can still hallucinate |
-| Supports citations and source traceability | More moving parts than prompt-only systems |
-
----
-
-### 2. Core Components of RAG
-
-| Component | Role |
-|---|---|
-| **Document Store** | Raw knowledge (PDFs, text, DB) |
-| **Chunking** | Split documents into smaller pieces |
-| **Embeddings** | Convert text → vector |
-| **Vector Database** | Store and search embeddings |
-| **Retriever** | Find most relevant chunks |
-| **LLM** | Generate final answer using retrieved data |
-
-#### Beginner Explanation
-
-A RAG system is not "just one model." It is a **pipeline made of multiple parts**.
-
-Each part has a job:
-
-- Document store keeps raw knowledge
-- Chunking splits long text into searchable units
-- Embeddings turn text into vectors
-- Vector database stores those vectors
-- Retriever finds relevant chunks
-- LLM writes the final answer
-
-> If any one of these steps is weak, the whole system can fail.
-
-#### Step-by-Step Mental Model
-
-1. **Collect knowledge** — Gather files: PDFs, notes, policy docs, reports, product docs, database text exports.
-2. **Extract text** — Convert files into clean text segments with metadata.
-3. **Chunk text** — Break documents into smaller pieces that can be retrieved well.
-4. **Embed chunks** — Turn each chunk into a vector representation.
-5. **Store vectors** — Save chunk vectors in a vector database.
-6. **Embed user query** — Turn the question into a vector too.
-7. **Retrieve relevant chunks** — Find chunks most similar to the query.
-8. **Build prompt** — Put retrieved chunks plus question into a grounded prompt.
-9. **Generate answer** — Ask the LLM to answer from the provided context.
-
-#### Important Algorithms / Mechanisms
-
-**A. ETL-Style Ingestion Pipeline** — Document processing is similar to data engineering.
-
-How it works: extract text → transform into chunks → load into vector store.
-
-*Why important: RAG quality starts with clean ingestion, not just the retriever.*
-
----
-
-**B. Embedding Indexing** — Every chunk is embedded and indexed for later search.
-
-*Why important: Without indexing, scalable semantic retrieval is not possible.*
-
----
-
-**C. Similarity Search** — The system compares query vector to chunk vectors.
-
-*Why important: This is how semantically relevant chunks are found.*
-
----
-
-**D. Prompt Assembly** — Retrieved chunks are formatted into the final LLM input.
-
-*Why important: Even good retrieval can fail if context is injected poorly.*
-
----
-
-### 3. Chunking (Critical)
-
-| Chunk Size | Problem |
-|---|---|
-| Too large | Irrelevant info, noisy prompt |
-| Too small | Missing context, incomplete answers |
-| Just right | Meaningful unit — small but complete |
-
-#### Beginner Explanation
-
-Chunking is one of the most important parts of RAG.
-
-A long document cannot be embedded and retrieved as one giant block, so you split it into smaller pieces called chunks.
-
-The chunk must be:
-
-- small enough to retrieve precisely
-- large enough to preserve meaning
-
-That balance is critical.
-
-#### Why Chunking Is So Important
-
-**If chunk is too big:**
-
-- retrieval may bring too much irrelevant information
-- prompt becomes noisy
-- answer quality drops
-
-**If chunk is too small:**
-
-- meaning gets broken apart
-- important context is lost
-- answer becomes incomplete
-
-> Chunking controls retrieval quality more than many beginners expect.
-
-#### Step-by-Step Chunking Logic
-
-1. **Start with raw extracted text** — Maybe a PDF page, note section, or document body.
-2. **Decide chunking strategy** — fixed-size, paragraph-based, section-based, or sentence-window.
-3. **Decide overlap** — Overlap helps preserve continuity across chunk boundaries.
-4. **Attach metadata** — Save file name, page, section, chunk ID.
-5. **Inspect actual chunks** — Always read samples to see whether they are meaningful.
-
-#### Important Algorithms / Mechanisms
-
-**A. Fixed-Size Chunking** — Split text by fixed character or token length.
-
-```
-chunk size = 500–800 characters
-overlap    = 50–100 characters
-```
-
-*Why important: Simple baseline and easy to implement.*
-
----
-
-**B. Sliding Window Chunking** — Chunks overlap so neighboring chunks share some content.
-
-*Why important: Prevents important context from being lost at boundaries.*
-
----
-
-**C. Semantic / Structure-Aware Chunking** — Split by headings, paragraphs, sections, or logical topic changes.
-
-*Why important: Usually better than blind splitting when document structure is meaningful.*
-
----
-
-**D. Token-Based Chunking** — Split by token count instead of character count.
-
-*Why important: More aligned with model limits and embedding behavior.*
-
-#### Strengths and Weaknesses
-
-| Good Chunking | Bad Chunking |
-|---|---|
-| Better retrieval precision | Missing answer pieces |
-| Better context completeness | Retrieving irrelevant text |
-| Better citation quality | Incomplete citations |
-| Lower prompt noise | Poor answer quality even with a good LLM |
-
----
-
-### 4. Embeddings
-
-Embedding maps text → vector space.
-
-**Key idea:** Similar meaning → close vectors.
-
-#### Beginner Explanation
-
-Embeddings turn text into numbers that preserve semantic similarity.
-
-- A chunk of text becomes a vector.
-- A user question also becomes a vector.
-- If the vectors are close together, the system assumes the chunk is relevant.
-
-That is the foundation of semantic retrieval.
-
-#### Simple Mental Model
-
-Stored chunks:
-
-```
-"Reset your company password using the portal"
-"Vacation policy for contractors"
-"Stock price trend summary for NVDA"
-```
-
-If the user asks: *"How do I change my password?"*
-
-The password-related chunk should be closer in embedding space than the vacation or stock chunk.
-
-#### Important Algorithms / Mechanisms
-
-**A. Dense Vector Representation** — Each chunk becomes a dense list of numbers.
-
-*Why important: This allows semantic similarity search, not just keyword matching.*
-
----
-
-**B. Embedding Model Inference** — An embedding model converts text into vectors.
-
-*How it works: Text is passed through a trained model that produces a numeric representation.*
-
-*Why important: The embedding model strongly affects retrieval quality.*
-
----
-
-**C. Cosine Similarity** — A common way to compare embeddings.
-
-*How it works: Measures the angle between two vectors.*
-
-*Why important: Useful for judging semantic closeness.*
-
----
-
-**D. Nearest Neighbor Search** — Find stored chunk vectors closest to the query vector.
-
-*Why important: This is the retrieval step used in many vector databases.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Captures meaning better than exact keyword match | Not perfect for exact factual matching |
-| Works well for semantic search | Can retrieve semantically similar but wrong chunks |
-| Foundation of modern RAG systems | Depends strongly on embedding model and chunk quality |
-
----
-
-### 5. Retrieval
-
-Retrieve **top-k** relevant chunks.
-
-> **Important: Retrieval quality determines answer quality.**
-
-#### Beginner Explanation
-
-Retrieval decides which chunks the LLM gets to read.
-
-> If retrieval is bad, the answer will be bad.
-
-Even a powerful LLM cannot answer correctly if it sees the wrong context. Retrieval is one of the **highest-leverage** parts of a RAG system.
-
-#### Step-by-Step Retrieval Flow
-
-1. **User asks a question** — e.g. "What is the contractor access policy?"
-2. **Convert question to embedding** — The same embedding method used for chunks is used for the query.
-3. **Compare query to stored vectors** — The retriever searches for similar chunks.
-4. **Return top-k chunks** — Maybe top 3, top 5, or top 10.
-5. **Pass them to prompt construction** — Now the LLM can use them.
-
-#### Important Algorithms / Mechanisms
-
-**A. Top-K Retrieval** — Return the k most similar chunks.
-
-*Why important: Simple baseline retrieval strategy.*
-
----
-
-**B. Similarity Search** — Search based on vector similarity.
-
-*Why important: Core engine of semantic retrieval.*
-
----
-
-**C. Metadata Filtering** — Restrict search by metadata (document type, department, date range).
-
-*Why important: Can drastically improve retrieval precision.*
-
----
-
-**D. Hybrid Retrieval** — Combine vector search with keyword or lexical search.
-
-*Why important: Helps when exact phrases, IDs, names, or specific terminology matter.*
-
----
-
-**E. Re-Ranking** — After initial retrieval, score candidates again with a stronger relevance model.
-
-*Why important: Often improves final retrieval quality.*
-
-#### Strengths and Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| Semantic search can find relevant chunks beyond exact keywords | Top-k may still miss the best chunk |
-| Flexible for natural-language queries | Irrelevant chunks may rank highly |
-| Supports scalable knowledge access | Retrieval failure is often silent unless inspected |
-
----
-
-### 6. Prompt Construction
-
-LLM prompt includes retrieved context and user question.
-
-```
-Answer based only on context:
-{documents}
-
-Question: {query}
-```
-
-#### Beginner Explanation
-
-After retrieval, the system must decide how to present the chunks to the LLM.
-
-Good prompt construction helps the model:
-
-- focus on evidence
-- avoid guessing
-- use the provided context correctly
-- cite sources
-- refuse when evidence is missing
-
-> Bad prompt construction can waste good retrieval.
-
-#### Step-by-Step Prompt Construction Logic
-
-1. **Gather top retrieved chunks** — These are your evidence candidates.
-2. **Format them clearly** — Include chunk text, source, and page/section if available.
-3. **Add system instructions** — Tell the model: answer only from context, cite sources, say "unknown" if context is insufficient.
-4. **Add the user question** — Put the user question after the context.
-5. **Keep prompt concise** — Too much context can dilute relevance.
-
-#### Important Algorithms / Mechanisms
-
-**A. Context Injection** — Insert retrieved chunks into the prompt.
-
-*Why important: The LLM can only use retrieved information if it is actually included well.*
-
----
-
-**B. Instruction Grounding** — Explicitly tell the model to answer only from the provided context.
-
-*Why important: Reduces unsupported answers.*
-
----
-
-**C. Citation Formatting** — Attach source identifiers to chunks.
-
-*Why important: Makes answers traceable and verifiable.*
-
----
-
-**D. Context Ordering** — Place the most relevant chunks first when possible.
-
-*Why important: Order can influence what the model focuses on.*
-
-#### Good Prompt Design Rules
-
-- Keep retrieved context organized
-- Label sources clearly
-- Tell the model what to do when evidence is missing
-- Do not overload the prompt with irrelevant chunks
-
----
-
-### 7. Grounding
-
-Ensure the answer is based on retrieved content.
-
-**Avoid:** hallucination and guessing.
-
-#### Beginner Explanation
-
-Grounding means the answer should come from **actual retrieved evidence**, not unsupported model invention.
-
-A grounded answer is more trustworthy because it is tied to a document, a page, a chunk, or a traceable source.
-
-#### What Grounding Looks Like
-
-| Grounded Answer | Ungrounded Answer |
-|---|---|
-| Cites relevant chunks | Adds facts not in the retrieved context |
-| Stays within evidence | Guesses details |
-| Says "not found" when needed | Invents citations |
-| | Mixes evidence with unsupported claims |
-
-#### Important Algorithms / Mechanisms
-
-**A. Evidence-Constrained Answering** — The model is instructed to answer only from retrieved evidence.
-
-*Why important: This is the core behavior RAG is trying to achieve.*
-
----
-
-**B. Citation-Based Grounding** — The answer references source metadata.
-
-*Why important: Supports trust and verification.*
-
----
-
-**C. Abstention / Refusal Logic** — If evidence is insufficient, the model should say so.
-
-*Why important: A safe RAG system must handle unknowns well.*
-
----
-
-**D. Grounded Answer Evaluation** — Check whether answer claims are actually supported by retrieved text.
-
-*Why important: Retrieval success alone is not enough; the final answer must also be evidence-aligned.*
-
----
-
-## Difficulty Points
-
-### 1. Bad chunking
-
-**Why it happens:** Beginners often use arbitrary chunk sizes without reading the actual chunks.
-
-**Why it is a problem:** Important meaning gets split badly, or chunks become too broad and noisy.
-
-**Fix strategy:** Inspect chunk samples manually, test several chunk sizes, use overlap, prefer logical boundaries when possible.
-
-### 2. Poor retrieval
-
-**Why it happens:** The embedding model, chunk quality, metadata setup, or search strategy may be weak.
-
-**Why it is a problem:** The LLM receives irrelevant or incomplete evidence.
-
-**Fix strategy:** Inspect top retrieved chunks, test different embedding models, try hybrid retrieval, add metadata filters, use re-ranking if needed.
-
-### 3. Not inspecting retrieved data
-
-**Why it happens:** People focus on the final answer only.
-
-**Why it is a problem:** They blame the LLM when the real issue is retrieval.
-
-**Fix strategy:** Always inspect retrieved chunk text, source metadata, ranking order, and relevance to the query.
-
-### 4. Blaming LLM
-
-**Why it happens:** The final answer is what users see, so it feels like the generation model must be the problem.
-
-**Why it is a problem:** You waste time changing prompts or models while the retriever is broken.
-
-**Fix strategy:** Debug in order:
-
-1. document ingestion
+1. data quality
 2. chunking
-3. embeddings
-4. retrieval
-5. prompt construction
-6. final generation
-
-### 5. Ignoring metadata
-
-**Why it happens:** Beginners focus on text only.
-
-**Why it is a problem:** Without metadata, citations are weak, debugging is harder, filtering becomes harder, and traceability is poor.
-
-**Fix strategy:** Always attach metadata — file name, page number, section, chunk ID, source type.
-
-### 6. Retrieving too many chunks
-
-**Why it happens:** It feels safer to send more context.
-
-**Why it is a problem:** Too much context can add noise, dilute the relevant answer, increase latency and cost, and confuse the model.
-
-**Fix strategy:** Start with a small top-k and test quality before increasing.
-
-### 7. No handling for unknown answers
-
-**Why it happens:** People want the assistant to always respond confidently.
-
-**Why it is a problem:** The model may invent unsupported answers when evidence is weak.
-
-**Fix strategy:** Add instructions and logic for "not found in provided documents," "insufficient evidence," and clarification requests if needed.
+3. retrieval/rerank
+4. prompt/context packing
+5. generation
 
 ---
 
-## RAG Workflow (Real World)
+## 3.1) Theory Foundation (Detailed, Mandatory)
 
-1. Collect documents
-2. Extract text
-3. Clean and normalize text
-4. Chunk documents
-5. Attach metadata
-6. Create embeddings
-7. Store in vector database
-8. Build retriever
-9. Retrieve top-k chunks
-10. Construct grounded prompt
-11. Generate answer
-12. Add citations
-13. Evaluate retrieval quality
-14. Evaluate answer grounding
-15. Improve chunking / retrieval / prompting
+This section explains why RAG works and why it fails.
 
-### Beginner Explanation of Each Step
+### A. Core RAG objective
 
-1. **Collect documents** — Gather raw knowledge sources.
-2. **Extract text** — Convert files into usable text.
-3. **Clean and normalize text** — Remove broken formatting and normalize whitespace if needed.
-4. **Chunk documents** — Create retrievable units.
-5. **Attach metadata** — Save source info for traceability.
-6. **Create embeddings** — Convert chunks into vectors.
-7. **Store in vector database** — Make chunk search scalable.
-8. **Build retriever** — Define how the system searches.
-9. **Retrieve top-k chunks** — Select evidence for the question.
-10. **Construct grounded prompt** — Format evidence for the LLM.
-11. **Generate answer** — Use the LLM to produce the response.
-12. **Add citations** — Show where the answer came from.
-13. **Evaluate retrieval quality** — Check whether the right chunks were found.
-14. **Evaluate answer grounding** — Check whether the answer matches the evidence.
-15. **Improve chunking / retrieval / prompting** — Tune the pipeline iteratively.
+RAG tries to maximize:
+
+1. Evidence relevance: retrieved chunks should contain true support for the query.
+2. Evidence sufficiency: enough coverage to answer fully.
+3. Evidence efficiency: minimal irrelevant context (noise).
+
+If relevance is low, generation quality cannot recover reliably.
+
+### B. Similarity and ranking theory
+
+Dense retrieval usually computes similarity between query vector `q` and chunk vector `d`.
+
+- cosine similarity:
+  - `sim(q, d) = (q · d) / (||q|| ||d||)`
+- higher similarity means closer semantic meaning
+
+But dense similarity is not enough for exact identifiers (IDs, names, policy codes), so hybrid retrieval adds lexical evidence.
+
+### C. Top-k tradeoff theory
+
+- Low `k` risk:
+  - miss necessary evidence (low recall)
+- High `k` risk:
+  - add irrelevant chunks (low precision, high prompt noise)
+
+So RAG tuning is a precision-recall tradeoff problem, not a single “best k” value.
+
+### D. Two-stage retrieval theory
+
+A common production architecture:
+
+1. Stage 1 retriever:
+  - fast candidate generation (high recall)
+2. Stage 2 reranker:
+  - slower, stronger relevance model (high precision)
+
+This is equivalent to:
+- retrieve broadly, then filter aggressively.
+
+### E. Error propagation theory (why small upstream issues become large)
+
+RAG is a chained system. Upstream errors multiply downstream:
+
+1. bad ingestion -> wrong chunks
+2. wrong chunks -> wrong retrieval
+3. wrong retrieval -> wrong context
+4. wrong context -> hallucinated or weak answer
+
+Practical implication:
+- fix earliest failing stage first; late-stage prompt tweaks often hide root causes.
+
+### F. Grounding and abstention theory
+
+A grounded answer requires evidence alignment:
+
+- each key claim should map to retrieved text
+- if evidence score is weak, system should abstain
+
+Safe RAG is not “always answer.” It is “answer when supported, abstain when unsupported.”
+
+### G. What this means for improvement work
+
+When RAG quality is poor:
+
+1. optimize retrieval quality before changing generator
+2. treat metrics as system signals, not isolated numbers
+3. require before/after verification on fixed eval set
 
 ---
 
-## Debugging Checklist for Stage 7
+## 3.2) Failure Mode Theory (Why RAG Breaks)
 
-If the RAG system gives poor answers, check:
+RAG quality failures usually come from one of four theory-level gaps:
 
-- [ ] Was text extraction correct?
-- [ ] Are chunks meaningful when read by humans?
-- [ ] Is metadata attached properly?
-- [ ] Are embeddings generated correctly?
-- [ ] Are retrieved chunks actually relevant?
-- [ ] Is top-k too low or too high?
-- [ ] Is prompt construction clear and grounded?
-- [ ] Is the model instructed not to guess?
-- [ ] Are citations linked to the correct chunks?
-- [ ] Is the answer supported by retrieved evidence?
-- [ ] Would hybrid retrieval help?
-- [ ] Is the problem retrieval, prompt, or generation?
+1. Representation gap:
+   - embedding space does not preserve task-relevant similarity
+   - symptom: semantically close but task-wrong chunks rank high
+2. Segmentation gap:
+   - chunk boundaries split evidence that should stay together
+   - symptom: each retrieved chunk has partial facts, answer becomes generic
+3. Ranking gap:
+   - candidate recall exists, but order is poor
+   - symptom: correct chunk appears in top-20 but not top-5 context window
+4. Grounding gap:
+   - generator follows language prior more than retrieved evidence
+   - symptom: fluent answer with weak or incorrect citations
+
+Theory-backed correction principle:
+
+1. first optimize recall at candidate stage
+2. then optimize precision via rerank/filter
+3. then tighten grounding policy
+4. only then tune generation style
+
+If you reverse this order, quality gains are unstable and usually non-transferable.
 
 ---
 
-## Example Code (Conceptual)
+## 4) Data and Schema Declaration Standard (Mandatory)
 
-```python
-from langchain.vectorstores import FAISS
+Every example and lab must declare:
+
+```text
+Data: <name and source>
+Documents: <count>
+Chunking: <strategy, size, overlap>
+Input schema: <fields and types>
+Output schema: <fields and types>
+Eval policy: <fixed queries or split rule>
+Type: <retrieval/generation/rerank/eval>
 ```
 
-**Beginner Explanation:**
-
-This line imports a vector store implementation. A vector store is where chunk embeddings are stored so the system can search them later.
-
-> Using a vector store library does **not** automatically create a good RAG system.
-
-Good RAG still depends on:
-
-- good document extraction
-- good chunking
-- good embedding choice
-- good retrieval tuning
-- good prompt grounding
-- good evaluation
-
-> The library is only infrastructure. The real quality comes from the full pipeline design.
+If synthetic data is used, also declare generation method and purpose.
 
 ---
 
-## Practice Project
+## 5) Example Complexity Scale (Used in All Modules)
 
-### Project: AI PDF Q&A System
+- Simple:
+  - one dataset
+  - one retriever
+  - no reranker
+- Intermediate:
+  - metadata filtering
+  - reranking
+  - query rewrite/expansion
+- Advanced:
+  - hybrid retrieval
+  - reliability regression gates
+  - production operations checks (freshness/ACL/SLO)
 
-**Goal:** Build a system that uploads documents, answers questions, and cites sources.
+Where complexity is:
 
-You are not only trying to make a chatbot. You are learning:
-
-- ingestion
-- chunking
-- retrieval
-- grounding
-- citation design
-- systematic debugging
-
-**Step 1 — Collect Documents**
-
-Use PDFs or text files. Save to `data/raw/`.
-
-*Why this step matters: You need a real document corpus to build the knowledge base.*
-
-*Start small: 3 to 10 documents, clearly different topics, documents you can read manually. This makes debugging easier.*
-
----
-
-**Step 2 — Extract Text**
-
-Store: file, page, text.
-
-*Why this step matters: RAG works on text, not raw PDF files.*
-
-*When you extract text, preserve source mapping — file name, page number, text content. That mapping is critical for citations later.*
+- data quality complexity
+- chunk boundary complexity
+- retrieval ranking complexity
+- prompt context packing complexity
+- evaluation complexity
+- operations complexity (cost/latency/freshness/security)
 
 ---
 
-**Step 3 — Chunk Text**
+## 6) Concept Modules
 
-Split into 500–800 characters with 50–100 overlap.
+## 6.1 Ingestion and Cleaning
 
-*Why this step matters: The system needs pieces small enough to retrieve, but large enough to keep meaning.*
+What it is:
+- Convert raw docs (PDF/text/wiki/export) into clean, traceable records.
 
-After chunking, print sample chunks and ask:
+Why it matters:
+- Broken extraction causes broken chunks, retrieval misses, and wrong citations.
 
-- does this chunk make sense by itself?
-- is it too long?
-- is it cut awkwardly?
-- is overlap enough?
+Input schema:
+- `doc_id: str`, `source: str`, `text: str`, `updated_at: str`, `acl_tags: list[str]`
 
----
+Output schema:
+- `chunk_id: str`, `doc_id: str`, `chunk_text: str`, `meta: dict`
 
-**Step 4 — Create Embeddings**
+Common mistake and fix:
+- Mistake: drop page/section metadata.
+- Fix: always keep source/page/section/chunk id and version.
 
-Convert chunks → vectors.
-
-*Why this step matters: This is how the system makes chunks searchable by meaning.*
-
-Each chunk gets turned into a vector by an embedding model. Later, user questions get embedded the same way. Then the system can compare them.
-
----
-
-**Step 5 — Store in Vector DB**
-
-Use FAISS or ChromaDB.
-
-*Why this step matters: The vector DB lets you search efficiently over many chunk embeddings. Without a vector store, semantic retrieval becomes slow and messy as the corpus grows.*
+When to use / not use:
+- Use always for document-grounded systems.
+- Do not skip ingestion validation even for small demos.
 
 ---
 
-**Step 6 — Build Retrieval**
+## 6.2 Chunking
 
+What it is:
+- Split docs into retrievable units.
+
+Why it matters:
+- Chunking quality strongly controls retrieval quality.
+
+Practical baseline:
+- token-aware chunk size: 300-700 tokens
+- overlap: 50-120 tokens
+- keep section headers when available
+
+Common mistake and fix:
+- Mistake: fixed-size split without manual chunk inspection.
+- Fix: inspect at least 20 random chunks before indexing.
+
+Checklist:
+- chunk has complete local meaning
+- no major sentence break in key facts
+- metadata points back to exact source
+
+---
+
+## 6.3 Embeddings and Indexing
+
+What it is:
+- Encode chunks and queries into vectors; store searchable index.
+
+Why it matters:
+- Good embedding-index pair improves recall and semantic matching.
+
+Core choices:
+- embedding model
+- index type
+- top-k and search params
+
+Vector DB implementation track (mandatory in this chapter):
+- baseline index path: local TF-IDF/array index (for concept clarity)
+- production-style path: local Qdrant collection with metadata payload and filters
+
+Qdrant workflow (operatable):
+1. Create collection with explicit vector size and cosine distance.
+2. Upsert points with payload fields: `chunk_id`, `source`, `section`, `acl_tag`, `updated_at`.
+3. Query top-k vectors with ACL filter.
+4. Compare retrieval metrics vs non-DB baseline.
+
+Common mistake and fix:
+- Mistake: changing prompt/model first when retrieval is weak.
+- Fix: measure retrieval metrics first (recall@k, hit@k, MRR).
+
+---
+
+## 6.4 Retrieval, Reranking, and Hybrid Search
+
+What it is:
+- Retrieval selects candidate chunks.
+- Reranker reorders candidates with stronger relevance signal.
+- Hybrid combines dense + lexical strengths.
+
+Why it matters:
+- Many RAG failures are retrieval failures, not generation failures.
+
+Decision guide:
+- start with dense top-k baseline
+- add metadata filters for domain restrictions
+- add reranker when top-k has many near-miss chunks
+- add hybrid when exact terms/ids are critical
+
+Common mistake and fix:
+- Mistake: using large top-k to hide poor ranking.
+- Fix: improve candidate quality before increasing k.
+
+---
+
+## 6.5 Prompt Construction, Grounding, and Citations
+
+What it is:
+- Build final context and instructions so answer is evidence-constrained.
+
+Why it matters:
+- Good retrieval can still fail if context packing is noisy.
+
+Minimum grounding policy:
+- answer only from provided evidence
+- cite source for each factual claim
+- abstain when evidence is insufficient
+
+Common mistake and fix:
+- Mistake: no abstention rule.
+- Fix: enforce "insufficient evidence" response path.
+
+---
+
+## 6.6 Evaluation and Regression Gates
+
+What it is:
+- Fixed eval set + repeated measurement after each controlled change.
+
+Why it matters:
+- Without fixed evaluation, you cannot tell if system improved.
+
+Required metrics:
+
+- retrieval:
+  - `hit@k`
+  - `recall@k`
+  - `MRR`
+  - `nDCG` (optional if available)
+- answer quality:
+  - correctness/usefulness score
+  - groundedness score
+  - citation coverage/precision
+- operations:
+  - latency p50/p95
+  - cost per query
+  - failure rate
+
+Metric definitions (operatable):
+
+1. `hit@k`:
+   - proportion of queries where at least one relevant chunk appears in top-k
+2. `recall@k`:
+   - relevant chunks retrieved in top-k / all relevant chunks
+3. `MRR`:
+   - mean of reciprocal rank of first relevant chunk (`1/rank`)
+4. groundedness:
+   - proportion of answer claims supported by cited evidence
+5. citation precision:
+   - proportion of citations that actually support mapped claims
+
+Minimum evaluation protocol:
+
+1. Use fixed eval set and stable labels.
+2. Compute all metrics for baseline.
+3. Apply one controlled change.
+4. Recompute on same eval set.
+5. Report absolute delta and percentage delta.
+
+Regression gate example:
+- block merge if `hit@5` drops > 3% or groundedness drops > 2%.
+
+---
+
+## 6.7 Production RAG Operations (Mandatory)
+
+This chapter includes mandatory production operations topics:
+
+- index freshness and re-ingestion policy
+- document-level ACL filtering
+- cost/latency/SLO controls
+- observability and incident response
+
+Minimum operations checks per run:
+
+- retrieval config version id
+- prompt version id
+- top-k scores and chosen chunks
+- latency and cost summary
+- citation ids in final output
+- failure class (if any)
+
+---
+
+## 6.8 PyTorch and CUDA in RAG (Mandatory)
+
+### Conceptual guide
+
+PyTorch/CUDA is not required for every RAG system, but it is highly useful when you run local models for:
+
+- embedding generation
+- reranking (cross-encoder or scoring model)
+- batched retrieval-side scoring
+
+How training/inference loop relates to RAG scoring:
+
+1. Move tensors to `cpu` or `cuda`.
+2. Forward pass computes relevance logits/scores.
+3. Loss compares predicted relevance vs labels (training path).
+4. Backward computes gradients (training path).
+5. Optimizer updates parameters (training path).
+
+In production inference path, usually step 3-5 are skipped (no training), but steps 1-2 still matter for fast reranking.
+
+### Device policy
+
+- Always detect GPU availability.
+- Always keep CPU fallback.
+- Log selected device in every run.
+
+Code moved to runnable examples:
+- `red-book/src/stage-7/topic00a_pytorch_cuda_rag_simple.py`
+- `red-book/src/stage-7/topic00_pytorch_cuda_rag_intermediate.py`
+
+Run:
+- `python red-book/src/stage-7/topic00a_pytorch_cuda_rag_simple.py`
+- `python red-book/src/stage-7/topic00_pytorch_cuda_rag_intermediate.py`
+
+Interpretation:
+- simple example shows device handling and scoring mechanics.
+- intermediate example shows how rerank models are trained and then used for ranking.
+
+---
+
+## 7) Stage 7 Script Mapping (`red-book/src/stage-7`)
+
+Core ladders (simple -> intermediate -> advanced):
+
+0. PyTorch/CUDA in RAG
+- `topic00a_pytorch_cuda_rag_simple.py`
+- `topic00_pytorch_cuda_rag_intermediate.py`
+- `topic00c_pytorch_cuda_rag_advanced.py`
+
+1. Ingestion and chunking
+- `topic01a_ingestion_chunking_simple.py`
+- `topic01_ingestion_chunking_intermediate.py`
+- `topic01c_chunk_quality_advanced.py`
+
+2. Embeddings and indexing
+- `topic02a_embeddings_index_simple.py`
+- `topic02_embeddings_index_intermediate.py`
+- `topic02c_index_diagnostics_advanced.py`
+- `topic02d_qdrant_local_index.py`
+
+3. Retrieval and reranking
+- `topic03a_retrieval_simple.py`
+- `topic03_retrieval_rerank_intermediate.py`
+- `topic03c_hybrid_retrieval_advanced.py`
+- `topic03d_qdrant_acl_search.py`
+
+4. Prompt and grounding
+- `topic04a_prompt_context_simple.py`
+- `topic04_grounding_intermediate.py`
+- `topic04c_citation_guardrails_advanced.py`
+
+5. Evaluation and regression
+- `topic05a_eval_basics_simple.py`
+- `topic05_eval_metrics_intermediate.py`
+- `topic05c_regression_suite_advanced.py`
+
+6. Production operations
+- `topic06a_index_freshness_simple.py`
+- `topic06_ops_cost_latency_intermediate.py`
+- `topic06c_acl_incident_advanced.py`
+
+7. Labs
+- `lab01_pdf_qa_rag.py`
+- `lab02_policy_assistant_rag.py`
+- `lab03_hybrid_retrieval_benchmark.py`
+- `lab04_enterprise_rag_operations.py`
+- `lab05_qdrant_end_to_end_rag.py` (local Qdrant track)
+- `lab06_project_baseline_to_production.py` (realistic project improvement track)
+
+Hard requirement:
+- all scripts must include very detailed functional comments
+- all scripts must print data/schema declarations
+- all scripts must print expected metrics and interpretation
+
+---
+
+## 8) Practice Labs (Clear and Operatable)
+
+Common execution protocol (all labs):
+
+1. Run environment check:
+   - `python --version`
+   - `python -c "import torch; print(torch.__version__)"` (optional GPU path)
+2. Print run metadata at script start:
+   - `dataset_version`, `eval_set_version`, `retrieval_config_version`, `prompt_version`
+3. Run baseline first, then one controlled improvement.
+4. Save all required output files exactly with required names.
+5. Write one conclusion paragraph:
+   - what changed
+   - which metric improved
+   - what tradeoff appeared
+
+## Lab 1: PDF Q&A RAG
+
+Goal:
+- answer from PDF corpus with citations.
+
+Required workflow:
+
+1. Parse at least 20 pages from one PDF source folder.
+2. Chunk with fixed settings:
+   - `chunk_size=500`, `chunk_overlap=80`
+3. Build baseline retriever and run fixed eval queries.
+4. Add one improvement:
+   - metadata filter OR reranker OR chunking change
+5. Rerun same eval queries and compare before/after.
+
+Required outputs:
+- `results/lab1_outputs.jsonl`
+- `results/lab1_retrieval_metrics.csv`
+- `results/lab1_grounding_audit.md`
+
+Acceptance checks:
+- each answer has at least 1 citation id
+- `hit@5 >= 0.70` on your fixed eval set
+- grounding audit records at least 10 manual checks
+
+## Lab 2: Policy Assistant RAG
+
+Goal:
+- retrieve policy chunks and generate rule-grounded answers.
+
+Required workflow:
+
+1. Create policy schema fields:
+   - `policy_id`, `effective_date`, `owner_team`, `acl_tag`
+2. Run baseline retrieval with no ACL filter (for comparison only).
+3. Run ACL-safe retrieval with explicit filter.
+4. Verify non-authorized documents are never returned.
+5. Add abstention path for unsupported questions.
+
+Required outputs:
+- `results/lab2_outputs.jsonl`
+- `results/lab2_policy_violations.csv`
+- `results/lab2_fix_log.md`
+
+Acceptance checks:
+- zero ACL leak in validation file
+- zero unsupported answers without abstention
+- all violation rows include root cause + fix id
+
+## Lab 3: Hybrid Retrieval Benchmark
+
+Goal:
+- compare vector vs lexical vs hybrid on fixed eval set.
+
+Required workflow:
+
+1. Freeze eval set with at least 50 labeled queries.
+2. Run dense-only retrieval and save metrics.
+3. Run lexical-only retrieval and save metrics.
+4. Run hybrid retrieval and save metrics.
+5. Add reranker on hybrid candidates and rerun.
+
+Required outputs:
+- `results/lab3_retrieval_comparison.csv`
+- `results/lab3_error_cases.md`
+- `results/lab3_before_after_summary.md`
+
+Acceptance checks:
+- include per-query winner (`dense`, `lexical`, `hybrid`, `hybrid+rerank`)
+- include at least 10 failure-case analyses
+- include metric deltas for `hit@k`, `MRR`, and latency
+
+## Lab 4: Enterprise RAG Operations Drill
+
+Goal:
+- run freshness update, ACL validation, and SLO checks.
+
+Required workflow:
+
+1. Simulate document updates:
+   - add 5 docs, modify 5 docs, delete 2 docs
+2. Run re-ingestion job and capture sync logs.
+3. Run ACL validation on multiple user roles.
+4. Run load test for latency p50/p95 and error rate.
+5. Create postmortem for one simulated incident.
+
+Required outputs:
+- `results/lab4_sync_log.md`
+- `results/lab4_acl_validation.csv`
+- `results/lab4_slo_report.csv`
+- `results/lab4_incident_postmortem.md`
+
+Acceptance checks:
+- sync log includes update timestamps and doc versions
+- ACL validation includes at least 3 roles
+- SLO report includes p50, p95, timeout rate, and cost per 100 queries
+
+## Lab 5: Qdrant End-to-End RAG
+
+Goal:
+- run baseline retrieval vs local Qdrant vector-DB retrieval, with ACL filter checks.
+
+Required workflow:
+
+1. Confirm local Qdrant is healthy (`localhost:6333`).
+2. Create collection with explicit vector settings.
+3. Upsert points with payload:
+   - `chunk_id`, `source`, `section`, `acl_tag`, `updated_at`
+4. Run baseline non-Qdrant path and save metrics.
+5. Run Qdrant path with ACL filter and save metrics.
+6. Compare quality and latency/cost.
+
+Required outputs:
+- `results/lab5_qdrant_outputs.jsonl`
+- `results/lab5_qdrant_metrics.csv`
+- `results/lab5_qdrant_acl_validation.csv`
+- `results/lab5_qdrant_runbook.md`
+
+Acceptance checks:
+- include collection config snapshot
+- include top-5 retrieval example with payload evidence
+- zero ACL leak in validation report
+
+## Lab 6: Realistic Project Improvement (Beginning -> Production)
+
+Goal:
+- improve a realistic RAG project from baseline to production readiness with evidence-based troubleshooting.
+
+Required workflow:
+
+1. Baseline phase:
+   - run baseline pipeline on fixed eval set
+   - collect metrics and top failure classes
+2. Diagnosis phase:
+   - choose top 3 failure classes
+   - write evidence for each class
+3. Solution comparison phase:
+   - define at least 2 candidate fixes per failure class
+   - estimate risk, expected impact, and implementation cost
+4. Controlled improvement phase:
+   - apply one fix at a time
+   - rerun same eval set after each fix
+5. Production readiness phase:
+   - add monitoring checks
+   - add rollback condition
+   - add incident response checklist
+
+Required outputs:
+- `results/lab6_project_baseline_outputs.jsonl`
+- `results/lab6_project_improved_outputs.jsonl`
+- `results/lab6_project_solution_options.csv`
+- `results/lab6_project_metrics_comparison.csv`
+- `results/lab6_project_verification_report.md`
+- `results/lab6_project_production_readiness.md`
+
+Lab rules:
+
+1. fixed dataset and fixed eval ids
+2. fixed prompt/retrieval version tags
+3. one controlled change per rerun
+4. explicit before/after metric deltas
+
+Required `lab6_project_solution_options.csv` columns:
+- `problem_class`
+- `option_name`
+- `change_scope`
+- `expected_quality_delta`
+- `expected_latency_delta`
+- `risk_level`
+- `chosen_flag`
+
+Required `lab6_project_verification_report.md` sections:
+- baseline summary
+- controlled changes
+- metric delta table
+- regression gate checks
+- final promote/hold/rollback decision
+
+---
+
+## 9) Industry Project Library Track (Mandatory)
+
+Complete at least one track end-to-end:
+
+Track A (Beginner): Internal Policy Assistant
+- data: 50-300 docs with metadata
+- check: no answer without evidence
+
+Track B (Intermediate): Customer Support RAG Triage
+- data: manuals + ticket notes
+- check: hybrid + reranker + measured delta
+
+Track C (Advanced): Permission-Aware Enterprise Search
+- data: multi-team docs with ACL attributes
+- check: no restricted chunks retrieved in ACL tests
+
+Project deliverables:
+- `results/project_track_selection.md`
+- `results/project_data_declaration.md`
+- `results/project_eval_set.jsonl`
+- `results/project_metrics_before_after.csv`
+- `results/project_failure_drills.md`
+- `results/project_final_readme.md`
+
+---
+
+## 10) Troubleshooting and Failure Playbook
+
+Required failure drills:
+
+- bad chunk boundaries
+- irrelevant top-k chunks
+- wrong citations
+- stale index after doc updates
+- ACL retrieval leak
+- latency spike and budget overrun
+- unknown-answer policy missing
+- prompt injection in retrieved docs
+- PyTorch/CUDA device mismatch or CUDA OOM
+
+Required workflow:
+
+1. reproduce with fixed query and trace id
+2. inspect retrieved chunks + scores
+3. inspect metadata + ACL filters
+4. inspect prompt context assembly
+5. apply one targeted fix only
+6. rerun same case and record delta
+
+Operational evidence checklist (collect before fixing):
+
+1. query id, trace id, and timestamp
+2. retrieved chunk ids and raw scores
+3. metadata payload (`source`, `section`, `acl_tag`, `updated_at`)
+4. final prompt context (sanitized)
+5. model output + citation ids
+6. latency split:
+   - retrieval latency
+   - rerank latency
+   - generation latency
+7. cost estimate per query
+
+RAG failure diagnosis decision tree (use in order):
+
+1. Are citations missing or wrong?
+   - yes -> inspect grounding policy and citation mapper first
+2. Are retrieved chunks off-topic?
+   - yes -> inspect chunking and retrieval/rerank settings
+3. Are chunks relevant but answer still wrong?
+   - yes -> inspect context packing and instruction policy
+4. Is answer unstable between runs?
+   - yes -> inspect config/version drift and non-determinism
+5. Is quality acceptable but latency/cost too high?
+   - yes -> optimize top-k, rerank depth, batching, caching
+6. Any ACL/privacy violation?
+   - yes -> stop release and run ACL incident playbook immediately
+
+Problem identification matrix (operatable):
+
+1. Symptom: good-looking answer, wrong facts
+   - check first: retrieved chunk relevance and citation mapping
+   - likely root cause: retrieval miss or citation mismatch
+2. Symptom: unstable answers between reruns
+   - check first: prompt/version drift and non-fixed eval set
+   - likely root cause: uncontrolled configuration changes
+3. Symptom: answer too generic
+   - check first: context specificity and top-k noise
+   - likely root cause: weak retrieval precision
+4. Symptom: frequent “insufficient evidence”
+   - check first: chunk coverage and retriever recall
+   - likely root cause: under-retrieval or poor chunking
+5. Symptom: high latency/high cost
+   - check first: top-k, rerank batch size, repeated context
+   - likely root cause: oversized context path
+6. Symptom: security/privacy incident
+   - check first: ACL filter, metadata tags, audit logs
+   - likely root cause: missing permission gate
+
+Improvement strategy ladder (from low-risk to high-impact):
+
+1. Data fixes:
+   - clean extraction errors
+   - repair metadata/source links
+2. Chunking fixes:
+   - adjust chunk size/overlap
+   - preserve section boundaries
+3. Retrieval fixes:
+   - tune top-k
+   - add metadata filters
+   - add hybrid retrieval
+4. Ranking fixes:
+   - add reranker
+   - calibrate rerank threshold
+5. Grounding fixes:
+   - stricter citation policy
+   - stricter abstention threshold
+6. Operations fixes:
+   - enforce SLO/cost gates
+   - enforce ACL and incident playbooks
+
+RAG-not-working root cause map (practical):
+
+1. Root cause: bad documents/chunks
+   - evidence:
+     - frequent irrelevant retrieval
+     - broken sentence boundaries
+   - fixes:
+     - clean extraction
+     - re-chunk with semantic boundaries
+2. Root cause: retrieval recall too low
+   - evidence:
+     - low `hit@k` / low `recall@k`
+   - fixes:
+     - adjust embedding model
+     - tune top-k
+     - add query rewrite
+3. Root cause: retrieval precision too low
+   - evidence:
+     - many near-miss chunks in top-k
+   - fixes:
+     - add reranker
+     - add metadata filters
+     - reduce context noise
+4. Root cause: grounding policy weak
+   - evidence:
+     - unsupported claims with no strong citation
+   - fixes:
+     - strict citation requirement
+     - abstention threshold
+5. Root cause: ops bottleneck
+   - evidence:
+     - high p95 latency, high timeout/cost
+   - fixes:
+     - cache frequent retrieval
+     - reduce rerank depth
+     - batch embeddings/rerank
+
+Verification process (must follow in order):
+
+1. Freeze baseline:
+   - lock dataset, eval ids, prompt version, retrieval config
+2. Define one change:
+   - only one controlled change per experiment
+3. Run paired evaluation:
+   - baseline and improved on same eval set
+4. Compare core metrics:
+   - retrieval (`hit@k`, `recall@k`, `MRR`)
+   - grounding/citation
+   - latency/cost
+5. Check regression gates:
+   - no critical metric drop beyond threshold
+6. Record decision:
+   - promote, hold, or rollback with reasons
+
+Minimum acceptance thresholds before promotion:
+
+1. quality:
+   - groundedness >= baseline
+   - citation precision >= baseline
+2. retrieval:
+   - `hit@5` and `MRR` must not regress beyond gate
+3. security:
+   - zero ACL leak in validation set
+4. operations:
+   - p95 latency within SLO
+   - cost/query within budget
+5. reliability:
+   - rerun variance within allowed band
+
+Troubleshooting capability framework (mandatory):
+
+1. Identify the problem from evidence:
+   - classify failure type (retrieval miss, grounding failure, citation failure, ACL leak, SLO violation)
+   - collect trace id, query id, retrieved ids, scores, latency, and output text
+2. Compare solution options:
+   - define at least 2 candidate fixes
+   - estimate expected impact and risk for each option
+   - choose one option as controlled experiment
+3. Verify solution correctness:
+   - rerun the same fixed eval set
+   - compare before/after metrics
+   - confirm no regression on grounding/citation/ACL/SLO checks
+4. Decide production action:
+   - promote only when acceptance thresholds pass
+   - otherwise rollback and test next option
+
+Solution comparison template:
+
+```text
+Problem class:
+Evidence:
+Option A (low risk):
+Option B (higher impact):
+Expected tradeoff:
+Chosen option:
+Verification metrics:
+Production decision:
 ```
-Query → embedding → search top-k chunks
+
+Incident severity model (for realistic operations):
+
+- Sev1:
+  - ACL leak, sensitive citation exposure, critical compliance risk
+  - action: immediate rollback + access block + incident owner assignment
+- Sev2:
+  - major quality failure on core user flows
+  - action: freeze deploy + hotfix experiment + daily status updates
+- Sev3:
+  - minor quality/latency degradation
+  - action: backlog with measured fix window
+
+---
+
+## 11) Minimal Runnable RAG Baseline (Complete, Local)
+
+This example is fully operable and does not require API keys.
+
+Data declaration:
+
+```text
+Data: inline synthetic policy docs
+Documents: 4
+Chunking: one chunk per document section (manual)
+Input schema: query:str
+Output schema: answer:str, citations:list[str], retrieved_ids:list[str]
+Eval policy: fixed query list of 3 items
+Type: retrieval + grounded generation (template)
 ```
 
-*Why this step matters: The retriever is often the most important quality bottleneck in RAG. If you retrieve the wrong chunks, the LLM cannot fix that reliably.*
+Code moved to runnable example:
+- `red-book/src/stage-7/stage7_minimal_local_rag.py`
+
+Run:
+- `python red-book/src/stage-7/stage7_minimal_local_rag.py`
+
+Expected output behavior:
+- each query prints retrieved chunk ids and citations
+- answer text is grounded in retrieved chunk content
 
 ---
 
-**Step 7 — Build Prompt**
+## 12) Resource Library (High Priority)
 
-```
-Use only the context below to answer the question.
-If the answer is not in the context, say you do not have enough information.
-For every important claim, cite the source.
+How to use this library:
 
-Context:
-{chunks}
+1. Start with `Core theory` and `Official docs`.
+2. Use `Tutorial/courses` for implementation path.
+3. Use `Eval and reliability` for verification design.
+4. Use `Industry projects` for production architecture patterns.
 
-Question:
-{query}
-```
+Core theory and papers:
 
-*Why this step matters: The model needs clear instructions on how to use the retrieved text.*
+- https://arxiv.org/abs/2005.11401 (RAG paper)
+- https://arxiv.org/abs/1706.03762 (Attention Is All You Need, transformer foundation)
+- https://arxiv.org/abs/2112.01488 (ColBERTv2 reranking/late interaction)
+- https://arxiv.org/abs/2104.08663 (BEIR retrieval benchmark)
+- https://arxiv.org/abs/2405.07437 (RAG evaluation survey)
 
----
+Books (deep understanding track):
 
-**Step 8 — Generate Answer**
+- https://www.oreilly.com/library/view/natural-language-processing/9781098136789/
+- https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/
+- https://www.oreilly.com/library/view/build-a-large/9781633437166/
+- https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/
 
-Use the LLM.
+Official implementation docs:
 
-*Why this step matters: The LLM is doing language synthesis here — RAG is retrieval **plus** generation, not just search.*
+- https://cookbook.openai.com/examples/file_search_responses
+- https://platform.openai.com/docs/guides/tools-file-search
+- https://python.langchain.com/docs/tutorials/rag/
+- https://docs.llamaindex.ai/en/stable/understanding/rag/
+- https://docs.haystack.deepset.ai/docs/intro
+- https://faiss.ai/
+- https://qdrant.tech/documentation/
+- https://docs.trychroma.com/
+- https://docs.weaviate.io/
 
----
+Qdrant-focused tutorials (matches your local setup):
 
-**Step 9 — Add Citations**
+- https://qdrant.tech/documentation/quick-start/
+- https://qdrant.tech/documentation/concepts/filtering/
+- https://qdrant.tech/documentation/concepts/hybrid-queries/
+- https://qdrant.tech/documentation/tutorials-search-engineering/hybrid-search-fastembed/
+- https://qdrant.tech/documentation/advanced-tutorials/reranking-hybrid-search/
+- https://qdrant.tech/documentation/fastembed/fastembed-rerankers/
 
-Return: answer, source document, page.
+Evaluation and reliability references:
 
-*Why this step matters: Citations make the system inspectable and more trustworthy. Return exact source links or metadata — not just "based on documents."*
+- https://docs.ragas.io/
+- https://docs.langchain.com/langsmith/evaluate-rag-tutorial
+- https://docs.llamaindex.ai/en/stable/examples/evaluation/retrieval/retriever_eval/
+- https://github.com/beir-cellar/beir
+- https://microsoft.github.io/msmarco/Datasets.html
 
----
+Tutorials and guided courses:
 
-**Step 10 — Test**
+- https://www.deeplearning.ai/short-courses/building-evaluating-advanced-rag/
+- https://www.deeplearning.ai/short-courses/advanced-retrieval-for-ai/
+- https://www.deeplearning.ai/short-courses/knowledge-graphs-rag/
+- https://www.coursera.org/projects/building-agentic-rag-with-llamaindex
+- https://fullstackretrieval.com/
 
-Test: direct question, multi-chunk question, unknown question.
+Production/cloud references:
 
-Also test:
+- https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-build.html
+- https://docs.aws.amazon.com/bedrock/latest/userguide/kb-data-source-sync-ingest.html
+- https://learn.microsoft.com/en-us/azure/search/search-get-started-rag
+- https://cloud.google.com/vertex-ai/generative-ai/docs/rag-engine/rag-overview
 
-- exact-term question
-- paraphrased question
-- ambiguous question
-- question with no answer in corpus
-- question where answer spans multiple chunks
-- misleading query that could trigger wrong retrieval
+Industry/open-source project references:
 
-### Deliverables
-
-- document dataset
-- chunk file
-- vector DB
-- Q&A system
-- outputs with citations
-- README
-
-### Experiment Tasks
-
-**Experiment 1 — Chunk size comparison**
-
-Try: 300 chars, 600 chars, 1000 chars.
-
-- Purpose: See how chunk size changes retrieval quality.
-- Lesson: Chunking is one of the most important RAG design decisions.
-
-**Experiment 2 — Overlap comparison**
-
-Try: no overlap, small overlap, larger overlap.
-
-- Purpose: See how overlap affects boundary context.
-- Lesson: Overlap can preserve meaning, but too much overlap adds redundancy.
-
-**Experiment 3 — Top-k comparison**
-
-Try: k=2, k=4, k=8.
-
-- Purpose: See how too little vs too much context changes results.
-- Lesson: More retrieved chunks are not always better.
-
-**Experiment 4 — Prompt-only vs RAG**
-
-Ask the same factual questions directly to LLM and through your RAG system.
-
-- Purpose: Observe grounding improvements.
-- Lesson: RAG often improves reliability when knowledge must come from documents.
-
-**Experiment 5 — Metadata filtering**
-
-Restrict retrieval to one file or document type.
-
-- Purpose: See whether retrieval gets more precise.
-- Lesson: Metadata is a quality tool, not just bookkeeping.
-
-**Experiment 6 — Unknown-answer behavior**
-
-Ask questions not covered by the document set.
-
-- Purpose: Test whether the system refuses unsupported answers properly.
-- Lesson: A good RAG system should handle "I don't know from provided context."
-
-**Experiment 7 — Retrieval inspection notebook**
-
-For each test query, print top chunks, scores, sources, and final answer.
-
-- Purpose: Build debugging habit.
-- Lesson: You must inspect retrieval, not only final generation.
-
-### Common Mistakes
-
-1. **Chunk too big or too small** — Retrieval becomes noisy or incomplete. *Fix: Test multiple chunk sizes and read chunk samples manually.*
-
-2. **Not checking retrieved chunks** — You miss the real source of failure. *Fix: Always print and inspect top retrieved chunks during development.*
-
-3. **No citations** — Users cannot verify answers, and debugging becomes much harder. *Fix: Always attach source metadata and expose citations.*
-
-4. **Trusting LLM blindly** — The model may still hallucinate or over-generalize beyond retrieved evidence. *Fix: Treat the LLM as the answer writer, not the truth source.*
-
-5. **Ignoring metadata** — Source tracing, filtering, and debugging become weak. *Fix: Store source metadata from the beginning.*
-
-6. **Sending too much context** — Noise increases and relevance decreases. *Fix: Keep retrieved context focused and test top-k carefully.*
-
-7. **No evaluation set** — You cannot measure whether changes improve the system. *Fix: Create a small benchmark set of questions with expected source coverage.*
+- https://docs.onyx.app/
+- https://github.com/zylon-ai/private-gpt
+- https://github.com/Mintplex-Labs/anything-llm
+- https://github.com/deepset-ai/haystack
+- https://github.com/langchain-ai/rag-from-scratch
 
 ---
 
-## Final Understanding
+## 13) Self-Test (Weighted)
 
-> RAG improves LLM reliability by retrieving relevant knowledge and grounding the answer in real data.
+Scoring:
 
-> In most RAG systems, failures come from ingestion, chunking, embeddings, retrieval, or prompt construction **before** they come from the LLM itself.
+- retrieval understanding: 30%
+- grounding/citation correctness: 30%
+- operations and reliability: 25%
+- debugging discipline: 15%
 
----
+Questions:
 
-## Self Test
+1. Why can improving retrieval help more than switching to a larger LLM?
+2. What chunking signals tell you boundaries are bad?
+3. What metrics do you use to evaluate retrieval quality?
+4. How do you enforce abstention when evidence is weak?
+5. What is the difference between dense, lexical, and hybrid retrieval?
+6. How do you test ACL safety in RAG retrieval?
+7. What run logs are mandatory for incident debugging?
+8. Where does PyTorch/CUDA help in a RAG pipeline?
 
-### Questions
-
-1. What does RAG stand for?
-2. Why is RAG needed if LLMs are already powerful?
-3. What are the main limitations of LLMs that RAG helps with?
-4. What is a document store in RAG?
-5. Why do we chunk documents?
-6. What makes a good chunk?
-7. Why can chunking be one of the most important parts of RAG quality?
-8. What is an embedding in a RAG system?
-9. Why do similar texts tend to retrieve each other in vector search?
-10. What is a vector database used for?
-11. What does a retriever do?
-12. Why does retrieval quality often determine answer quality?
-13. What is top-k retrieval?
-14. Why can retrieving too many chunks be harmful?
-15. What is metadata in a RAG pipeline?
-16. Why is metadata useful?
-17. What is prompt construction in RAG?
-18. Why should the prompt tell the LLM to answer only from context?
-19. What does grounding mean?
-20. Why can a grounded system still fail?
-21. Why should you inspect retrieved chunks manually?
-22. What is overlap in chunking?
-23. Why can overlap help?
-24. What is hybrid retrieval?
-25. What is re-ranking?
-26. Why are citations important in RAG?
-27. What should the system do when the answer is not found in the documents?
-28. Why should you test unknown questions?
-29. What is a common mistake beginners make when debugging RAG?
-30. What is the main lesson of this stage?
-
-### Answers
-
-1. RAG stands for Retrieval-Augmented Generation.
-
-2. Because LLMs may have outdated knowledge, no access to private documents, and can hallucinate unsupported answers.
-
-3. Outdated information, lack of private knowledge access, and ungrounded hallucination.
-
-4. It is the raw knowledge source, such as PDFs, text files, notes, or database text.
-
-5. Because long documents must be broken into smaller retrievable pieces for embedding and search.
-
-6. A good chunk is small enough to retrieve precisely but large enough to preserve meaningful context.
-
-7. Because bad chunking can destroy meaning, weaken retrieval precision, and make good answers impossible even with a strong LLM.
-
-8. It is a vector representation of text used for semantic similarity search.
-
-9. Because semantically similar texts often have nearby vectors in embedding space.
-
-10. It stores embeddings and supports efficient similarity search over them.
-
-11. It finds the chunks most relevant to the user query.
-
-12. Because the LLM can only answer well if it sees relevant and sufficient evidence.
-
-13. It is a retrieval method that returns the k most relevant chunks.
-
-14. Because it can add irrelevant context, increase noise, and confuse the model.
-
-15. Metadata is source information attached to chunks, such as file name, page number, section, or chunk ID.
-
-16. It improves traceability, filtering, citations, and debugging.
-
-17. It is the process of formatting retrieved chunks and the user question into the final LLM prompt.
-
-18. Because it helps reduce guessing and keeps the answer grounded in retrieved evidence.
-
-19. Grounding means the answer is based on actual retrieved source material rather than unsupported model invention.
-
-20. Because retrieval may miss the right evidence, chunks may be incomplete, or the model may still over-generalize or misread context.
-
-21. Because many RAG failures are retrieval failures, and you cannot diagnose them by looking only at the final answer.
-
-22. Overlap means adjacent chunks share some text content.
-
-23. Because it preserves context across chunk boundaries and reduces the chance of splitting important information awkwardly.
-
-24. Hybrid retrieval combines vector similarity with keyword or lexical search.
-
-25. Re-ranking is a second-stage process that reorders retrieved candidates using a stronger relevance model.
-
-26. Because they let users verify the answer and help developers debug source grounding.
-
-27. It should say that the answer is not available in the provided context instead of guessing.
-
-28. Because a good RAG system must handle missing evidence safely, not just answer known questions.
-
-29. They blame the LLM first instead of checking chunking, retrieval, metadata, and prompt grounding.
-
-30. RAG is not just "LLM plus search." It is a full pipeline where document quality, chunking, embeddings, retrieval, prompt construction, and grounding all determine reliability.
+Pass rule:
+- at least 75/100 and no critical miss on ACL or grounding questions.
 
 ---
 
-## What You Must Be Able To Do After Stage 7
+## 14) What Comes After Stage 7
 
-- [ ] Explain what RAG is in plain English
-- [ ] Explain why RAG is needed for real-world AI systems
-- [ ] Describe the full RAG pipeline from documents to answer
-- [ ] Explain chunking, embeddings, vector databases, retrievers, and grounding
-- [ ] Understand why retrieval quality often matters more than model quality
-- [ ] Build a small document Q&A system with citations
-- [ ] Inspect retrieved chunks and debug retrieval quality
-- [ ] Understand metadata, top-k tuning, and chunk overlap
-- [ ] Design prompts that make the model answer from context only
-- [ ] Understand that RAG engineering is a pipeline problem, not just a prompting problem
+Stage 8 focuses on deployment and lifecycle management of AI systems.
+
+Stage 7 skills map to Stage 8 tasks as follows:
+- retrieval/grounding -> production quality monitoring
+- evaluation gates -> CI/CD quality control
+- operations drills -> incident response and reliability engineering
+
+Readiness check:
+- if you can run one full lab with fixed outputs and explain metric deltas, move to Stage 8.

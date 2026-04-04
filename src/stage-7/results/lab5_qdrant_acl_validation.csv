@@ -1,0 +1,12 @@
+query_id,role,allowed_acl,returned_acl,acl_violation_count
+q001,employee,employee|engineering,employee|employee|employee|engineering,0
+q002,employee,employee|engineering,employee|employee|employee|employee,0
+q003,employee,employee|engineering,employee|employee|engineering|engineering,0
+q004,employee,employee|engineering,employee|employee|employee|employee,0
+q005,finance,employee|finance,finance|employee|employee|employee,0
+q006,hr,employee|hr,hr|employee|employee|employee,0
+q007,engineering,employee|engineering,engineering|employee|employee|employee,0
+q008,engineering,employee|engineering,engineering|employee|employee|engineering,0
+q009,security,employee|engineering|finance|hr|security,security|employee|employee|engineering,0
+q010,security,employee|engineering|finance|hr|security,security|employee|employee|employee,0
+q011,engineering,employee|engineering,engineering|employee|employee|employee,0

@@ -38,6 +38,16 @@ Additional locked requirements requested later (must remain in scope):
 - Mandatory request: include PyTorch and CUDA conceptual/tutorial content in the chapter.
 - Mandatory request: include runnable PyTorch/CUDA example code (simple -> intermediate -> advanced) with very detailed and clear functional comments.
 
+- Key request: collect the best tutorials, books, videos, official documentation, guides, instructions, and industry project references to build chapter content.
+- Key request: chapter content must be detailed, easy to understand, and operatable from both theory and realistic project perspectives.
+- Key request: create a learning library/track that leads students to real, industry-level projects.
+- Key request: add more theory instruction in each chapter so learners understand principles, not only steps.
+- Key request: explicitly teach troubleshooting capability as a core skill:
+  - how to identify and classify problems from evidence/logs/metrics
+  - how to compare possible solutions with clear tradeoff analysis
+  - how to verify fixes using controlled reruns and before/after metrics
+- Key request: include a new realistic lab that improves a project from beginning to production, with fixed deliverables and production-quality acceptance checks.
+
 This section is a scope guard: future edits should not remove these requirements.
 
 ---
@@ -671,5 +681,8 @@ Use in this strict order when learner is stuck:
 - Add one minimum runnable script per algorithm in `red-book/src/stage-3/`.
 - Add one fairness benchmark script comparing at least 4 classifiers on same split.
 - Add one failure-mode script showing overfitting and leakage examples.
+
+
+
 
 

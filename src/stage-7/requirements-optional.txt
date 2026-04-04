@@ -1,0 +1,4 @@
+﻿torch==2.8.0
+sentence-transformers==5.1.0
+rank-bm25==0.2.2
+qdrant-client==1.15.1

@@ -1,0 +1,12 @@
+query_id,latency_ms,token_cost,latency_slo_pass,cost_slo_pass
+q001,364,303,True,True
+q002,364,299,True,True
+q003,364,303,True,True
+q004,364,311,True,True
+q005,364,307,True,True
+q006,364,295,True,True
+q007,364,295,True,True
+q008,364,303,True,True
+q009,364,299,True,True
+q010,364,303,True,True
+q011,364,303,True,True

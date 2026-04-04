@@ -1,0 +1,3 @@
+variant,hit_at_k,recall_at_k,mrr
+dense_baseline,1.0,1.0,1.0
+hybrid,1.0,1.0,1.0

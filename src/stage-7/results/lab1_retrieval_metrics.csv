@@ -1,0 +1,2 @@
+label,hit_at_k,recall_at_k,mrr,grounded_rate,citation_coverage,abstention_rate
+lab1,1.0,1.0,1.0,1.0,1.0,0.0
