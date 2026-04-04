@@ -1,0 +1,5 @@
+run_id,task,adapter_a_score,adapter_b_score,merged_score,best_single_score,regression_flag
+20260404T195949Z,ontario_gis_formatting,0.94,0.62,0.812,0.94,True
+20260404T195949Z,general_translation,0.6,0.92,0.728,0.92,True
+20260404T195949Z,citation_style_consistency,0.86,0.78,0.828,0.86,False
+20260404T195949Z,instruction_following,0.82,0.84,0.828,0.84,False

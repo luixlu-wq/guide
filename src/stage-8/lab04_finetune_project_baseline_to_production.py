@@ -1,4 +1,4 @@
-﻿"""
+"""
 lab04_finetune_project_baseline_to_production
 
 This lab follows beginning-to-production structure:
@@ -8,6 +8,9 @@ This lab follows beginning-to-production structure:
 - production readiness decision
 """
 
+from __future__ import annotations
+
+from datetime import datetime, timezone
 from pathlib import Path
 import sys
 
@@ -17,6 +20,7 @@ if str(THIS_DIR) not in sys.path:
 
 from stage8_utils import (
     RESULTS_DIR,
+    STAGE8_RESULTS_DIR,
     as_jsonl,
     baseline_predict,
     build_metrics_comparison_rows,
@@ -93,10 +97,24 @@ def main() -> None:
     )
     write_rows_csv(RESULTS_DIR / "lab4_metrics_comparison.csv", metric_rows)
 
+    # General-capability retention gate (knowledge retention check).
+    general_rows = synthetic_finetune_dataset(n=60, seed=99)
+    _g_train, _g_val, g_test = split_dataset(general_rows, seed=99)
+    baseline_general_labels = baseline_predict(g_test)
+    improved_general_labels = predict_text_model(improved_bundle, g_test)
+    baseline_general_metrics = evaluate_predictions(g_test, baseline_general_labels)
+    improved_general_metrics = evaluate_predictions(g_test, improved_general_labels)
+    retention_drop = round(
+        baseline_general_metrics["accuracy"] - improved_general_metrics["accuracy"], 4
+    )
+
     # Simple promotion policy for teaching gate logic.
     pass_quality = improved_metrics["accuracy"] >= baseline_metrics["accuracy"]
-    pass_format = improved_metrics["format_validity"] >= baseline_metrics["format_validity"]
-    decision = "promote" if (pass_quality and pass_format) else "hold"
+    pass_format = (
+        improved_metrics["format_validity"] >= baseline_metrics["format_validity"]
+    )
+    pass_retention = retention_drop <= 0.03
+    decision = "promote" if (pass_quality and pass_format and pass_retention) else "hold"
 
     verification = [
         "# Lab 4 Verification Report",
@@ -108,6 +126,12 @@ def main() -> None:
         "## Improved summary",
         f"- accuracy: {improved_metrics['accuracy']}",
         f"- f1_macro: {improved_metrics['f1_macro']}",
+        "",
+        "## Retention gate summary",
+        f"- baseline_general_accuracy: {baseline_general_metrics['accuracy']}",
+        f"- improved_general_accuracy: {improved_general_metrics['accuracy']}",
+        f"- retention_drop: {retention_drop}",
+        f"- retention_gate_pass: {pass_retention}",
         "",
         "## Regression gate checks",
         f"- quality gate pass: {pass_quality}",
@@ -127,6 +151,40 @@ def main() -> None:
     ]
     write_text(RESULTS_DIR / "lab4_production_readiness.md", "\n".join(readiness))
 
+    # Mandatory Stage-8 promotion artifact.
+    promotion = [
+        "# Model Promotion Report",
+        "",
+        f"generated_at: {datetime.now(timezone.utc).isoformat()}",
+        "stage: stage-8",
+        "eval_set: fixed split seed=42 + general holdout seed=99",
+        "",
+        "## Side-by-side quality comparison (fixed eval set)",
+        f"- baseline_accuracy: {baseline_metrics['accuracy']}",
+        f"- tuned_accuracy: {improved_metrics['accuracy']}",
+        f"- delta_accuracy: {round(improved_metrics['accuracy'] - baseline_metrics['accuracy'], 4)}",
+        f"- baseline_f1_macro: {baseline_metrics['f1_macro']}",
+        f"- tuned_f1_macro: {improved_metrics['f1_macro']}",
+        f"- delta_f1_macro: {round(improved_metrics['f1_macro'] - baseline_metrics['f1_macro'], 4)}",
+        "",
+        "## Knowledge retention gate",
+        f"- baseline_general_accuracy: {baseline_general_metrics['accuracy']}",
+        f"- tuned_general_accuracy: {improved_general_metrics['accuracy']}",
+        f"- retention_drop: {retention_drop}",
+        f"- retention_threshold: 0.03",
+        f"- retention_gate_pass: {pass_retention}",
+        "",
+        "## Promotion gates",
+        f"- quality_gate_pass: {pass_quality}",
+        f"- format_gate_pass: {pass_format}",
+        f"- retention_gate_pass: {pass_retention}",
+        f"- final_decision: {decision}",
+        "",
+        "## Rollback condition",
+        "- Roll back immediately if retention gate fails or format-validity regresses.",
+    ]
+    write_text(STAGE8_RESULTS_DIR / "model_promotion_report.md", "\n".join(promotion))
+
     print("[INFO] Lab 4 outputs written:")
     print("- results/lab4_project_baseline_outputs.jsonl")
     print("- results/lab4_project_improved_outputs.jsonl")
@@ -134,6 +192,7 @@ def main() -> None:
     print("- results/lab4_metrics_comparison.csv")
     print("- results/lab4_verification_report.md")
     print("- results/lab4_production_readiness.md")
+    print("- results/stage8/model_promotion_report.md")
 
 
 if __name__ == "__main__":

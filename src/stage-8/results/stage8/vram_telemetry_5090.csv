@@ -1,0 +1,4 @@
+run_id,method,rank,alpha,batch_size,device_name,peak_vram_mb,source,decision
+20260404T195028Z,lora,8,16,16,NVIDIA GeForce RTX 5090,2755.0,nvidia-smi,observe
+20260404T195029Z,qlora,8,16,16,NVIDIA GeForce RTX 5090,2755.0,nvidia-smi,observe
+20260404T195029Z,sft,0,0,16,NVIDIA GeForce RTX 5090,2755.0,nvidia-smi,observe

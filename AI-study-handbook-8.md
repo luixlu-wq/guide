@@ -102,6 +102,26 @@ Use these default triggers before starting fine-tuning:
 - If factual failures come from missing documents/updates -> RAG first (not fine-tuning).
 - If prompt-only quality is close to target but cost/latency too high -> distillation candidate.
 
+### Decision Flywheel (Expert Placeholder)
+
+Use this flywheel to avoid over-engineering:
+
+```text
+Axes:
+- X: data freshness pressure (low -> high)
+- Y: task complexity/behavior strictness (low -> high)
+
+Heuristic:
+- low freshness + low complexity -> prompt optimization first
+- high freshness + low/medium complexity -> RAG first
+- low freshness + high behavior strictness -> fine-tuning first
+- high freshness + high behavior strictness -> hybrid (RAG + fine-tuning)
+```
+
+Operational rule:
+
+- Do not promote an expensive fine-tuning path if the flywheel indicates prompt/RAG can solve target gaps with lower risk.
+
 ---
 
 ## 3.1) Theory Foundation (Detailed, Mandatory)
@@ -424,6 +444,36 @@ How to interpret:
 2. In real projects, expect some quality risk and validate with the same fixed eval set.
 3. Never pick QLoRA only by memory gain; apply regression gates first.
 
+VRAM budgeting for WSL/Windows local training (mandatory):
+
+| Parameter family | Higher value impact | Typical risk | Control action |
+|---|---|---|---|
+| LoRA rank `r` | increases adapter memory/compute | OOM during backward | start low (`r=4/8`) and sweep upward |
+| LoRA `alpha` | can amplify unstable updates | unstable convergence | keep tied to rank policy and validate on fixed eval |
+| batch size | major VRAM driver | CUDA OOM/fragmentation | batch ladder + gradient accumulation |
+| sequence length | major attention memory driver | silent throughput collapse | cap max length for training stage |
+
+WSL/Windows memory-fragmentation guardrails:
+
+1. Use deterministic batch ladder (`64 -> 32 -> 16 -> 8`) before changing optimizer policy.
+2. Log peak VRAM each run and compare by config ID.
+3. Prefer one change per rerun; avoid changing rank + batch + sequence simultaneously.
+
+Required telemetry artifact:
+
+- `results/stage8/vram_telemetry_5090.csv`
+
+Required columns:
+
+- `run_id`
+- `config_id`
+- `device_name`
+- `peak_vram_mb`
+- `batch_size`
+- `rank`
+- `alpha`
+- `decision`
+
 ---
 
 ## 6.5 Distillation
@@ -483,6 +533,36 @@ How to interpret:
 1. Distillation is acceptable when student quality remains within your tolerance band.
 2. Student wins are usually operational (cost/latency), not always quality gains.
 3. Always include hard-case segment checks to avoid hidden regressions.
+
+On-device distillation patterns (RTX 5090 advantage):
+
+Goal:
+
+- run teacher-guided supervision and student adaptation with reproducible evidence.
+
+Pattern:
+
+1. Teacher path:
+   - large or stronger model generates supervised reasoning targets.
+2. Student path:
+   - smaller model is adapted on fixed distilled dataset.
+3. Verification path:
+   - run reasoning-focused eval set before/after student adaptation.
+
+Mandatory metric:
+
+- `reasoning_pass_rate`
+  - percentage of reasoning test cases that meet expected output criteria.
+
+Required comparison:
+
+- student baseline `reasoning_pass_rate`
+- student distilled `reasoning_pass_rate`
+- delta and decision (`promote`/`hold`/`rollback`)
+
+Required artifact:
+
+- `results/stage8/forgetting_test_results.jsonl`
 
 ---
 
@@ -549,6 +629,8 @@ Minimum metrics:
   - accuracy or task correctness
   - format-validity rate
   - consistency indicator
+  - perplexity
+  - training_loss_vs_val_loss gap
 - retrieval path (if hybrid):
   - hit@k
   - recall@k
@@ -557,6 +639,7 @@ Minimum metrics:
   - latency p50/p95
   - cost per query
   - failure rate
+  - vram_peak
 
 Recommended promotion thresholds (starter policy):
 
@@ -569,6 +652,17 @@ Recommended promotion thresholds (starter policy):
    - cost/query increase <= 20%
 4. reliability:
    - failure rate not worse than baseline
+
+Knowledge-retention gate (mandatory for domain tuning):
+
+- After domain-specific tuning (for example Ontario GIS vocabulary), run a general-capability holdout test.
+- Fail gate if general-capability accuracy drops by more than `3%` from baseline.
+
+Retention gate rule:
+
+1. Compute `general_accuracy_baseline`.
+2. Compute `general_accuracy_tuned`.
+3. If `(baseline - tuned) > 0.03`, decision must be `hold` or `rollback`.
 
 Industry pain point:
 - model promoted because outputs look better in manual spot checks.
@@ -584,6 +678,7 @@ Resolution workflow:
 Related script:
 
 - `topic07c_promotion_gate_advanced.py`
+- `topic07d_forgetting_gate_advanced.py` (planned extension)
 
 Worked example (actual run metrics):
 
@@ -609,7 +704,102 @@ How to interpret:
 
 ---
 
-## 6.8 Industry Operations and Lifecycle Management
+## 6.8 Local Alignment Bridge (DPO vs PPO)
+
+What it is:
+- preference-based post-training to improve helpfulness/safety/style alignment.
+
+Why it matters:
+- fine-tuning knowledge/format is not sufficient when human preference alignment is weak.
+
+2026 practical recommendation:
+- start with DPO for local alignment because it is simpler to operate than PPO in most small-team workflows.
+
+DPO vs PPO operational comparison:
+
+| Method | Strength | Typical cost/complexity | Best use |
+|---|---|---|---|
+| DPO | simpler implementation with preference pairs | lower pipeline complexity | local alignment improvement loops |
+| PPO | flexible policy optimization | higher system complexity | advanced RLHF pipelines with mature infra |
+
+Preference data contract:
+
+- `prompt`
+- `chosen_response`
+- `rejected_response`
+- `policy_tags` (optional)
+
+Required output artifact:
+
+- `results/stage8/dpo_preference_eval.csv`
+
+---
+
+## 6.9 Adapter Merging and Task Arithmetic
+
+What it is:
+- combine multiple task-specific adapters into one deployable artifact.
+
+Why it matters:
+- real projects often need multi-capability behavior (for example domain formatting + translation/localization) without retraining from scratch.
+
+Operational workflow:
+
+1. train/prepare adapter A and adapter B.
+2. merge adapters with one reproducible strategy.
+3. evaluate merged model on both task sets.
+4. block promotion if either task regresses beyond threshold.
+
+Required output artifact:
+
+- `results/stage8/adapter_merge_matrix.csv`
+
+---
+
+## 6.10 Synthetic Data Curation (Self-Instruct Pattern)
+
+What it is:
+- use model-generated instruction/response pairs as supervised training data after quality curation.
+
+Why it matters:
+- high-quality human labels are expensive; synthetic-data pipelines are now common in local enterprise workflows.
+
+Curation workflow:
+
+1. generate synthetic pairs with fixed prompt templates.
+2. dedupe and remove near-duplicates.
+3. apply schema and safety filters.
+4. score quality and keep only passing records.
+5. freeze synthetic dataset version for reproducible tuning.
+
+Required output artifact:
+
+- `results/stage8/synthetic_data_curation_report.md`
+
+---
+
+## 6.11 Advanced Memory Management (Flash Attention 3 + Checkpointing)
+
+What it is:
+- memory-efficiency controls for larger context windows and stable local training runs.
+
+Why it matters:
+- high-end GPUs still hit OOM under long context and large batch combinations, especially in multi-process local workflows.
+
+Required techniques in this chapter:
+
+1. flash-attention optimized path (when runtime/platform supports it).
+2. gradient checkpointing to trade compute for memory.
+3. batch ladder (`64 -> 32 -> 16 -> 8`) before changing optimizer policy.
+4. deterministic OOM fallback policy with rerun logging.
+
+Required output artifact:
+
+- `results/stage8/flashattn_checkpointing_benchmark.csv`
+
+---
+
+## 6.12 Industry Operations and Lifecycle Management
 
 What it is:
 - deploy tuned models with controlled risk.
@@ -762,6 +952,22 @@ Core ladders (simple -> intermediate -> advanced):
 - `topic08_ops_observability_intermediate.py`
 - `topic08c_canary_rollback_advanced.py`
 
+9. Alignment and merging
+- `topic09a_dpo_foundations_simple.py`
+- `topic09_dpo_intermediate.py`
+- `topic09c_dpo_eval_advanced.py`
+- `topic10a_adapter_merge_simple.py`
+- `topic10_adapter_merge_intermediate.py`
+- `topic10c_task_arithmetic_advanced.py`
+
+10. Synthetic-data and memory
+- `topic11a_synthetic_data_simple.py`
+- `topic11_synthetic_data_curation_intermediate.py`
+- `topic11c_synthetic_data_governance_advanced.py`
+- `topic12a_memory_basics_simple.py`
+- `topic12_memory_optimization_intermediate.py`
+- `topic12c_flashattn_checkpointing_advanced.py`
+
 9. Labs
 - `lab01_instruction_tuning_baseline.py`
 - `lab02_lora_qlora_comparison.py`
@@ -818,6 +1024,8 @@ Required outputs:
 - `results/lab2_lora_metrics.csv`
 - `results/lab2_qlora_metrics.csv`
 - `results/lab2_memory_latency_report.md`
+- `results/stage8/vram_telemetry_5090.csv`
+- `results/stage8/sft_vs_qlora_delta.md`
 
 ## Lab 3: Distillation Tradeoff
 
@@ -836,6 +1044,8 @@ Required outputs:
 - `results/lab3_teacher_outputs.jsonl`
 - `results/lab3_student_outputs.jsonl`
 - `results/lab3_distillation_report.md`
+- `results/stage8/forgetting_test_results.jsonl`
+- `results/stage8/dpo_preference_eval.csv` (extension track)
 
 ## Lab 4: Baseline to Production Improvement
 
@@ -858,6 +1068,10 @@ Required outputs:
 - `results/lab4_metrics_comparison.csv`
 - `results/lab4_verification_report.md`
 - `results/lab4_production_readiness.md`
+- `results/stage8/model_promotion_report.md`
+- `results/stage8/adapter_merge_matrix.csv` (extension track)
+- `results/stage8/synthetic_data_curation_report.md` (extension track)
+- `results/stage8/flashattn_checkpointing_benchmark.csv` (extension track)
 
 ## Lab 5: Fine-Tuning vs RAG vs Hybrid (Optional Qdrant)
 
@@ -901,6 +1115,9 @@ Required failure drills:
 - CUDA OOM/device mismatch
 - QLoRA instability
 - cost/latency regression
+- ghost-loss pattern (loss decreases while output quality/format collapses)
+- alignment drift (model becomes overly safe/rigid or loses desired style)
+- mode collapse (model repeats patterns/tokens due to unstable or repetitive training data)
 
 Required incident workflow:
 
@@ -914,6 +1131,24 @@ Required incident workflow:
 8. rerun and capture before/after deltas
 9. decision: promote / hold / rollback
 
+Ghost-loss troubleshooting drill (mandatory):
+
+Symptom:
+
+- training/validation loss looks healthy, but generated text degrades (repetition, broken format, unstable structure).
+
+Common causes:
+
+1. objective mismatch (loss does not reflect deployment output constraints)
+2. template drift between train and eval/prompt runtime
+3. insufficient periodic qualitative validation
+
+Fix protocol:
+
+1. Every 50 steps, run fixed validation samples and save outputs.
+2. Compare output format-validity and semantic correctness against baseline.
+3. If loss improves but output quality degrades, hold training promotion and inspect data/template consistency first.
+
 Required logs per run:
 
 - run/config version IDs
@@ -921,6 +1156,9 @@ Required logs per run:
 - method (`SFT/LoRA/QLoRA/distill/hybrid`)
 - quality metrics
 - memory/latency/cost
+- perplexity
+- training_loss_vs_val_loss
+- vram_peak
 - failure class and chosen fix
 
 ---
@@ -934,12 +1172,25 @@ Starter gate policy (adjust by task):
 - Cost/query: increase <= 20% unless explicitly approved.
 - p95 latency: increase <= 20% unless explicitly approved.
 - Failure rate: must not worsen.
+- General capability retention: drop must be <= 3%.
 
 Decision outcomes:
 
 - `promote`: all gates pass.
 - `hold`: mixed results, needs another controlled experiment.
 - `rollback`: critical gates fail.
+
+Mandatory promotion deliverable:
+
+- `results/stage8/model_promotion_report.md`
+
+Required sections:
+
+1. baseline model vs tuned model (same fixed eval set)
+2. primary quality metrics and deltas
+3. retention gate results (including forgetting check)
+4. cost/latency comparison
+5. final decision with rationale and rollback condition
 
 ---
 

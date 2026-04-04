@@ -1,0 +1,3 @@
+run_id,mode,flash_attention_available,checkpointing_enabled,device,peak_vram_mb,latency_ms
+20260404T195958Z,baseline,False,False,cpu-fallback,0.0,120.0
+20260404T195958Z,checkpointing,False,True,cpu-fallback,0.0,150.0

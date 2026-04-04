@@ -16,6 +16,10 @@ $scripts = @(
     "topic06_tune_vs_rag_intermediate.py",
     "topic07_eval_regression_intermediate.py",
     "topic08_ops_observability_intermediate.py",
+    "topic09_dpo_intermediate.py",
+    "topic10_adapter_merge_intermediate.py",
+    "topic11_synthetic_data_curation_intermediate.py",
+    "topic12_memory_optimization_intermediate.py",
     "lab01_instruction_tuning_baseline.py"
 )
 

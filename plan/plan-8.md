@@ -773,6 +773,325 @@ Handbook must end with `What Comes After Stage 8` and include:
 
 ---
 
+## 22) Review-Driven Addendum (2026-04-04, Additive-Only)
+
+This section incorporates expert review feedback and is additive only. Existing sections, file names, and requirements remain valid.
+
+### 22.1) High-Performance Local Serving (RTX 5090) (Mandatory)
+
+Add a dedicated local-serving optimization module beyond basic PyTorch inference:
+
+- TensorRT-LLM path (or vLLM + PagedAttention path when TensorRT-LLM is unavailable)
+- explicit TTFT and throughput benchmarking
+- compare optimized local serving vs baseline local serving path
+
+Required benchmark metrics:
+
+- `time_to_first_token_ms` (TTFT)
+- `tokens_per_second`
+- `p95_latency_ms`
+- `max_vram_allocated_mb`
+
+Recommended script mapping:
+
+- `topic00d_local_serving_benchmark_advanced.py`
+
+Required artifact:
+
+- `results/stage8/throughput_benchmark_trt.csv`
+
+### 22.2) Semantic Drift Detection (Quality Drift, Not Only Uptime) (Mandatory)
+
+Monitoring module must include quality-drift detection, not only health checks:
+
+- detect quality drift in live traces (faithfulness/hallucination trends)
+- include LLM-as-a-judge or equivalent scoring path
+- require alert thresholds and incident workflow
+
+Recommended script mapping:
+
+- `topic08d_semantic_drift_monitoring.py`
+
+Required artifact:
+
+- `results/stage8/hallucination_drift_log.jsonl`
+
+### 22.3) CI/CD with Evaluation Gates (Mandatory)
+
+Model/data/index updates must be blocked by evaluation gates:
+
+- run golden query set on every deployment candidate
+- include automatic promote/hold/rollback logic
+- define hard regression thresholds (quality and latency)
+
+Minimum gate rule (required):
+
+- if key quality metric drops by more than 5%, deployment is blocked
+- if latency/cost exceeds budget, deployment is blocked unless explicitly approved
+
+Recommended script mapping:
+
+- `topic07d_golden_set_gate_advanced.py`
+
+Required artifact:
+
+- `results/stage8/golden_set_eval_report.md`
+
+### 22.4) Data Lifecycle: Hot Index vs Cold Storage (Mandatory)
+
+Add vector/index lifecycle operations for large evolving datasets:
+
+- define hot index (active/current) vs cold index (historical/stale) policy
+- add compaction/tiering guidance for old records
+- require retrieval parity checks before/after tiering
+
+Recommended script mapping:
+
+- `topic08e_index_tiering_compaction.py`
+
+Expected artifact additions:
+
+- `results/stage8/index_tiering_policy.md`
+- `results/stage8/index_tiering_before_after.csv`
+
+### 22.5) Concurrency Failure Playbook (Mandatory)
+
+Troubleshooting must include multi-user concurrency failures:
+
+- single-user success but multi-user load failure (including CUDA OOM patterns)
+- in-flight batching, request queueing, and backpressure controls
+- capacity guardrails and graceful degradation policy
+
+Recommended script mapping:
+
+- `topic08f_concurrency_oom_drill.py`
+
+Expected artifact additions:
+
+- `results/stage8/concurrency_incident_log.md`
+- `results/stage8/queue_backpressure_metrics.csv`
+
+### 22.6) Stage 8 Acceptance Criteria Extension
+
+Stage 8 is complete only when all of the following are true:
+
+- local serving benchmark includes TTFT/throughput/VRAM evidence
+- semantic drift monitoring path generates drift logs and alert evidence
+- CI/CD golden-set gate is implemented with enforceable threshold policy
+- index tiering policy includes before/after retrieval parity checks
+- concurrency drill demonstrates queue/batch protection under load
+
+### 22.7) Mandatory Artifact Set (Review-Driven)
+
+These artifacts are mandatory in addition to existing Stage 8 outputs:
+
+- `results/stage8/throughput_benchmark_trt.csv`
+- `results/stage8/golden_set_eval_report.md`
+- `results/stage8/hallucination_drift_log.jsonl`
+
+Compatibility rule:
+
+- keep existing artifact names unchanged
+- add canonical mapping entries in `red-book/src/stage-8/artifact_name_map.md`
+
+---
+
+## 23) Review-Driven Addendum 2 (2026-04-04, Additive-Only)
+
+This section captures additional expert-tier requirements for local high-end adaptation workflows.
+
+### 23.1) On-Device Distillation Pattern (Mandatory)
+
+Add a dedicated distillation sub-module for local high-performance workflows:
+
+- teacher-guided reasoning target generation
+- student adaptation with fixed split/eval IDs
+- before/after reasoning pass-rate checks
+
+Required metric:
+
+- `reasoning_pass_rate`
+
+Recommended mapping:
+
+- `topic05d_on_device_distillation_advanced.py`
+
+### 23.2) VRAM Budgeting and Telemetry (Mandatory)
+
+QLoRA/LoRA sections must include hardware-budget controls:
+
+- explicit rank/alpha/batch-size memory tradeoff workflow
+- WSL/Windows fragmentation mitigation guidance
+- peak VRAM telemetry per run
+
+Recommended mapping:
+
+- `topic04d_vram_telemetry_advanced.py`
+
+Required artifact:
+
+- `results/stage8/vram_telemetry_5090.csv`
+
+### 23.3) Knowledge-Retention Gate (Mandatory)
+
+Domain tuning must include general-capability retention checks:
+
+- run fixed general holdout set after domain tuning
+- fail gate if general score drops more than 3%
+
+Recommended mapping:
+
+- `topic07d_forgetting_gate_advanced.py`
+
+Required artifact:
+
+- `results/stage8/forgetting_test_results.jsonl`
+
+### 23.4) Decision Flywheel (Mandatory in Chapter Text)
+
+Add explicit decision-flywheel guidance to avoid over-engineering:
+
+- map `data freshness` and `task complexity` against method choice
+- require evidence-backed method selection (prompt vs RAG vs tune vs hybrid)
+
+### 23.5) Ghost-Loss Troubleshooting Drill (Mandatory)
+
+Troubleshooting must include:
+
+- decreasing loss with degraded outputs
+- periodic sample-based qualitative validation checks
+- hold/rollback criteria when output quality diverges from loss trend
+
+Recommended mapping:
+
+- `topic02d_ghost_loss_diagnosis.py`
+
+### 23.6) Promotion Report Gate (Mandatory)
+
+Stage 8 is not complete without formal promotion evidence:
+
+- baseline vs tuned side-by-side on fixed eval set
+- retention gate evidence
+- quality/cost/latency tradeoffs
+- final decision and rollback condition
+
+Required artifact:
+
+- `results/stage8/model_promotion_report.md`
+
+### 23.7) Mandatory Artifact Set (Additive)
+
+These artifacts are mandatory in addition to existing Stage 8 outputs:
+
+- `results/stage8/vram_telemetry_5090.csv`
+- `results/stage8/forgetting_test_results.jsonl`
+- `results/stage8/sft_vs_qlora_delta.md`
+- `results/stage8/model_promotion_report.md`
+
+---
+
+## 24) Review-Driven Addendum 3 (2026-04-04, Additive-Only)
+
+This section captures 2026 alignment-and-production additions for local high-end LLM workflows.
+
+### 24.1) Alignment Bridge: DPO vs PPO (Mandatory)
+
+Add a dedicated alignment module focused on local-operable preference tuning:
+
+- include direct comparison of DPO and PPO tradeoffs
+- require DPO-first local path (simpler than PPO, no separate reward model requirement)
+- include chosen/rejected preference-pair dataset format and validation
+
+Recommended mapping:
+
+- `topic09a_dpo_foundations_simple.py`
+- `topic09_dpo_intermediate.py`
+- `topic09c_dpo_eval_advanced.py`
+
+Required artifact:
+
+- `results/stage8/dpo_preference_eval.csv`
+
+### 24.2) Adapter Merging and Task Arithmetic (Mandatory)
+
+Add model-merging workflow for multi-task local adaptation:
+
+- merge at least two adapters with task-specific strengths
+- compare merged adapter vs source adapters on both tasks
+- include regression/compatibility matrix
+
+Recommended mapping:
+
+- `topic10a_adapter_merge_simple.py`
+- `topic10_adapter_merge_intermediate.py`
+- `topic10c_task_arithmetic_advanced.py`
+
+Required artifact:
+
+- `results/stage8/adapter_merge_matrix.csv`
+
+### 24.3) Synthetic Data Curation Module (Mandatory)
+
+Add synthetic-data generation and governance path:
+
+- self-instruct/evol-instruct style generation
+- filtering, dedupe, schema normalization, and quality scoring
+- fixed train/eval split generation from curated synthetic set
+
+Recommended mapping:
+
+- `topic11a_synthetic_data_simple.py`
+- `topic11_synthetic_data_curation_intermediate.py`
+- `topic11c_synthetic_data_governance_advanced.py`
+
+Required artifact:
+
+- `results/stage8/synthetic_data_curation_report.md`
+
+### 24.4) Advanced Memory Management (Mandatory)
+
+Add explicit high-memory-efficiency training guidance:
+
+- Flash Attention 3 (when platform/runtime supports it)
+- gradient checkpointing
+- batch-size ladder + OOM recovery policy
+
+Recommended mapping:
+
+- `topic12a_memory_basics_simple.py`
+- `topic12_memory_optimization_intermediate.py`
+- `topic12c_flashattn_checkpointing_advanced.py`
+
+Required artifact:
+
+- `results/stage8/flashattn_checkpointing_benchmark.csv`
+
+### 24.5) Stage-8 Failure Class Extension (Additive)
+
+Add these labels to Stage 8 failure classification:
+
+- `alignment_drift`
+- `mode_collapse`
+
+### 24.6) Evidence Schema Extension (Additive)
+
+Stage 8 metric tables and reports should include:
+
+- `perplexity`
+- `training_loss_vs_val_loss`
+- `vram_peak`
+
+### 24.7) Mandatory Artifact Set (Additive)
+
+In addition to prior Stage-8 artifacts, include:
+
+- `results/stage8/dpo_preference_eval.csv`
+- `results/stage8/adapter_merge_matrix.csv`
+- `results/stage8/synthetic_data_curation_report.md`
+- `results/stage8/flashattn_checkpointing_benchmark.csv`
+
+---
+
 
 ## Cross-Plan Consistency Addendum (2026-04-04, Additive-Only)
 

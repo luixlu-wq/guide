@@ -35,7 +35,19 @@ $scripts = @(
     "topic07c_promotion_gate_advanced.py",
     "topic08a_model_registry_simple.py",
     "topic08_ops_observability_intermediate.py",
-    "topic08c_canary_rollback_advanced.py"
+    "topic08c_canary_rollback_advanced.py",
+    "topic09a_dpo_foundations_simple.py",
+    "topic09_dpo_intermediate.py",
+    "topic09c_dpo_eval_advanced.py",
+    "topic10a_adapter_merge_simple.py",
+    "topic10_adapter_merge_intermediate.py",
+    "topic10c_task_arithmetic_advanced.py",
+    "topic11a_synthetic_data_simple.py",
+    "topic11_synthetic_data_curation_intermediate.py",
+    "topic11c_synthetic_data_governance_advanced.py",
+    "topic12a_memory_basics_simple.py",
+    "topic12_memory_optimization_intermediate.py",
+    "topic12c_flashattn_checkpointing_advanced.py"
 )
 
 if ($IncludeLabs) {

@@ -29,7 +29,11 @@ $required = @(
     "lab4_solution_options.csv",
     "lab4_metrics_comparison.csv",
     "lab4_verification_report.md",
-    "lab4_production_readiness.md"
+    "lab4_production_readiness.md",
+    "stage8/vram_telemetry_5090.csv",
+    "stage8/forgetting_test_results.jsonl",
+    "stage8/sft_vs_qlora_delta.md",
+    "stage8/model_promotion_report.md"
 )
 
 if ($IncludeQdrant) {

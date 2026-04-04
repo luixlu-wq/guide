@@ -115,6 +115,18 @@ Topics:
 - `topic08a_model_registry_simple.py`
 - `topic08_ops_observability_intermediate.py`
 - `topic08c_canary_rollback_advanced.py`
+- `topic09a_dpo_foundations_simple.py`
+- `topic09_dpo_intermediate.py`
+- `topic09c_dpo_eval_advanced.py`
+- `topic10a_adapter_merge_simple.py`
+- `topic10_adapter_merge_intermediate.py`
+- `topic10c_task_arithmetic_advanced.py`
+- `topic11a_synthetic_data_simple.py`
+- `topic11_synthetic_data_curation_intermediate.py`
+- `topic11c_synthetic_data_governance_advanced.py`
+- `topic12a_memory_basics_simple.py`
+- `topic12_memory_optimization_intermediate.py`
+- `topic12c_flashattn_checkpointing_advanced.py`
 
 Labs:
 
@@ -140,12 +152,15 @@ Lab 2:
 - `results/lab2_lora_metrics.csv`
 - `results/lab2_qlora_metrics.csv`
 - `results/lab2_memory_latency_report.md`
+- `results/stage8/vram_telemetry_5090.csv`
+- `results/stage8/sft_vs_qlora_delta.md`
 
 Lab 3:
 
 - `results/lab3_teacher_outputs.jsonl`
 - `results/lab3_student_outputs.jsonl`
 - `results/lab3_distillation_report.md`
+- `results/stage8/forgetting_test_results.jsonl`
 
 Lab 4:
 
@@ -155,6 +170,7 @@ Lab 4:
 - `results/lab4_metrics_comparison.csv`
 - `results/lab4_verification_report.md`
 - `results/lab4_production_readiness.md`
+- `results/stage8/model_promotion_report.md`
 
 Lab 5 (optional Qdrant):
 

@@ -1,0 +1,2 @@
+run_id,stage,topic_or_module,metric_name,before_value,after_value,delta,dataset_or_eval_set,seed_or_config_id,decision
+20260404T195945Z,stage-8,topic09c_dpo_eval_advanced,preference_win_rate,0.75,1.0,0.25,synthetic_preference_pairs_v1,dpo_config_v1,promote

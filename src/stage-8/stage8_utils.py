@@ -25,6 +25,7 @@ from sklearn.metrics import accuracy_score, f1_score
 
 THIS_DIR = Path(__file__).resolve().parent
 RESULTS_DIR = THIS_DIR / "results"
+STAGE8_RESULTS_DIR = RESULTS_DIR / "stage8"
 
 
 @dataclass
@@ -38,6 +39,7 @@ class TextModelBundle:
 def ensure_results_dir() -> None:
     """Create results directory if missing so scripts can always write artifacts."""
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    STAGE8_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def set_seed(seed: int = 42) -> None:
