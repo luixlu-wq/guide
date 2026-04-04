@@ -1,0 +1,24 @@
+{"id": "r01", "mode": "json_weak", "raw_output": "{\"summary\": \"Revenue grew but regulatory investigation increased uncertainty.\", \"risks\": [\"regulatory\", \"investigation\"], \"citations\": []}", "parse_error": null}
+{"id": "r02", "mode": "json_weak", "raw_output": "{summary: 'bad json', risks: [volatility], citations: []}", "parse_error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}
+{"id": "r03", "mode": "json_weak", "raw_output": "{\"summary\": \"Margin pressure rose with debt refinancing costs.\", \"risks\": [\"debt\"], \"citations\": []}", "parse_error": null}
+{"id": "r04", "mode": "json_weak", "raw_output": "{summary: 'bad json', risks: [volatility], citations: []}", "parse_error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}
+{"id": "r05", "mode": "json_weak", "raw_output": "{\"summary\": \"Guidance remained cautious because of volatility.\", \"risks\": [\"volatility\"], \"citations\": []}", "parse_error": null}
+{"id": "r06", "mode": "json_weak", "raw_output": "{\"summary\": \"Product recall created legal and reputational risk.\", \"risks\": [\"recall\"], \"citations\": []}", "parse_error": null}
+{"id": "r07", "mode": "json_weak", "raw_output": "{\"summary\": \"Revenue grew but regulatory investigation increased uncertainty.\", \"risks\": [\"regulatory\", \"investigation\"], \"citations\": []}", "parse_error": null}
+{"id": "r08", "mode": "json_weak", "raw_output": "{summary: 'bad json', risks: [volatility], citations: []}", "parse_error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}
+{"id": "r09", "mode": "json_weak", "raw_output": "{\"summary\": \"Margin pressure rose with debt refinancing costs.\", \"risks\": [\"debt\"], \"citations\": []}", "parse_error": null}
+{"id": "r10", "mode": "json_weak", "raw_output": "{summary: 'bad json', risks: [volatility], citations: []}", "parse_error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}
+{"id": "r11", "mode": "json_weak", "raw_output": "{\"summary\": \"Guidance remained cautious because of volatility.\", \"risks\": [\"volatility\"], \"citations\": []}", "parse_error": null}
+{"id": "r12", "mode": "json_weak", "raw_output": "{\"summary\": \"Product recall created legal and reputational risk.\", \"risks\": [\"recall\"], \"citations\": []}", "parse_error": null}
+{"id": "r13", "mode": "json_weak", "raw_output": "{\"summary\": \"Revenue grew but regulatory investigation increased uncertainty.\", \"risks\": [\"regulatory\", \"investigation\"], \"citations\": []}", "parse_error": null}
+{"id": "r14", "mode": "json_weak", "raw_output": "{summary: 'bad json', risks: [volatility], citations: []}", "parse_error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}
+{"id": "r15", "mode": "json_weak", "raw_output": "{\"summary\": \"Margin pressure rose with debt refinancing costs.\", \"risks\": [\"debt\"], \"citations\": []}", "parse_error": null}
+{"id": "r16", "mode": "json_weak", "raw_output": "{summary: 'bad json', risks: [volatility], citations: []}", "parse_error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}
+{"id": "r17", "mode": "json_weak", "raw_output": "{\"summary\": \"Guidance remained cautious because of volatility.\", \"risks\": [\"volatility\"], \"citations\": []}", "parse_error": null}
+{"id": "r18", "mode": "json_weak", "raw_output": "{\"summary\": \"Product recall created legal and reputational risk.\", \"risks\": [\"recall\"], \"citations\": []}", "parse_error": null}
+{"id": "r19", "mode": "json_weak", "raw_output": "{\"summary\": \"Revenue grew but regulatory investigation increased uncertainty.\", \"risks\": [\"regulatory\", \"investigation\"], \"citations\": []}", "parse_error": null}
+{"id": "r20", "mode": "json_weak", "raw_output": "{summary: 'bad json', risks: [volatility], citations: []}", "parse_error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}
+{"id": "r21", "mode": "json_weak", "raw_output": "{\"summary\": \"Margin pressure rose with debt refinancing costs.\", \"risks\": [\"debt\"], \"citations\": []}", "parse_error": null}
+{"id": "r22", "mode": "json_weak", "raw_output": "{summary: 'bad json', risks: [volatility], citations: []}", "parse_error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}
+{"id": "r23", "mode": "json_weak", "raw_output": "{\"summary\": \"Guidance remained cautious because of volatility.\", \"risks\": [\"volatility\"], \"citations\": []}", "parse_error": null}
+{"id": "r24", "mode": "json_weak", "raw_output": "{\"summary\": \"Product recall created legal and reputational risk.\", \"risks\": [\"recall\"], \"citations\": []}", "parse_error": null}

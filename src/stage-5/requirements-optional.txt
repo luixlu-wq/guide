@@ -1,0 +1,6 @@
+﻿-r requirements.txt
+
+# Optional ecosystem packages for extended Stage 5 experiments:
+# transformers>=4.40
+# tokenizers>=0.15
+# sentence-transformers>=2.7

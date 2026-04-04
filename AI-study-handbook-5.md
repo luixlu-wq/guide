@@ -52,6 +52,7 @@ A beginner should finish this stage understanding:
 - what a token is
 - what embeddings are
 - how transformers enable LLMs
+- what multi-head attention is and why it is central
 - how prompting changes outputs
 - why structured output matters
 - why hallucination happens
@@ -80,9 +81,94 @@ https://d2l.ai/
 - Fine-tuning (intro)
 - RAG (intro)
 
+### Deep Study Path (Recommended Order)
+
+Use this order if the chapter feels difficult:
+
+1. **Transformer basics and attention math**
+   - Attention Is All You Need: https://arxiv.org/abs/1706.03762
+   - D2L multi-head attention: https://d2l.ai/chapter_attention-mechanisms-and-transformers/multihead-attention.html
+2. **Implementation-level understanding**
+   - PyTorch MultiheadAttention: https://docs.pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html
+   - PyTorch TransformerEncoderLayer: https://docs.pytorch.org/docs/stable/generated/torch.nn.TransformerEncoderLayer.html
+3. **Tokenization and practical NLP pipeline**
+   - Hugging Face NLP Course: https://huggingface.co/learn/nlp-course
+   - Hugging Face Tokenizers docs: https://huggingface.co/docs/tokenizers/index
+4. **RAG and grounded generation**
+   - RAG paper (Lewis et al., 2020): https://arxiv.org/abs/2005.11401
+5. **Prompting and system reliability**
+   - OpenAI docs: https://platform.openai.com/docs
+   - OpenAI Cookbook: https://cookbook.openai.com/
+6. **Deeper language-model theory**
+   - CS224n: https://web.stanford.edu/class/cs224n/
+   - Jurafsky & Martin SLP draft: https://web.stanford.edu/~jurafsky/slp3/
+
 ---
 
 ## Key Knowledge (Deep Understanding)
+
+### 0. PyTorch and CUDA for LLM Workflows
+
+You need this before training-oriented LLM code becomes clear.
+
+- **PyTorch**: deep learning framework used to define tensors, models, losses, and optimizers.
+- **CUDA**: NVIDIA GPU compute platform that PyTorch can use to accelerate training/inference.
+
+Practical relationship:
+
+- PyTorch is the software framework.
+- CUDA is the GPU execution backend.
+- In code, you usually choose a `device` (`cpu` or `cuda`) and move both model and tensors to that device.
+
+Core training flow (device-aware):
+
+1. Move tensors to device (`cpu` or `cuda`).
+2. Forward pass computes prediction.
+3. Loss compares prediction vs target.
+4. Backward pass computes gradients.
+5. Optimizer updates parameters.
+
+Minimum operatable check:
+
+```python
+import torch
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("torch_version:", torch.__version__)
+print("cuda_available:", torch.cuda.is_available())
+print("selected_device:", device)
+```
+
+What this means for this chapter:
+
+- Stage 5 scripts are written to run on CPU by default and use CUDA when available.
+- The mini LLM lab uses the same device selection pattern so you can observe real training behavior safely on both environments.
+
+Runnable PyTorch/CUDA examples in this chapter:
+
+- [topic00a_pytorch_cuda_simple.py](src/stage-5/topic00a_pytorch_cuda_simple.py)
+  - device detection and tensor operations
+- [topic00_pytorch_cuda_intermediate.py](src/stage-5/topic00_pytorch_cuda_intermediate.py)
+  - device-aware model training loop
+- [topic00c_pytorch_cuda_advanced.py](src/stage-5/topic00c_pytorch_cuda_advanced.py)
+  - optional mixed precision (`amp`) training on CUDA
+
+Run commands:
+
+```powershell
+python .\src\stage-5\topic00a_pytorch_cuda_simple.py
+python .\src\stage-5\topic00_pytorch_cuda_intermediate.py
+python .\src\stage-5\topic00c_pytorch_cuda_advanced.py
+```
+
+PyTorch/CUDA references:
+
+- PyTorch getting started:
+  - https://pytorch.org/get-started/locally/
+- PyTorch CUDA semantics:
+  - https://pytorch.org/docs/stable/notes/cuda.html
+
+---
 
 ### 1. What is a Token
 
@@ -358,9 +444,23 @@ Attention scores are computed between queries and keys, then used to combine val
 
 **C. Multi-Head Attention**
 
-Uses multiple attention heads in parallel. Different heads can focus on different relationships.
+Multi-head attention runs multiple attention operations in parallel on different learned projections of Q, K, and V.
 
-*Why important: Lets the model capture multiple types of patterns at once.*
+From the original Transformer paper:
+
+- each head uses its own learned projections
+- head outputs are concatenated
+- then projected again to produce final output
+
+Core equations:
+
+```
+Attention(Q, K, V) = softmax(QK^T / sqrt(d_k))V
+MultiHead(Q, K, V) = Concat(head_1, ..., head_h)W^O
+head_i = Attention(QW_i^Q, KW_i^K, VW_i^V)
+```
+
+*Why important: It lets the model jointly attend to information from different representation subspaces at different positions.*
 
 ---
 
@@ -387,6 +487,115 @@ A token can only attend to **previous** tokens, not future ones.
 *Why important: This allows next-token prediction training.*
 
 ---
+
+#### Multi-Head Attention Deep Dive (Step-by-Step)
+
+Use this as the operational mental model.
+
+Runnable script: [topic01_multihead_attention.py](src/stage-5/topic01_multihead_attention.py)
+
+Assume token representations `X` with shape `(batch_size, seq_len, d_model)`.
+
+1. **Linear projections per head**
+   - for each head `i`, compute:
+     - `Q_i = XW_i^Q`
+     - `K_i = XW_i^K`
+     - `V_i = XW_i^V`
+   - shape per head is usually `(batch_size, seq_len, d_k)`
+2. **Per-head attention scores**
+   - `scores_i = Q_i K_i^T / sqrt(d_k)`
+3. **Masking (if decoder causal attention)**
+   - block future positions before softmax
+4. **Per-head weighted values**
+   - `A_i = softmax(scores_i)`
+   - `H_i = A_i V_i`
+5. **Concatenate all heads**
+   - `H = Concat(H_1, ..., H_h)`
+6. **Final output projection**
+   - `Y = HW^O`
+
+Interpretation:
+
+- one head can learn short-range/local relations
+- another can learn long-range dependencies
+- another can track syntax-like or coreference-like patterns
+
+The key point is not that each head is manually assigned a meaning, but that multiple heads increase representational flexibility.
+
+#### Self-Attention vs Multi-Head Attention vs Transformer
+
+| Concept | What it is | Scope |
+|---|---|---|
+| **Self-attention** | One attention operation over tokens in a sequence | A mechanism |
+| **Multi-head attention** | Multiple self-attention heads in parallel + concat + output projection | A richer attention layer |
+| **Transformer** | Full architecture stack using multi-head attention + feed-forward + residual + layer norm + positional handling (+ masking/cross-attention by context) | The complete model/block design |
+
+If you are confused, remember:
+
+- self-attention is a single tool
+- multi-head attention is several copies of that tool working in parallel
+- transformer is the full machine that includes multi-head attention as one major component
+
+#### Where Multi-Head Attention Appears Inside Transformer
+
+In the original encoder-decoder Transformer:
+
+1. **Encoder self-attention**: `Q, K, V` all come from encoder hidden states.
+2. **Decoder masked self-attention**: `Q, K, V` all come from decoder states, with future mask.
+3. **Encoder-decoder (cross) attention**: `Q` comes from decoder, while `K, V` come from encoder outputs.
+
+#### Mini Operatable Code (Shape-Level Understanding)
+
+```python
+import torch
+import torch.nn as nn
+
+batch_size, seq_len, d_model = 2, 5, 16
+num_heads = 4
+
+x = torch.randn(batch_size, seq_len, d_model)
+mha = nn.MultiheadAttention(embed_dim=d_model, num_heads=num_heads, batch_first=True)
+
+out, attn_weights = mha(x, x, x)  # self-attention path
+print("input shape:", x.shape)            # (2, 5, 16)
+print("output shape:", out.shape)         # (2, 5, 16)
+print("attn shape:", attn_weights.shape)  # (2, 5, 5) averaged over heads by default
+```
+
+What this demonstrates:
+
+- multi-head attention keeps token sequence length
+- output remains in model dimension `d_model`
+- attention weights describe how each position attends to others
+
+#### Why This Part Is Hard (And How To Learn It)
+
+Why it feels hard:
+
+- too many terms (`Q`, `K`, `V`, heads, masking, projection)
+- mechanism level and architecture level are often mixed together
+
+How to learn it correctly:
+
+1. Learn one attention head first.
+2. Add multiple heads (parallel projections + concat).
+3. Then place that layer inside a Transformer block.
+
+Checkpoint question before moving on:
+
+- If I remove feed-forward, residual, and layer norm, do I still have a Transformer?
+  - No. You only have part of it (attention layer), not the full Transformer block.
+
+#### Authoritative References For This Module
+
+- Attention Is All You Need (Section 3.2.1 and 3.2.2):
+  - https://arxiv.org/abs/1706.03762
+- PyTorch `nn.MultiheadAttention`:
+  - https://docs.pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html
+- PyTorch `nn.TransformerEncoderLayer`:
+  - https://docs.pytorch.org/docs/stable/generated/torch.nn.TransformerEncoderLayer.html
+- Dive into Deep Learning, Multi-Head Attention:
+  - https://d2l.ai/chapter_attention-mechanisms-and-transformers/multihead-attention.html
 
 #### Strengths and Weaknesses of Transformers
 
@@ -863,7 +1072,23 @@ Always ask: *Is this grounded? Is this verified? Does this need retrieval or ext
 
 ---
 
-### 2. Prompt instability
+### 2. Confusing self-attention, multi-head attention, and transformer
+
+**This is one of the most common Stage 5 confusion points.**
+
+*Why this happens:* these terms are introduced close together and often explained at different abstraction levels.
+
+*Why this is a problem:* if you mix mechanism level with architecture level, model debugging and design choices become unclear.
+
+**Fix strategy:** memorize this hierarchy:
+
+- self-attention = one mechanism
+- multi-head attention = parallel set of self-attention heads + concat/projection
+- transformer = full block/architecture containing multi-head attention plus other sublayers
+
+---
+
+### 3. Prompt instability
 
 **Small changes → big output difference**
 
@@ -881,7 +1106,7 @@ Always ask: *Is this grounded? Is this verified? Does this need retrieval or ext
 
 ---
 
-### 3. Hallucination
+### 4. Hallucination
 
 **LLM may confidently give wrong answers.**
 
@@ -900,7 +1125,7 @@ Always ask: *Is this grounded? Is this verified? Does this need retrieval or ext
 
 ---
 
-### 4. Output inconsistency
+### 5. Output inconsistency
 
 **Same input → slightly different output**
 
@@ -918,7 +1143,7 @@ Always ask: *Is this grounded? Is this verified? Does this need retrieval or ext
 
 ---
 
-### 5. Over-reliance on LLM
+### 6. Over-reliance on LLM
 
 **LLM should NOT handle everything.**
 
@@ -930,7 +1155,7 @@ Always ask: *Is this grounded? Is this verified? Does this need retrieval or ext
 
 ---
 
-### 6. Confusing embeddings with full understanding
+### 7. Confusing embeddings with full understanding
 
 *Why this happens:* Embeddings often produce surprisingly good semantic search results.
 
@@ -940,7 +1165,7 @@ Always ask: *Is this grounded? Is this verified? Does this need retrieval or ext
 
 ---
 
-### 7. Treating RAG as automatic truth
+### 8. Treating RAG as automatic truth
 
 *Why this happens:* People assume retrieved documents automatically solve hallucinations.
 
@@ -1003,40 +1228,188 @@ If LLM results are poor, check:
 
 ---
 
-## Example Code
+## Stage 5 Script Mapping (for `/red-book/src/stage-5`)
 
-```python
-from transformers import pipeline
+Core run commands:
 
-generator = pipeline("text-generation", model="gpt2")
-
-print(generator("AI will change", max_length=30))
+```powershell
+powershell -ExecutionPolicy Bypass -File .\src\stage-5\run_all_stage5.ps1
+powershell -ExecutionPolicy Bypass -File .\src\stage-5\run_ladder_stage5.ps1
+powershell -ExecutionPolicy Bypass -File .\src\stage-5\run_ladder_stage5.ps1 -IncludeBridge
+powershell -ExecutionPolicy Bypass -File .\src\stage-5\run_ladder_stage5.ps1 -IncludeBridge -IncludeLab
 ```
 
-### Beginner Walkthrough of the Example
+Script mapping:
 
-| Line | What it does |
-|---|---|
-| `pipeline("text-generation", model="gpt2")` | Loads a text generation pipeline using GPT-2 |
-| `generator("AI will change", max_length=30)` | Asks the model to continue the prompt |
-| `max_length=30` | Limits the total generated sequence length |
+- PyTorch/CUDA ladder:
+  - [topic00a_pytorch_cuda_simple.py](src/stage-5/topic00a_pytorch_cuda_simple.py)
+  - [topic00_pytorch_cuda_intermediate.py](src/stage-5/topic00_pytorch_cuda_intermediate.py)
+  - [topic00c_pytorch_cuda_advanced.py](src/stage-5/topic00c_pytorch_cuda_advanced.py)
+- Multi-head attention bridge:
+  - [topic01_multihead_attention.py](src/stage-5/topic01_multihead_attention.py)
+- Tokenization ladder:
+  - [topic01a_tokenization_simple.py](src/stage-5/topic01a_tokenization_simple.py)
+  - [topic01_tokenization_intermediate.py](src/stage-5/topic01_tokenization_intermediate.py)
+  - [topic01c_tokenization_advanced.py](src/stage-5/topic01c_tokenization_advanced.py)
+- Prompting ladder:
+  - [topic02a_prompting_simple.py](src/stage-5/topic02a_prompting_simple.py)
+  - [topic02_prompting_intermediate.py](src/stage-5/topic02_prompting_intermediate.py)
+  - [topic02c_prompting_advanced.py](src/stage-5/topic02c_prompting_advanced.py)
+- Structured output ladder:
+  - [topic03a_structured_output_simple.py](src/stage-5/topic03a_structured_output_simple.py)
+  - [topic03_structured_output_intermediate.py](src/stage-5/topic03_structured_output_intermediate.py)
+  - [topic03c_structured_output_advanced.py](src/stage-5/topic03c_structured_output_advanced.py)
+- RAG ladder:
+  - [topic04a_rag_simple.py](src/stage-5/topic04a_rag_simple.py)
+  - [topic04_rag_intermediate.py](src/stage-5/topic04_rag_intermediate.py)
+  - [topic04c_rag_advanced.py](src/stage-5/topic04c_rag_advanced.py)
+- Embeddings ladder:
+  - [topic05a_embeddings_simple.py](src/stage-5/topic05a_embeddings_simple.py)
+  - [topic05_embeddings_intermediate.py](src/stage-5/topic05_embeddings_intermediate.py)
+  - [topic05c_embeddings_advanced.py](src/stage-5/topic05c_embeddings_advanced.py)
+- Diagnostics and project:
+  - [topic07_prompt_eval_regression.py](src/stage-5/topic07_prompt_eval_regression.py)
+  - [topic08_project_baseline.py](src/stage-5/topic08_project_baseline.py)
+- Step-by-step multi-head-attention mini-LLM lab:
+  - [lab01_simple_mha_llm.py](src/stage-5/lab01_simple_mha_llm.py)
 
-This example shows the core LLM pattern:
+Expected output style per script:
 
-```
-prompt in → generated continuation out
-```
+- print data/schema declaration
+- print key metrics
+- print short interpretation text
+- include very detailed and clear comments for every workflow block (data, preprocessing, model, training, evaluation, outputs)
 
-But this is only the beginning. Real LLM systems usually need:
+### Detailed Comment Standard (Mandatory)
 
-- better prompts
-- validation
-- structure
-- grounding
-- evaluation
+All Stage 5 example code should follow this comment style:
+
+1. Add a top-of-file header explaining:
+   - what the script teaches
+   - data source and structure
+   - expected outputs
+2. Add `# Workflow:` comments before each major stage.
+3. Add functional comments above non-trivial logic:
+   - what the block does
+   - why this step is needed
+   - what can fail if skipped
+4. Add output interpretation comments near printed metrics.
+5. Keep comments explicit and beginner-readable; avoid vague comments like `# process data`.
 
 ---
 
+## Example Code Matrix (Key LLM Concepts)
+
+Use this map when you want runnable code for each core concept in this chapter.
+
+| Concept | Best Stage 5 script(s) | Complexity focus |
+|---|---|---|
+| PyTorch and CUDA workflow | `topic00a` -> `topic00` -> `topic00c` | from device checks to mixed-precision GPU training |
+| Tokenization and token budget | `topic01a` -> `topic01` -> `topic01c` | from token splitting basics to practical token analysis |
+| Prompt engineering | `topic02a` -> `topic02` -> `topic02c` | from clear instruction writing to controlled prompt variants |
+| Structured output | `topic03a` -> `topic03` -> `topic03c` | from fixed JSON shape to stronger validation/failure handling |
+| RAG workflow | `topic04a` -> `topic04` -> `topic04c` | from retrieval intuition to diagnostic checks |
+| Embeddings and semantic retrieval | `topic05a` -> `topic05` -> `topic05c` | from vector basics to retrieval metrics (`hit@k`) |
+| Multi-head attention mechanism | `topic01_multihead_attention.py` | shape flow, Q/K/V mapping, head behavior |
+| End-to-end mini LLM with MHA | `lab01_simple_mha_llm.py` | full data -> model -> training -> generation workflow |
+| Prompt evaluation and regression | `topic07_prompt_eval_regression.py` | compare prompt versions on fixed evaluation set |
+| Operatable project baseline | `topic08_project_baseline.py` | fixed deliverables and before/after comparison |
+
+### Best External Teaching Examples (Curated)
+
+These are high-value references for students who need more explanation depth:
+
+- Annotated Transformer (line-by-line implementation):
+  - https://nlp.seas.harvard.edu/2018/04/03/attention.html
+- Illustrated Transformer (visual intuition):
+  - https://jalammar.github.io/illustrated-transformer/
+- PyTorch `nn.MultiheadAttention` docs:
+  - https://docs.pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html
+- PyTorch transformer language-model tutorial:
+  - https://docs.pytorch.org/tutorials/beginner/transformer_tutorial.html
+- Hugging Face LLM course (train a causal LM from scratch):
+  - https://huggingface.co/learn/llm-course/chapter7/6?fw=pt
+- OpenAI prompt engineering guide:
+  - https://platform.openai.com/docs/guides/prompt-engineering
+- OpenAI structured outputs guide:
+  - https://platform.openai.com/docs/guides/structured-outputs
+- Popular educational repos:
+  - https://github.com/karpathy/nanoGPT
+  - https://github.com/karpathy/minGPT
+  - https://github.com/rasbt/LLMs-from-scratch
+
+---
+
+## Step-by-Step Lab: Build a Simple Multi-Head-Attention LLM
+
+Lab script: [lab01_simple_mha_llm.py](src/stage-5/lab01_simple_mha_llm.py)
+
+### Lab Goal
+
+Build and run a tiny decoder-only language model that uses multi-head attention for next-token prediction.
+
+### Lab Environment
+
+From `red-book/src/stage-5`:
+
+```powershell
+pip install -r requirements.txt
+python .\lab01_simple_mha_llm.py
+```
+
+### Lab Workflow (Operatable)
+
+1. Fix task and data: use the in-script corpus and do not change corpus during baseline run.
+2. Read inline script comments first; use them as operation guide for each stage.
+3. Confirm data declaration printed by script:
+   - source
+   - record count
+   - vocab size
+   - input/output schema
+   - fixed split policy
+4. Confirm tokenizer stage:
+   - character vocabulary is built
+   - text is encoded into token IDs
+5. Confirm dataset stage:
+   - sliding windows are created for `x_ids` and `y_ids`
+   - fixed 90/10 train/validation split is applied
+6. Confirm model stage:
+   - token embedding + positional embedding
+   - stacked decoder blocks
+   - each block has masked `nn.MultiheadAttention`
+   - feed-forward + residual + layer norm
+7. Record baseline metrics before training:
+   - `baseline_val_loss`
+   - `baseline_val_perplexity`
+8. Train model with fixed settings:
+   - optimizer: AdamW
+   - gradient clipping
+   - periodic train/validation loss logging
+9. Record final metrics:
+   - `final_val_loss`
+   - `final_val_perplexity`
+10. Generate sample text from prompt `"multi-head attention "`.
+11. Write one short interpretation:
+   - whether loss decreased
+   - whether generated text shows corpus pattern learning
+   - one failure pattern you observed
+
+### Required Lab Deliverables
+
+- console log with baseline and final metrics
+- one generated sample output
+- short notes:
+  - model config used
+  - metric delta (`baseline -> final`)
+  - one improvement idea (for example: more data, larger model, more steps)
+
+### Where Complexity Is In This Lab
+
+- Simple part: data preparation and vocabulary creation.
+- Intermediate part: masked multi-head attention tensor flow.
+- Advanced part: stable training behavior and generation quality interpretation.
+
+---
 ## Practice Project
 
 ### Project: Prompt Engineering Playground
@@ -1232,25 +1605,28 @@ Take one fact-based task and compare:
 9. What is the core idea of transformers?
 10. What does self-attention do?
 11. What are queries, keys, and values?
-12. Why is positional information needed?
-13. What is causal masking?
-14. What is prompt engineering?
-15. Why do small wording changes affect LLM output?
-16. What is zero-shot prompting?
-17. What is few-shot prompting?
-18. Why is structured output important?
-19. Why should JSON output still be validated?
-20. What is hallucination?
-21. Why can an LLM hallucinate even when it sounds confident?
-22. What is temperature or sampling randomness in generation?
-23. Why is an LLM not a truth engine?
-24. What is RAG?
-25. Why does RAG help factual tasks?
-26. What is chunking in RAG?
-27. Why can bad chunking hurt retrieval?
-28. What is fine-tuning?
-29. When should you try prompting/RAG before fine-tuning?
-30. What is the main lesson of this stage?
+12. What is multi-head attention?
+13. Why are multiple heads useful compared with one head?
+14. What is the difference between self-attention, multi-head attention, and transformer?
+15. Why is positional information needed?
+16. What is causal masking?
+17. What is prompt engineering?
+18. Why do small wording changes affect LLM output?
+19. What is zero-shot prompting?
+20. What is few-shot prompting?
+21. Why is structured output important?
+22. Why should JSON output still be validated?
+23. What is hallucination?
+24. Why can an LLM hallucinate even when it sounds confident?
+25. What is temperature or sampling randomness in generation?
+26. Why is an LLM not a truth engine?
+27. What is RAG?
+28. Why does RAG help factual tasks?
+29. What is chunking in RAG?
+30. Why can bad chunking hurt retrieval?
+31. What is fine-tuning?
+32. When should you try prompting/RAG before fine-tuning?
+33. What is the main lesson of this stage?
 
 ---
 
@@ -1289,61 +1665,70 @@ It calculates how much each token should pay attention to other tokens in the sa
 **11. What are queries, keys, and values?**
 They are learned representations used inside attention to compute relevance and combine information.
 
-**12. Why is positional information needed?**
+**12. What is multi-head attention?**
+It runs multiple attention heads in parallel on different learned projections of queries, keys, and values, then concatenates and projects their outputs.
+
+**13. Why are multiple heads useful compared with one head?**
+Because different heads can capture different dependency patterns or representation subspaces at the same time.
+
+**14. What is the difference between self-attention, multi-head attention, and transformer?**
+Self-attention is one attention mechanism, multi-head attention is multiple attention mechanisms in parallel, and Transformer is the full architecture that uses multi-head attention plus other components.
+
+**15. Why is positional information needed?**
 Because attention alone does not inherently know token order.
 
-**13. What is causal masking?**
+**16. What is causal masking?**
 It prevents a token from attending to future tokens during next-token prediction.
 
-**14. What is prompt engineering?**
+**17. What is prompt engineering?**
 Prompt engineering is designing instructions and examples to guide LLM behavior more reliably.
 
-**15. Why do small wording changes affect LLM output?**
+**18. Why do small wording changes affect LLM output?**
 Because the model is sensitive to framing, specificity, examples, and context structure.
 
-**16. What is zero-shot prompting?**
+**19. What is zero-shot prompting?**
 It is asking the model to perform a task without giving examples.
 
-**17. What is few-shot prompting?**
+**20. What is few-shot prompting?**
 It is giving a small number of examples so the model can imitate the desired pattern.
 
-**18. Why is structured output important?**
+**21. Why is structured output important?**
 Because software systems need predictable, parseable output formats.
 
-**19. Why should JSON output still be validated?**
+**22. Why should JSON output still be validated?**
 Because the model can produce malformed, incomplete, or semantically wrong JSON even if it looks correct.
 
-**20. What is hallucination?**
+**23. What is hallucination?**
 Hallucination is when the model generates false, unsupported, or invented content.
 
-**21. Why can an LLM hallucinate even when it sounds confident?**
+**24. Why can an LLM hallucinate even when it sounds confident?**
 Because fluency comes from pattern generation, not built-in fact verification.
 
-**22. What is temperature or sampling randomness in generation?**
+**25. What is temperature or sampling randomness in generation?**
 It controls how deterministic or diverse the generated output is.
 
-**23. Why is an LLM not a truth engine?**
+**26. Why is an LLM not a truth engine?**
 Because its core objective is next-token prediction, not guaranteed factual correctness.
 
-**24. What is RAG?**
+**27. What is RAG?**
 RAG stands for Retrieval-Augmented Generation: retrieve relevant documents first, then use them as context for the LLM.
 
-**25. Why does RAG help factual tasks?**
+**28. Why does RAG help factual tasks?**
 Because it grounds the model in external documents instead of relying only on internal model memory.
 
-**26. What is chunking in RAG?**
+**29. What is chunking in RAG?**
 Chunking is splitting documents into smaller retrievable pieces.
 
-**27. Why can bad chunking hurt retrieval?**
+**30. Why can bad chunking hurt retrieval?**
 Because relevant information may be split poorly, mixed with noise, or made harder to retrieve accurately.
 
-**28. What is fine-tuning?**
+**31. What is fine-tuning?**
 Fine-tuning is further training a model on task-specific examples to adapt its behavior.
 
-**29. When should you try prompting/RAG before fine-tuning?**
+**32. When should you try prompting/RAG before fine-tuning?**
 When better instructions, structure, grounding, and validation may solve the problem more cheaply and safely.
 
-**30. What is the main lesson of this stage?**
+**33. What is the main lesson of this stage?**
 LLMs are powerful language models, but reliable systems require prompting, grounding, validation, and careful workflow design rather than blind trust.
 
 ---
@@ -1352,7 +1737,8 @@ LLMs are powerful language models, but reliable systems require prompting, groun
 
 - [ ] Explain what a token is and why tokenization matters
 - [ ] Explain what embeddings are and why they are useful
-- [ ] Explain the core idea of transformers and self-attention
+- [ ] Explain self-attention, multi-head attention, and how they fit inside transformers
+- [ ] Explain how PyTorch and CUDA work together in LLM training workflows
 - [ ] Design clearer prompts for better outputs
 - [ ] Distinguish zero-shot and few-shot prompting
 - [ ] Request and validate structured outputs
@@ -1360,3 +1746,4 @@ LLMs are powerful language models, but reliable systems require prompting, groun
 - [ ] Explain what RAG is and why it helps
 - [ ] Understand when prompting, retrieval, rules, or fine-tuning are appropriate
 - [ ] Treat LLMs as powerful but fallible components in larger systems
+

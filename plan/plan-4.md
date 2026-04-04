@@ -25,6 +25,7 @@ These requirements are locked and must remain in scope:
   - runnable end-to-end with expected outputs
 - Declare data source and data structure used in all examples.
 - Include high-quality resources (official docs, books, papers, practical repos).
+- Key request: all example code must be commented in very detail and clear, so learners can understand functionality line by line.
 
 Carry-over quality requirements from successful Stage 3 pattern (apply to Stage 4):
 

@@ -31,6 +31,7 @@ These requirements come directly from user instructions and must remain in scope
 - Add more instructions for learning targets.
 - Add detailed tutorials for key topics.
 - Examples can be sourced/adapted from websites, tutorials, books, docs, and articles.
+- Key request: all example code must be commented in very detail and clear, so learners can understand functionality line by line.
 
 This section is a scope guard: future edits should not remove these requirements.
 

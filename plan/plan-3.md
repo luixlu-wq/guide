@@ -24,6 +24,7 @@ These requirements are locked and must remain in scope:
   - runnable end-to-end with expected outputs
 - Declare the data resource and data structure used in examples.
 - Include high-quality resources (tutorials, books, articles, official docs, GitHub).
+- Key request: all example code must be commented in very detail and clear, so learners can understand functionality line by line.
 
 Additional locked requirements requested later (must remain in scope):
 
