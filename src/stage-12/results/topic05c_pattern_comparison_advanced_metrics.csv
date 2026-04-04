@@ -1,0 +1,3 @@
+topic_id,pattern,run_type,quality_score,latency_p95_ms,cost_index,failure_rate
+topic05c_pattern_comparison_advanced,rag,baseline,0.81,592.8,1.596,0.023
+topic05c_pattern_comparison_advanced,rag,improved,0.8505,533.52,1.596,0.012

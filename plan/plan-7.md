@@ -577,44 +577,34 @@ Project-library deliverables (all tracks):
 
 ## 11) Troubleshooting and Realistic Problem Playbook
 
-Required failure scenarios:
+### 11.1 Stage-Specific Industry Pain-Point Matrix (Mandatory)
 
-- bad chunk boundaries (broken meaning)
-- low-quality retrieval despite correct answer intent
-- irrelevant top-k results
-- high-overlap duplicate chunks
-- missing citation in final answer
-- wrong citation mapping
-- retrieval latency spikes
-- index drift after data refresh
-- stale-index behavior after document updates
-- access-control mismatch (retrieves chunks user should not see)
-- unknown-answer not handled safely
-- prompt injection attempts in retrieved docs
-- PyTorch/CUDA device mismatch in local rerank path
-- CUDA OOM during batched scoring
+| Topic | Typical industry pain point | Common root causes | Resolution strategy (operatable) | Verification evidence | Mapped lab |
+|---|---|---|---|---|---|
+| Ingestion and cleaning | Documents ingest but retrieval quality is poor | Broken OCR, noisy boilerplate, missing normalization | Add ingestion quality checks and normalized text pipeline before indexing | Ingestion defect report + clean/raw diff samples | `lab01_pdf_qa_rag.py` |
+| Chunking strategy | Relevant facts split across chunks | Chunk size/overlap not aligned with document structure | Tune chunk size/overlap with fixed eval queries and compare recall | Recall@k delta by chunk policy | `lab03_hybrid_retrieval_benchmark.py` |
+| Retrieval quality | Top-k results look plausible but miss key facts | Weak embeddings, no filter policy, stale index | Add metadata filters + re-index rules + query rewrite checks | Retrieval hit/miss audit and recall table | `lab05_qdrant_end_to_end_rag.py` |
+| Grounding and citations | Fluent answers with unsupported claims | Context packing errors, missing citation rules | Enforce citation-required answer format and unknown-answer policy | Citation coverage and groundedness score | `lab01_pdf_qa_rag.py` |
+| Hybrid retrieval | Hybrid setup increases complexity without gains | Poor weighting or duplicate result handling | Run weighted fusion experiments with duplicate suppression | Hybrid vs dense/lexical comparison report | `lab03_hybrid_retrieval_benchmark.py` |
+| ACL-aware retrieval | User sees restricted chunks | Missing permission filters in retrieval layer | Apply ACL filter at query time and test with negative cases | ACL leak test (must be zero) | `lab05_qdrant_end_to_end_rag.py` |
+| Index freshness ops | New documents not reflected in answers | No sync schedule, no freshness monitoring | Add incremental ingestion job + freshness SLO + stale-index alerts | Freshness lag report and sync logs | `lab04_enterprise_rag_operations_drill.py` |
+| Latency/cost SLO | System works but exceeds budget | Large top-k, expensive reranking, no latency budget | Set latency budget per stage and optimize bottleneck step only | p95 latency/cost before-after report | `lab04_enterprise_rag_operations_drill.py` |
+| GPU rerank path | CUDA path unstable across environments | Device mismatch, OOM, no fallback policy | Add device guards, batch ladder, and deterministic CPU fallback | GPU failure recovery log + parity check | `lab04_enterprise_rag_operations_drill.py` |
 
-Required troubleshooting workflow:
+### 11.2 Required Troubleshooting Workflow
 
-1. reproduce with fixed query and trace id
-2. inspect retrieved chunks and scores
-3. inspect chunk metadata and source mapping
-4. inspect prompt context packing
-5. inspect grounding/citation behavior
-6. apply one targeted fix only
-7. rerun same case and record delta
-8. validate CPU fallback if GPU path fails
+1. Reproduce failure with fixed query set and trace/run ID.
+2. Classify failure: retrieval, grounding, citation, latency, ACL, or GPU path.
+3. Compare at least 2 fixes with tradeoffs.
+4. Apply exactly 1 targeted change.
+5. Rerun same eval set and record metric deltas.
+6. Decide promote/hold/rollback with explicit criteria.
 
-Required logs per run:
+### 11.3 Mandatory Artifacts
 
-- query id
-- retrieved chunk ids
-- top-k similarity/rerank scores
-- prompt version id
-- model version id
-- latency and token/cost summary
-- citation ids in final output
-- failure class (if any)
+- `results/stage7/pain_point_matrix.md`
+- `results/stage7/retrieval_grounding_before_after.csv`
+- `results/stage7/ops_incident_postmortem.md`
 
 ---
 
@@ -789,6 +779,97 @@ Handbook must end with `What Comes After Stage 7` and include:
 - 2-3 sentence summary of Stage 8 focus
 - mapping from Stage 7 skills to Stage 8 tasks
 - readiness sentence before progression
+
+
+
+
+---
+
+
+## Cross-Plan Consistency Addendum (2026-04-04, Additive-Only)
+
+This addendum is additive and does not remove or override existing content. Existing file names, workflows, and section details remain valid.
+
+### A) Canonical Decision Labels (Use Across All Stages)
+
+- `promote`: change passes all required gates and can move forward
+- `hold`: change is promising but evidence is incomplete or mixed
+- `rollback`: change increases risk/regression and must be reverted to prior baseline
+
+### B) Canonical Troubleshooting Flow Labels
+
+Use these labels in reports for consistency (even if stage-specific wording differs):
+
+1. `identify` (problem statement + failure class)
+2. `evidence` (logs/metrics/traces/schema snapshots)
+3. `compare` (>=2 options and tradeoffs)
+4. `change` (one targeted change only)
+5. `verify` (same dataset/split/eval/load profile)
+6. `decide` (`promote` / `hold` / `rollback`)
+
+### C) Canonical Artifact Naming Convention (Recommended)
+
+Keep all existing stage-specific filenames. In addition, produce or map to these canonical artifact names:
+
+- `pain_point_matrix.md`
+- `before_after_metrics.csv`
+- `verification_report.md`
+- `decision_log.md`
+- `reproducibility.md`
+
+If a stage already uses different names, add one of the following without deleting existing files:
+
+- a short mapping file: `artifact_name_map.md`
+- or duplicate/export canonical alias files that point to existing outputs
+
+### D) Evidence Schema (Minimum Fields for Any Metric Table)
+
+Every before/after metric table should include these columns (additive requirement):
+
+- `run_id`
+- `stage`
+- `topic_or_module`
+- `metric_name`
+- `before_value`
+- `after_value`
+- `delta`
+- `dataset_or_eval_set`
+- `seed_or_config_id`
+- `decision`
+
+### E) Failure Class Taxonomy (Cross-Stage)
+
+Use common labels for easier comparison across plans:
+
+- `data_schema`
+- `data_quality`
+- `feature_or_representation`
+- `training_or_optimization`
+- `retrieval_or_context`
+- `generation_or_reasoning`
+- `tool_or_api`
+- `latency_or_cost`
+- `security_or_policy`
+- `operations_or_release`
+
+### F) Stage Folder and Result Folder Convention
+
+Recommended unified pattern:
+
+- scripts: `red-book/src/stage-<N>/`
+- outputs: `results/stage<N>/`
+
+If a plan already uses another path, keep it and add a path mapping note in stage README.
+
+### G) No-Delete Compatibility Rule
+
+- Do not delete prior deliverable names from existing plan text.
+- Add normalization as aliases/mappings only.
+- When old and canonical names both exist, the stage README must state the mapping.
+
+## Global Key Request Addendum (2026-04-04)
+
+- Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
 
 
 

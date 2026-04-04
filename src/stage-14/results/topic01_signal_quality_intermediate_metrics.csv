@@ -1,0 +1,3 @@
+topic_id,run_type,quality_score,latency_p95_ms,cost_index,failure_rate
+topic01_signal_quality_intermediate,baseline,0.76,620.0,1.25,0.022
+topic01_signal_quality_intermediate,improved,0.8132,551.8,1.25,0.012

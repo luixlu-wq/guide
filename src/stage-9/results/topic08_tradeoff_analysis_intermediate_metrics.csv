@@ -1,0 +1,3 @@
+topic_id,topic_name,run_type,routing_accuracy,route_error_rate,latency_p50_ms,latency_p95_ms,latency_p99_ms,throughput_rps,queue_depth_avg,error_rate,gpu_mem_mb
+topic08_tradeoff_analysis_intermediate,Architecture Decision Records,baseline,1.0,0.0,270.0,445.5,543.51,3.7,4.25,0.018,1800.0
+topic08_tradeoff_analysis_intermediate,Architecture Decision Records,improved,1.0,0.0,237.6,351.65,400.88,4.88,2.72,0.009,1800.0

@@ -1,0 +1,4 @@
+metric,before,after,delta
+rag_grounding_score,0.71,0.82,0.11
+agent_tool_success_rate,0.76,0.86,0.1
+agent_loop_incidents,9,2,-7

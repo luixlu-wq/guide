@@ -1,0 +1,4 @@
+control,before,after
+max_position,0.45,0.35
+sector_cap,0.7,0.55
+stop_trigger,-0.12,-0.08

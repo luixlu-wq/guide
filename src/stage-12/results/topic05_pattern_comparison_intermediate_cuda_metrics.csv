@@ -1,0 +1,2 @@
+topic_id,complexity,device,latency_p50_ms,latency_p95_ms
+topic05_pattern_comparison_intermediate,intermediate,cpu,0.046,0.234

@@ -1,0 +1,15 @@
+{"req_id": "req_0000", "prompt_len": 64, "output_len": 64, "concurrency": 4, "route": "gpu_fast_path"}
+{"req_id": "req_0001", "prompt_len": 128, "output_len": 96, "concurrency": 2, "route": "gpu_fast_path"}
+{"req_id": "req_0002", "prompt_len": 64, "output_len": 64, "concurrency": 8, "route": "gpu_fast_path"}
+{"req_id": "req_0003", "prompt_len": 512, "output_len": 64, "concurrency": 1, "route": "gpu_fast_path"}
+{"req_id": "req_0004", "prompt_len": 64, "output_len": 96, "concurrency": 2, "route": "gpu_fast_path"}
+{"req_id": "req_0005", "prompt_len": 768, "output_len": 64, "concurrency": 8, "route": "gpu_safe_path"}
+{"req_id": "req_0006", "prompt_len": 128, "output_len": 160, "concurrency": 2, "route": "gpu_fast_path"}
+{"req_id": "req_0007", "prompt_len": 512, "output_len": 128, "concurrency": 1, "route": "gpu_fast_path"}
+{"req_id": "req_0008", "prompt_len": 128, "output_len": 160, "concurrency": 4, "route": "gpu_fast_path"}
+{"req_id": "req_0009", "prompt_len": 256, "output_len": 96, "concurrency": 2, "route": "gpu_fast_path"}
+{"req_id": "req_0010", "prompt_len": 256, "output_len": 64, "concurrency": 1, "route": "gpu_fast_path"}
+{"req_id": "req_0011", "prompt_len": 512, "output_len": 64, "concurrency": 4, "route": "gpu_fast_path"}
+{"req_id": "req_0012", "prompt_len": 256, "output_len": 128, "concurrency": 1, "route": "gpu_fast_path"}
+{"req_id": "req_0013", "prompt_len": 512, "output_len": 64, "concurrency": 6, "route": "gpu_fast_path"}
+{"req_id": "req_0014", "prompt_len": 64, "output_len": 128, "concurrency": 8, "route": "gpu_fast_path"}

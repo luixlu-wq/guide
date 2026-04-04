@@ -1,685 +1,716 @@
-# Stage 9 — AI System Architecture
+# Stage 9 - AI System Architecture
 
-**(Week 17)**
+**Week 17-18**
 
 ---
 
-## Goal
+## 0) If This Chapter Feels Hard
 
-Learn how to design AI systems for production.
+Use this 3-pass method:
 
-You are learning:
+1. Pass 1: Learn the architecture map and terminology only.
+2. Pass 2: Run Stage 9 scripts and collect metrics artifacts.
+3. Pass 3: Diagnose one failure, compare two fixes, and verify with rerun.
 
-- how components fit together
-- how to scale AI systems
-- how to design reliable architectures
+Do not try to memorize everything in one pass.
 
-This stage is where you move from:
+---
 
-> "I can build a model or demo"
+## 1) Stage Goal
+
+Move from:
+
+`"I can run a model demo"`
 
 to:
 
-> "I can design a real AI system that serves users reliably, scales, logs, and can be maintained in production."
+`"I can design, operate, debug, and improve a production AI system"`
+
+After this stage, you must be able to:
+
+- design clear component boundaries
+- operate vector retrieval with a local vector DB (Qdrant)
+- serve models with measurable latency and throughput
+- use PyTorch/CUDA correctly for inference paths
+- troubleshoot production failures with evidence-based workflows
+- make architecture decisions with explicit tradeoffs
 
 ---
 
-## Quick Summary
+## 2) Prerequisites and Environment
 
-An AI system is not just a model.
+### Required knowledge
 
-A real production AI system usually includes:
+- Python basics
+- API basics (`FastAPI` or equivalent)
+- model inference basics
+- retrieval basics (embeddings and top-k search)
+
+### Environment
+
+- OS: Windows/macOS/Linux
+- Python: 3.10+
+- Optional GPU: NVIDIA CUDA-capable device
+
+### Core tooling track
+
+- API and orchestration: `FastAPI`, `uvicorn`
+- Vector DB: local `Qdrant`
+- Serving options: `Ollama`, `vLLM`, `Ray Serve`
+- Metrics/observability: structured logs + metrics + traces
+
+### Data declaration standard (mandatory for all examples)
+
+Every example must declare:
+
+```text
+Data: <name and source>
+Requests/Samples: <count>
+Input schema: <fields and types>
+Output schema: <fields and types>
+Eval policy: <fixed request set and metric policy>
+Type: <serving/retrieval/scaling/observability/deployment>
+```
+
+---
+
+## 3) AI Architecture Mental Model
+
+Model is only one component. Production quality depends on system design.
+
+Standard request lifecycle:
+
+1. request ingress (`API gateway` / route)
+2. validation and normalization
+3. retrieval or context build (optional)
+4. model inference (local or remote)
+5. post-processing and schema enforcement
+6. response return
+7. telemetry emit (logs, metrics, traces)
+
+If one step is weak, user quality drops even with a strong model.
+
+---
+
+## 4) Latency Budget and Capacity Basics
+
+You must split end-to-end latency by component, not guess:
+
+`total_latency = api + retrieval + model + postprocess + network`
+
+Track at least:
+
+- `p50`, `p95`, `p99` latency
+- throughput (`req/s`)
+- error rate (`5xx`, timeout, validation errors)
+- queue depth
+- GPU utilization and memory usage (if using CUDA)
+
+Capacity planning baseline:
+
+1. define SLA (example: `p95 <= 2.5s`, error rate `<1%`)
+2. run baseline load
+3. find bottleneck component
+4. scale only bottleneck
+5. rerun same test and compare before/after
+
+---
+
+## 5) Module 1: Component Boundaries
+
+### What it is
+
+Separating architecture into clear responsibilities:
+
+- API layer
+- business/orchestration layer
+- retrieval layer
+- model-serving layer
+- observability layer
+
+### Why it matters
+
+Without boundaries, failures cannot be isolated quickly.
+
+### Operatable checklist
+
+1. API layer has no model-loading code.
+2. Retrieval layer has no route or HTTP logic.
+3. Model layer has no DB management logic.
+4. All boundaries use explicit request/response schemas.
+5. Each layer emits structured logs with request id.
+
+### Industry pain point
+
+- Pain point: Everything is in one file, incidents are hard to debug.
+- Root causes: Fast prototype became production with no refactor.
+- Resolution: Enforce module ownership + boundary tests.
+- Related lab: `lab01_modular_ai_backend.py`
+
+---
+
+## 6) Module 2: Vector DB Architecture (Qdrant Track)
+
+### What it is
+
+Use embeddings + vector index to retrieve semantically relevant context.
+
+### Why it matters
+
+RAG quality is often limited by retrieval quality, not LLM quality.
+
+### Data declaration example
+
+```text
+Data: internal policy snippets (local files)
+Requests/Samples: 200 chunks, 30 fixed eval queries
+Input schema: {query: str, top_k: int, filters: dict}
+Output schema: {matches: [{id, score, text, metadata}]}
+Eval policy: fixed query set + recall@k + manual relevance labels
+Type: retrieval
+```
+
+### Required workflow
+
+1. chunk documents with versioned chunk policy
+2. generate embeddings with fixed model version
+3. upsert to Qdrant with metadata fields
+4. query with fixed eval set
+5. inspect top-k quality, not only similarity score
+6. tune chunking/filtering/embedding strategy
+7. rerun same eval set and compare deltas
+
+### Typical failure patterns
+
+- high similarity but low relevance
+- missing metadata filters
+- stale index after source data change
+- over-chunking or under-chunking
+
+### Industry pain point
+
+- Pain point: RAG answers sound fluent but use wrong context.
+- Root causes: weak chunking strategy, missing filters, stale collection.
+- Resolution: add retrieval diagnostics + ingestion/version policies.
+- Related labs:
+  - `topic01_qdrant_retrieval_intermediate.py`
+  - `topic01c_qdrant_failure_diagnostics_advanced.py`
+  - `lab02_vector_retrieval_service_qdrant.py`
+
+---
+
+## 7) Module 3: Model Serving Architecture
+
+### What it is
+
+Expose inference through stable APIs with controlled runtime behavior.
+
+### Why it matters
+
+A model that works in notebook can fail under concurrency and real traffic.
+
+### Serving patterns
+
+- local/simple: `Ollama`
+- high-throughput GPU: `vLLM`
+- orchestration and scaling: `Ray Serve`
+
+### Required serving checks
+
+1. model warm-start at service startup
+2. no model reload per request
+3. timeout policy
+4. retry policy (with limits)
+5. batch/dynamic-batch configuration
+6. schema validation for both input and output
+
+### Industry pain point
+
+- Pain point: latency spikes during traffic bursts.
+- Root causes: no queue/backpressure, bad batch settings, cold starts.
+- Resolution: warm pools + queue policy + batch tuning + load testing.
+- Related labs:
+  - `topic02_vllm_serving_intermediate.py`
+  - `topic02c_ray_serve_orchestration_advanced.py`
+  - `lab03_serving_stack_comparison.py`
+
+---
+
+## 8) Module 4: Scaling and Backpressure
+
+### What it is
+
+Designing the system to stay reliable as users and requests grow.
+
+### Scaling types
+
+- vertical: bigger machine
+- horizontal: more replicas
+
+### Backpressure principle
+
+If requests arrive faster than processing capacity, system must:
+
+- queue with limits
+- shed load safely when needed
+- return controlled errors instead of collapsing
+
+### Required operational thresholds (example)
+
+- p95 latency > target for 3 windows -> scale out
+- queue depth > threshold -> activate overload policy
+- error rate > threshold -> hold release, investigate
+
+### Industry pain point
+
+- Pain point: service becomes unstable under peak load.
+- Root causes: no capacity model, no autoscaling triggers, shared bottlenecks.
+- Resolution: latency budget + queue policy + staged load testing.
+- Related labs:
+  - `topic03_queue_backpressure_intermediate.py`
+  - `topic03c_autoscaling_policy_advanced.py`
+  - `lab04_scaling_and_observability_incident_lab.py`
+
+---
+
+## 9) Module 5: PyTorch and CUDA for Inference Operations
+
+### What it is
+
+Using device-aware tensor execution for efficient and stable inference.
+
+### Why it matters in architecture
+
+Inference SLOs and cost are directly affected by device strategy.
+
+### Core execution loop (conceptual)
+
+1. move tensors/model to device (`cpu` or `cuda`)
+2. run forward pass
+3. apply post-processing
+4. return structured output
+5. emit device/latency/memory telemetry
+
+### Required device safety rules
+
+1. check `torch.cuda.is_available()` before selecting CUDA
+2. keep tensors and model on same device
+3. enforce CPU fallback path
+4. monitor memory usage before batch/context increases
+5. test OOM behavior and recovery strategy
+
+### Ladder complexity guidance
+
+- simple:
+  - single request on CPU/CUDA with explicit device print
+- intermediate:
+  - mixed precision (`AMP`) and batch inference
+- advanced:
+  - OOM simulation, fallback, and rerun with reduced batch
+
+### Industry pain point
+
+- Pain point: random inference failures in production nodes.
+- Root causes: mixed-device tensors, aggressive batch sizes, no fallback.
+- Resolution: strict device guardrails + OOM recovery path + telemetry gates.
+- Related labs:
+  - `topic04_pytorch_amp_intermediate.py`
+  - `topic04c_cuda_oom_recovery_advanced.py`
+
+---
+
+## 10) Module 6: Observability (Logs, Metrics, Traces)
+
+### What it is
+
+Instrumentation that makes system behavior visible and diagnosable.
+
+### Required minimum telemetry
+
+- structured logs:
+  - request id, endpoint, model id, retrieval id, status, latency
+- metrics:
+  - p50/p95/p99 latency, throughput, error rate, queue depth
+- traces:
+  - per-component span timings
+
+### Why it matters
+
+Without observability, troubleshooting becomes guesswork.
+
+### Industry pain point
+
+- Pain point: incidents take too long to resolve.
+- Root causes: missing trace correlation, inconsistent logs, weak metric coverage.
+- Resolution: unified telemetry schema + incident timeline workflow.
+- Related labs:
+  - `topic05_metrics_tracing_intermediate.py`
+  - `topic05c_incident_triage_advanced.py`
+  - `lab04_scaling_and_observability_incident_lab.py`
+
+---
+
+## 11) Module 7: Reliability, Guardrails, and Change Control
+
+### Reliability rules
+
+1. use fixed regression request set
+2. apply one-change-at-a-time policy
+3. run before/after comparison on same test set
+4. keep explicit promote/hold/rollback decision
+
+### Guardrail examples
+
+- strict request schema validation
+- output schema validation
+- max context and timeout caps
+- abuse/rate limits
+- safe fallback response when dependencies fail
+
+### Industry pain point
+
+- Pain point: quick fixes create hidden regressions.
+- Root causes: no fixed eval set, no rollback protocol, untracked changes.
+- Resolution: change-control workflow with hard acceptance gates.
+- Related labs:
+  - `topic06c_sla_slo_error_budget_advanced.py`
+  - `topic07c_canary_rollback_advanced.py`
+  - `lab05_architecture_project_baseline_to_production.py`
+
+---
+
+## 12) Example Complexity Scale (Used in All Modules)
+
+Use this scale for every Stage 9 example:
+
+- L1 Simple:
+  - one component path
+  - one metric family
+  - local run
+- L2 Intermediate:
+  - multi-component path
+  - benchmark + error handling
+  - fixed comparison
+- L3 Advanced:
+  - load variation
+  - failure injection
+  - production decision (promote/hold/rollback)
+
+Where complexity usually is:
+
+- retrieval quality and data freshness
+- serving concurrency and queue behavior
+- GPU memory and device consistency
+- observability completeness
+- operations and incident response
+
+---
+
+## 13) Stage 9 Script Mapping
+
+Target script package: `red-book/src/stage-9/`
+
+Core topics:
+
+- `topic00*` system flow ladders
+- `topic01*` Qdrant retrieval ladders
+- `topic02*` serving ladders
+- `topic03*` scaling/backpressure ladders
+- `topic04*` PyTorch/CUDA ladders
+- `topic05*` observability ladders
+- `topic06*` reliability/guardrails ladders
+- `topic07*` deployment/canary/rollback ladders
+- `topic08*` architecture decision ladders
+
+Labs:
+
+- `lab01_modular_ai_backend.py`
+- `lab02_vector_retrieval_service_qdrant.py`
+- `lab03_serving_stack_comparison.py`
+- `lab04_scaling_and_observability_incident_lab.py`
+- `lab05_architecture_project_baseline_to_production.py`
+
+All scripts must:
+
+- contain very detailed functional comments
+- print data/schema declarations
+- print metrics + interpretation text
+- include explicit failure-handling paths
+- support deterministic reruns
+
+---
+
+## 14) Practice Project Lab (Operatable Version)
+
+## Project: Baseline to Production AI Architecture
+
+### Fixed objective
+
+Build and improve a retrieval + model-serving backend from baseline to production-ready.
+
+### Fixed required workflow
+
+1. select one fixed dataset and one fixed request eval set
+2. declare full schemas (input/output/retrieval metadata)
+3. implement baseline architecture (`API -> retrieval -> model`)
+4. collect baseline metrics (`p50/p95/p99`, throughput, error rate)
+5. identify one bottleneck from evidence
+6. design at least two solution options with tradeoff table
+7. apply exactly one chosen improvement
+8. rerun same eval/load tests
+9. report before/after deltas
+10. make final decision: `promote`, `hold`, or `rollback`
+
+### Fixed required deliverables
+
+- `results/lab5_baseline_architecture.md`
+- `results/lab5_improved_architecture.md`
+- `results/lab5_metrics_comparison.csv`
+- `results/lab5_solution_options.csv`
+- `results/lab5_incident_or_risk_log.md`
+- `results/lab5_rollback_plan.md`
+- `results/lab5_production_readiness.md`
+
+### Minimum acceptance thresholds (example)
+
+- p95 latency improves by target percentage or meets SLA
+- error rate does not regress
+- retrieval relevance does not regress
+- rollback plan is executable and tested
+
+---
+
+## 15) Troubleshooting Playbook (Identify -> Compare -> Verify)
+
+Use this exact flow:
+
+1. reproduce with fixed request IDs and run ID
+2. classify failure:
+  - retrieval quality
+  - model latency
+  - API/schema
+  - scaling/backpressure
+  - GPU/device
+3. gather evidence:
+  - logs, metrics, traces, failed outputs
+4. generate two fix candidates
+5. compare candidate tradeoffs (quality/latency/cost/risk)
+6. implement one fix only
+7. rerun same tests
+8. verify with before/after deltas
+9. publish promote/hold/rollback decision
+
+### RAG/retrieval-specific quick diagnosis
+
+If RAG answer quality is poor:
+
+1. inspect retrieved chunks first (not model first)
+2. check chunking policy and metadata filters
+3. verify embedding model version consistency
+4. check stale index and ingestion freshness
+5. run query-level relevance diagnostics
+6. only then adjust generation prompt/model
+
+---
+
+## 16) Industry Pain-Point Matrix
+
+| Topic | Pain point | Root causes | Resolution | Related lab |
+|---|---|---|---|---|
+| Component boundaries | Hard to debug incidents | mixed responsibilities | enforce modular contracts | `lab01_modular_ai_backend.py` |
+| Vector retrieval | Fluent but incorrect answers | poor chunking/filters/index freshness | retrieval diagnostics + governance | `lab02_vector_retrieval_service_qdrant.py` |
+| Serving stack | Latency spikes | no queue controls, cold starts | warm start + backpressure + batching | `lab03_serving_stack_comparison.py` |
+| Scaling | collapse under peak | no capacity planning | latency budget + autoscaling thresholds | `lab04_scaling_and_observability_incident_lab.py` |
+| PyTorch/CUDA ops | OOM/device mismatch | weak device guards | fallback + memory telemetry + policy | `topic04c_cuda_oom_recovery_advanced.py` |
+| Observability | slow incident triage | weak logs/metrics/traces | unified telemetry schema | `topic05c_incident_triage_advanced.py` |
+| Change control | fixes cause regressions | no fixed eval gates | one-change reruns + hard gates | `lab05_architecture_project_baseline_to_production.py` |
+
+---
+
+## 17) Self-Test (Readiness Check)
+
+You should be able to answer:
+
+1. Why is a model not equal to a production AI system?
+2. How do you split and analyze latency by component?
+3. What retrieval checks do you run when RAG quality drops?
+4. When do you choose Ollama, vLLM, or Ray Serve patterns?
+5. What are your minimum PyTorch/CUDA device safety rules?
+6. What metrics must be present before production promotion?
+7. How do you compare two fixes and verify one safely?
+8. What triggers `rollback` in your architecture policy?
+
+If you cannot answer at least 6/8 with concrete workflows, rerun labs 2, 4, and 5.
+
+---
+
+## 18) Resource Library (Theory + Practical + Industry)
+
+### Official docs
+
+- FastAPI deployment:
+  - https://fastapi.tiangolo.com/deployment/
+- Qdrant documentation:
+  - https://qdrant.tech/documentation/
+- vLLM serving docs:
+  - https://docs.vllm.ai/en/stable/serving/openai_compatible_server/
+- Ray Serve docs:
+  - https://docs.ray.io/en/latest/serve/
+- Kubernetes autoscaling:
+  - https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/
+- PyTorch CUDA semantics:
+  - https://docs.pytorch.org/docs/stable/notes/cuda.html
+- PyTorch AMP recipe:
+  - https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+- CUDA programming guide:
+  - https://docs.nvidia.com/cuda/cuda-programming-guide/index.html
+- OpenTelemetry:
+  - https://opentelemetry.io/docs/
+- Prometheus:
+  - https://prometheus.io/docs/
+
+### Books and system design references
+
+- Designing Data-Intensive Applications:
+  - https://dataintensive.net/
+- Building Machine Learning Powered Applications:
+  - https://www.oreilly.com/library/view/building-machine-learning/9781492045106/
+- Designing Machine Learning Systems:
+  - https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/
+- ML Systems Book:
+  - https://www.mlsysbook.ai/
+
+### Practical repositories
+
+- vLLM: https://github.com/vllm-project/vllm
+- Ray: https://github.com/ray-project/ray
+- Qdrant: https://github.com/qdrant/qdrant
+- FastAPI: https://github.com/fastapi/fastapi
+- Ollama: https://github.com/ollama/ollama
+
+---
+
+## 19) What Comes After Stage 9
+
+Stage 10 moves from architecture operation into advanced optimization and governance at scale.
+
+Skills you carry forward:
+
+- architecture boundary design
+- measurable reliability workflows
+- retrieval/serving/scaling operations
+- evidence-based troubleshooting and rollout decisions
+
+Readiness signal: you can improve a real architecture with measured before/after results and a safe rollback plan.
+
+---
+
+## 20) Merged Notes from Previous Draft (Beginner Deep-Dive)
+
+This section merges the useful beginner-friendly content from `AI-study-handbook-9.md.bak` into the current structured chapter.
+
+### Quick summary
+
+A production AI system is not only a model. It is a connected system that usually includes:
 
 - data pipeline
-- model
-- serving layer
-- API
-- retrieval or vector search
-- monitoring
-- logging
-- configuration
-- scaling and infrastructure
-
-A beginner should finish this stage understanding:
-
-- why model ≠ full system
-- what vector databases do
-- what model serving means
-- why GPUs matter at inference time
-- how scaling affects architecture
-- how system components connect
-- how to design a simple but clean AI backend
-
----
-
-## Topics
-
-- Vector Databases
-- Model Serving
-- Scaling
-- GPU Inference
-
-**Tools:** Ollama, vLLM, Ray, Kubernetes
-
----
-
-## Key Knowledge (Deep Understanding)
-
-### 1. What is AI System Architecture
-
-**AI system ≠ just model**
-
-It includes: data pipeline, model, serving layer, API, monitoring.
-
-#### Beginner Explanation
-
-A lot of beginners think: *"I trained a model, so I built an AI system."*
-
-But in production, the model is only one part.
-
-A real AI system often needs:
-
-- a way to receive user requests
-- a way to load or fetch data
-- a way to run the model
-- a way to return results
-- a way to log what happened
-- a way to debug failures
-- a way to scale when more users arrive
-
-So the model is more like the engine, while the architecture is the whole vehicle.
-
-#### Simple Mental Model
-
-Think of a food delivery app.
-
-The "food" is important, but the whole business also needs:
-
-| Food Delivery | AI System |
-|---|---|
-| ordering system | API |
-| payment | orchestration |
-| delivery | serving |
-| tracking | storage |
-| support | logging |
-| monitoring | monitoring |
-
-#### Step-by-Step Mental Model
-
-| Step | What Happens |
-|---|---|
-| Step 1 — User sends request | "Summarize this document" or "Analyze this stock trend." |
-| Step 2 — API receives request | The backend service accepts structured input. |
-| Step 3 — System prepares data | Cleaning input, loading files, retrieving context, validating request. |
-| Step 4 — Model or pipeline runs | Calls ML model, LLM, retrieval, or combines multiple components. |
-| Step 5 — Response is returned | The system sends result to the user or another service. |
-| Step 6 — Monitoring and logging | Captures latency, failures, model outputs, and system health. |
-
-#### Important Algorithms / Mechanisms
-
-**A. Pipeline Architecture**
-
-A system is broken into steps.
-
-How it works: input comes in → one component processes it → output moves to next → final result returned.
-
-> Why important: Most AI systems are pipelines, not monolithic single scripts.
-
-**B. Service-Oriented Decomposition**
-
-Different responsibilities are separated into different modules or services.
-
-Examples: retrieval service, model service, API service, logging service.
-
-> Why important: Makes systems easier to maintain, test, and scale.
-
-**C. Request-Response Architecture**
-
-A client sends a request, and the server processes it and responds.
-
-> Why important: This is the core pattern behind most AI APIs.
-
-**D. Observability Layer**
-
-Logging, metrics, and traces are added around the system.
-
-> Why important: Production systems fail in real life. Observability is how you find out why.
-
-#### Strengths / Weaknesses
-
-| Strengths of Good Architecture | Weaknesses of Poor Architecture |
-|---|---|
-| easier debugging | everything is mixed together |
-| easier scaling | hard to change one part without breaking others |
-| easier maintenance | hard to scale |
-| clearer responsibilities | hard to test |
-| safer production deployment | hard to trust |
-
----
-
-### 2. Vector Databases
-
-Used to: store embeddings, perform similarity search.
-
-Examples: **FAISS**, **ChromaDB**
-
-#### Beginner Explanation
-
-A vector database stores embeddings and helps search them efficiently.
-
-You already learned that embeddings turn text into vectors.
-
-Now imagine you have 10 → 1,000 → 100,000 → millions of chunks.
-
-You need a fast way to search for the chunks most similar to the user query. That is what a vector database is for.
-
-#### Why Vector Databases Matter
-
-Critical in systems like:
-
-- RAG apps
-- semantic search
-- document Q&A
-- recommendation
-- memory systems
-- similarity search tools
-
-Without vector storage and retrieval, large-scale semantic search becomes slow and messy.
-
-#### Step-by-Step Mental Model
-
-| Step | What Happens |
-|---|---|
-| Step 1 — Convert documents into embeddings | Each chunk becomes a vector. |
-| Step 2 — Store vectors with metadata | Save: vector, source text, file name, chunk ID, other filters. |
-| Step 3 — Convert user query into embedding | The query becomes a vector too. |
-| Step 4 — Search nearest vectors | The system finds the most similar stored vectors. |
-| Step 5 — Return matched chunks | Results are passed to the next step, such as an LLM prompt. |
-
-#### Important Algorithms / Mechanisms
-
-**A. Nearest Neighbor Search**
-
-Core search method.
-
-How it works: Given a query vector, find stored vectors that are closest.
-
-> Why important: This is the heart of semantic retrieval.
-
-**B. Approximate Nearest Neighbor (ANN)**
-
-Faster search for large datasets.
-
-How it works: Instead of checking every vector exactly, the system uses indexing methods to find likely nearest matches efficiently.
-
-> Why important: Exact search becomes too slow at scale.
-
-**C. Similarity Metrics**
-
-Common examples:
-
-- cosine similarity
-- dot product
-- Euclidean distance
-
-How they work: They measure how close two vectors are.
-
-> Why important: Similarity choice affects retrieval behavior.
-
-**D. Vector Indexing Structures**
-
-Examples in practice may include:
-
-- inverted-file style partitions
-- graph-based search structures
-- compressed indexing methods
-
-> Why important: These make large-scale vector search practical.
-
-#### Strengths / Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| enables semantic search | retrieval quality depends on embedding quality |
-| supports RAG and retrieval systems | bad chunking still ruins results |
-| works well for natural-language queries | wrong similarity settings can hurt relevance |
-| scalable beyond simple in-memory matching | debugging requires inspecting retrieved results, not just trusting scores |
-
----
-
-### 3. Model Serving
-
-**Serving = making model available via API**
-
-Example: `POST /predict`
-
-#### Beginner Explanation
-
-A model in a notebook is not yet a product.
-
-Model serving means turning the model into something other software can use:
-
-- loading the model into a server
-- exposing an API endpoint
-- accepting requests
-- returning predictions
-
-A frontend, mobile app, or another backend can call `POST /predict` and receive a model result.
-
-#### Why Model Serving Matters
-
-Without serving, your model can only run manually.
-
-With serving, it becomes part of an application. That is the bridge from:
-
-> experiment → usable system
-
-#### Step-by-Step Mental Model
-
-| Step | What Happens |
-|---|---|
-| Step 1 — Load the model into memory | This may happen when the service starts. |
-| Step 2 — Expose an endpoint | `/predict`, `/analyze`, `/embed` |
-| Step 3 — Receive structured input | Usually JSON or file input. |
-| Step 4 — Run inference | The model processes the input. |
-| Step 5 — Return structured output | The server sends response back in a predictable format. |
-
-#### Important Algorithms / Mechanisms
-
-**A. Synchronous Inference**
-
-The request waits for the result immediately.
-
-> Why important: Simplest serving pattern for many APIs.
-
-**B. Batch Inference**
-
-The system processes multiple inputs together.
-
-How it works: Many requests or inputs are grouped into one model execution.
-
-> Why important: Can improve throughput, especially on GPUs.
-
-**C. Dynamic Batching**
-
-Requests arriving close together are combined automatically.
-
-> Why important: Very useful for LLM serving and GPU efficiency.
-
-**D. Queue-Based Serving**
-
-Requests wait in a queue before being processed.
-
-> Why important: Helps handle bursts of traffic and protects the model server.
-
-#### Strengths / Weaknesses
-
-| Strengths of Good Serving Design | Weaknesses of Poor Serving Design |
-|---|---|
-| predictable interface | model loaded repeatedly per request |
-| reusable by many clients | no timeout handling |
-| easier integration | inconsistent outputs |
-| easier monitoring | no schema validation |
-| | slow and fragile behavior |
-
----
-
-### 4. GPU Inference
-
-LLMs require: high compute, parallel processing.
-
-GPU improves: speed, throughput.
-
-#### Beginner Explanation
-
-Inference means using a trained model to make predictions.
-
-For large models, especially deep learning and LLMs, inference can require a huge amount of matrix math.
-
-GPUs are much better than CPUs for this kind of work because they can run many operations in parallel:
-
-- faster responses
-- more requests handled
-- better throughput
-
-#### Why GPUs Matter in Production
-
-If one request is very slow, user experience suffers. If many users arrive at once, the system may fall behind.
-
-GPU inference is especially important for:
-
-- LLM generation
-- embedding generation
-- image models
-- large neural networks
-
-#### Step-by-Step Mental Model
-
-| Step | What Happens |
-|---|---|
-| Step 1 — Input arrives | Prompt text or image data. |
-| Step 2 — Input is converted into tensors | The model operates on numeric tensors. |
-| Step 3 — GPU runs matrix/tensor operations | Large multiplications and attention operations are executed efficiently. |
-| Step 4 — Output tokens or predictions are produced | The result is returned to the API layer. |
-
-#### Important Algorithms / Mechanisms
-
-**A. Parallel Matrix Multiplication**
-
-Core deep learning operation.
-
-> Why important: This is one of the main reasons GPUs are so effective.
-
-**B. Tensor Parallel Execution**
-
-Many tensor operations are computed simultaneously.
-
-> Why important: Modern model inference relies heavily on large parallel math.
-
-**C. Batching for Throughput**
-
-Multiple requests or inputs are processed together.
-
-> Why important: GPU utilization improves when work is grouped well.
-
-**D. KV Cache for LLMs**
-
-In transformer inference, previously computed attention states can be reused.
-
-> Why important: This speeds up autoregressive generation significantly.
-
-#### Strengths / Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| much faster inference for deep models | more expensive than CPU-only systems |
-| better throughput under load | memory limits still matter |
-| essential for many large models | bad batching or bad serving design can waste GPU power |
-| | deployment is more complex |
-
----
-
-### 5. Scaling
-
-Production systems must handle: multiple users, large data, concurrent requests.
-
-#### Beginner Explanation
-
-A prototype only needs to work once.
-
-A production system needs to work repeatedly, for many users, under changing load.
-
-Scaling means designing the system so it can handle growth:
-
-- more requests
-- larger documents
-- more users
-- more simultaneous sessions
-- more models
-- more data
-
-#### Two Main Types of Scaling
-
-| Type | Description | Examples |
-|---|---|---|
-| **Vertical Scaling** | Give one machine more power | more RAM, better CPU, bigger GPU |
-| **Horizontal Scaling** | Use more machines or replicas | multiple API instances, multiple worker pods, multiple inference servers |
-
-#### Step-by-Step Mental Model
-
-| Step | What Happens |
-|---|---|
-| Step 1 — Start small | One service, one model, one instance. |
-| Step 2 — Measure load | Latency, CPU, memory, GPU utilization, queue length. |
-| Step 3 — Find bottleneck | Retrieval slow? Model slow? API overloaded? Disk/network too slow? |
-| Step 4 — Scale the bottleneck | Do not scale blindly. Scale the real limiting part. |
-
-#### Important Algorithms / Mechanisms
-
-**A. Load Balancing**
-
-Distribute incoming traffic across multiple instances.
-
-> Why important: Prevents one server from carrying all traffic.
-
-**B. Autoscaling**
-
-Add or remove instances based on load.
-
-How it works: System watches CPU, memory, queue size, or custom metrics.
-
-> Why important: Keeps resource usage more efficient.
-
-**C. Caching**
-
-Store repeated results to avoid recomputation.
-
-Examples: repeated embeddings, repeated retrieval results, repeated model responses for deterministic cases.
-
-> Why important: Can reduce cost and latency dramatically.
-
-**D. Asynchronous Processing**
-
-Long-running tasks are processed in background workers.
-
-> Why important: Prevents API servers from being blocked by slow jobs.
-
-#### Strengths / Weaknesses
-
-| Strengths of Good Scaling Design | Weaknesses of Poor Scaling Design |
-|---|---|
-| handles growth better | system collapses under traffic spikes |
-| better user experience | slow response times |
-| more stable under concurrency | resource waste |
-| more cost-aware operation | unpredictable failures |
-
----
-
-### 6. System Flow
-
-Simple: `user → API → model → result → user`
-
-Advanced: `user → API → retrieval → LLM → response`
-
-#### Beginner Explanation
-
-System flow means the path a request follows through the architecture.
-
-Simple systems may only call one model. Advanced systems may involve:
-
-- authentication
-- validation
-- retrieval
-- caching
+- API layer
+- retrieval/vector search
 - model serving
-- post-processing
-- logging
-- monitoring
+- monitoring and logging
+- configuration and scaling
 
-You need to understand the whole path, not just the model call.
+### 20.1 Architecture mental model
 
-#### Example Flows
+Think in full request flow:
 
-**A. Simple Prediction Flow**
+`user -> API -> validation -> retrieval/tool/model -> postprocess -> response -> telemetry`
 
-```
-user → API → model → result → user
-```
+If any link is weak, user quality drops.
 
-Used for: classification API, regression API, simple recommender.
+### 20.2 Vector database mental model
 
-**B. RAG Flow**
+Core retrieval steps:
 
-```
-user → API → retrieval → LLM → response
-```
+1. convert documents to embeddings
+2. store vectors with metadata
+3. convert user query to embedding
+4. run nearest-neighbor retrieval
+5. return top-k chunks to downstream model
 
-Used for: document Q&A, enterprise assistants, grounded search systems.
+Key point: retrieval quality depends on chunking, embedding model, metadata filters, and index freshness.
 
-**C. Agentic Flow**
+### 20.3 Model serving mental model
 
-```
-user → API → router → retrieval/tool/model → response
-```
+Serving turns model logic into a stable API interface. Minimum serving responsibilities:
 
-Used for: assistants with tools, multi-step workflows, dynamic AI orchestration.
+- startup/warm model
+- request validation
+- inference execution
+- timeout/retry policy
+- structured response schema
 
-#### Important Algorithms / Mechanisms
+### 20.4 GPU inference mental model
 
-**A. Routing**
+GPU inference mainly accelerates matrix/tensor operations. In production, performance depends on:
 
-Choose which component or workflow handles the request.
+- batching policy
+- memory policy
+- device placement correctness
+- caching strategy (for LLMs, KV cache behavior)
 
-> Why important: Different request types may need different paths.
+### 20.5 Scaling mental model
 
-**B. Orchestration**
+Scale bottlenecks, not everything:
 
-Coordinate multiple steps in sequence.
-
-> Why important: Many AI systems are multi-stage, not one-step.
-
-**C. Validation and Guardrails**
-
-Check inputs and outputs at boundaries.
-
-> Why important: Protects system reliability and safety.
-
-**D. Post-Processing**
-
-Transform raw model output into usable final response.
-
-> Why important: Real systems often need structured outputs, formatting, or validation before returning results.
+1. measure
+2. find bottleneck
+3. apply targeted scaling
+4. verify with same load profile
 
 ---
 
-## Difficulty Points
+## 21) Real-World Workflow (Merged)
 
-### 1. Thinking model = system
-
-**Why this happens:** The model is the most visible part of AI, so beginners treat it as the whole product.
-
-**Why this is a problem:** You ignore APIs, logging, scaling, retrieval, configuration, and monitoring.
-
-**Fix:** Always draw the full request flow before coding.
-
----
-
-### 2. No separation of components
-
-**Why this happens:** It feels faster to put all logic into one file at first.
-
-**Why this is a problem:** The code becomes hard to test, maintain, and scale.
-
-**Fix:** Separate modules early — API layer, service layer, model layer, config, logging.
-
----
-
-### 3. Ignoring latency
-
-**Why this happens:** Local testing with one request hides performance problems.
-
-**Why this is a problem:** Users care about responsiveness, not just correctness.
-
-**Fix:** Measure response time, model time, retrieval time, queue time — then optimize the slowest part first.
-
----
-
-### 4. No logging or monitoring
-
-**Why this happens:** Logging feels secondary during early development.
-
-**Why this is a problem:** When the system fails, you do not know what request came in, which component failed, how long it took, or what result was returned.
-
-**Fix:** Add logging from the beginning and basic metrics soon after.
-
----
-
-### 5. Overengineering too early
-
-**Why this happens:** Beginners want "enterprise architecture" immediately.
-
-**Why this is a problem:** You add complexity before proving the core system works.
-
-**Fix:** Start with a simple clean service, then add scaling and infra only when needed.
-
----
-
-### 6. Treating infrastructure as unrelated to AI quality
-
-**Why this happens:** People think model quality is separate from system design.
-
-**Why this is a problem:** A strong model inside a weak system still gives poor user experience.
-
-**Fix:** Treat latency, failure handling, retries, and observability as part of AI quality.
-
----
-
-### 7. No clear boundaries between online inference and offline pipelines
-
-**Why this happens:** Everything gets mixed into one backend.
-
-**Why this is a problem:** Slow ingestion or background jobs can affect real-time user requests.
-
-**Fix:** Separate offline jobs, batch pipelines, and the online request-serving path.
-
----
-
-## AI Architecture Workflow (Real World)
-
-| Step | Action | Beginner Explanation |
+| Step | Action | Why it matters |
 |---|---|---|
-| 1 | Define the product task | document Q&A, stock analysis API, summarization backend, embedding service |
-| 2 | Draw request flow | Sketch: `user → API → service → model → response` |
-| 3 | Separate components | Avoid one giant file. |
-| 4 | Choose model serving strategy | Local vs API-hosted, synchronous vs async, batch vs single request |
-| 5 | Add storage / retrieval if needed | RAG and memory systems need storage layers. |
-| 6 | Add config management | Keep secrets and paths out of hardcoded code. |
-| 7 | Add logging and monitoring | Make the system observable. |
-| 8 | Measure latency and bottlenecks | Guessing is not enough. |
-| 9 | Add caching / batching / scaling | Only after measurement shows need. |
-| 10 | Test under realistic load | One happy-path request is not enough. |
-| 11 | Harden failure handling | Timeouts, empty results, invalid input, retries. |
-| 12 | Deploy and observe | Deployment is not the end. Observation is part of operation. |
+| 1 | Define product task | Prevents architecture choices without business target |
+| 2 | Draw request flow | Makes boundaries and dependencies explicit |
+| 3 | Separate components | Improves testing, maintainability, and scaling |
+| 4 | Choose serving strategy | Aligns runtime with latency/throughput requirements |
+| 5 | Add retrieval/storage when needed | Supports RAG and memory use cases |
+| 6 | Add config management | Prevents hardcoded fragile systems |
+| 7 | Add logging/metrics/traces | Enables incident diagnosis |
+| 8 | Measure latency by component | Enables evidence-based optimization |
+| 9 | Add caching/batching/scaling | Improves throughput/cost after measurement |
+| 10 | Test realistic load | Reveals concurrency and saturation failures |
+| 11 | Harden failure paths | Stabilizes timeout/retry/error behavior |
+| 12 | Deploy with rollback policy | Keeps production changes safe |
 
 ---
 
-## Debugging Checklist for Stage 9
+## 22) Debugging Checklist (Merged)
 
-If the AI backend behaves badly, check:
+When architecture behaves badly, check:
 
-- [ ] Is the problem in API, retrieval, model, or post-processing?
-- [ ] Are components separated clearly enough to isolate failures?
-- [ ] Is the model loaded once or repeatedly?
-- [ ] Are you measuring latency by stage?
-- [ ] Is GPU actually being used?
-- [ ] Are vector retrieval results relevant?
-- [ ] Are logs detailed enough?
-- [ ] Are configs hardcoded incorrectly?
-- [ ] Is there a timeout or queue bottleneck?
-- [ ] Is one service doing too many responsibilities?
-- [ ] Are you testing concurrency or only single requests?
-- [ ] Is the architecture too complex for the current stage?
+- [ ] Is failure in API, retrieval, model, or post-process?
+- [ ] Are component boundaries clear enough to isolate failure?
+- [ ] Is model loaded once, not per request?
+- [ ] Are p50/p95/p99 measured by component?
+- [ ] Is GPU actually used when expected?
+- [ ] Are retrieval results relevant, not only high-score?
+- [ ] Are logs and traces correlated by request/trace id?
+- [ ] Is timeout/retry/backpressure policy correct?
+- [ ] Are offline and online workloads separated?
+- [ ] Are fixes verified by before/after rerun metrics?
 
 ---
 
-## Practice Project
+## 23) Beginner Practice Walkthrough (Merged)
 
-### Project: Simple AI Backend Service
+This complements Section 14 with a simple first implementation flow.
 
-**Goal:** Build a backend that exposes APIs, connects components, and returns AI results.
-
-You are not only trying to make an endpoint work. You are learning:
-
-- service decomposition
-- API design
-- configuration
-- logging
-- testing
-- architecture thinking
-
-### Step-by-Step Instructions
-
-**Step 1 — Create FastAPI app**
+### Step 1: start API skeleton
 
 ```python
 from fastapi import FastAPI
@@ -691,320 +722,134 @@ def health():
     return {"status": "ok"}
 ```
 
-> Why this step matters: This creates the first boundary of your system: the API layer.
->
-> `/health` is a basic operational endpoint. It does not run AI logic. It simply tells whether the service is alive. That matters in production because orchestration systems and monitors need a quick way to check service health.
+### Step 2: add `predict` and `retrieve` endpoints
 
----
+- define strict request and response schemas
+- add input validation
+- return structured errors
 
-**Step 2 — Add endpoints**
+### Step 3: separate modules
 
-Add: `/predict`, `/analyze`
+Suggested structure:
 
-> Why this step matters: This turns the app into a usable API, not just a skeleton.
-
-Define clearly:
-- what `/predict` does → model inference for numeric/classification result
-- what `/analyze` does → richer LLM or RAG-based explanation
-- what request JSON looks like
-- what response JSON looks like
-
----
-
-**Step 3 — Separate modules**
-
-Create: model service, data service, LLM service.
-
-> Why this step matters: This prevents all logic from ending up in one file.
-
-Suggested module structure:
-
-```
+```text
 app/
   main.py
-  api/
-    routes.py
-  services/
-    model_service.py
-    data_service.py
-    llm_service.py
-  core/
-    config.py
-    logging.py
-  schemas/
-    request.py
-    response.py
+  api/routes.py
+  services/model_service.py
+  services/retrieval_service.py
+  core/config.py
+  core/logging.py
+  schemas/request.py
+  schemas/response.py
 ```
 
-Each module should have one main responsibility:
-- API routes receive requests
-- services do business logic
-- config loads settings
-- schemas define data structures
+### Step 4: add observability
 
----
-
-**Step 4 — Add config**
-
-Store: model path, API keys.
-
-> Why this step matters: Hardcoding configuration makes systems fragile and unsafe.
-
-Configuration should be separate from code so you can change model path, host/port, environment, API key, and feature flags without editing core logic.
-
----
-
-**Step 5 — Add logging**
-
-Log: requests, errors, responses.
-
-> Why this step matters: This is how you understand what the system is doing.
-
-At minimum log:
-- request ID
+- request id
 - endpoint
-- input summary (not sensitive raw data unless safe)
 - latency
-- error type
-- model/retrieval path used
+- failure class
+- model/retrieval path
+
+### Step 5: run negative tests
+
+- invalid payload
+- timeout simulation
+- retrieval empty result
+- dependency failure
 
 ---
 
-**Step 6 — Test API**
+## 24) Common Mistakes (Merged and Cleaned)
 
-Use: `curl`, Postman.
-
-> Why this step matters: You need to verify behavior from outside the code, the way real clients will use it.
-
-Test:
-- health endpoint
-- valid request
-- invalid request
-- missing field
-- model failure
-- timeout behavior if simulated
+| Mistake | Why it happens | Problem | Fix |
+|---|---|---|---|
+| All logic in one file | fast initial prototype | hard debugging/scaling | enforce module boundaries |
+| No logging/tracing | feels optional early | no incident visibility | add structured telemetry from day 1 |
+| Hardcoded config/secrets | short-term convenience | unsafe and hard to deploy | environment/config management |
+| Model reload per request | naive implementation | large latency waste | warm load at startup |
+| No schema validation | flexible dict habits | runtime failures | strict request/response schemas |
+| No load test | only single-request testing | production collapse under bursts | fixed concurrency/load tests |
+| No rollback policy | optimism bias | high release risk | canary + rollback gates |
 
 ---
 
-### Deliverables
-
-- API code
-- modules
-- config
-- test results
-
----
-
-### Experiment Tasks
-
-| Experiment | Task | Lesson |
-|---|---|---|
-| 1 | Single-file vs modular backend — build all-in-one version, then refactor into modules | Separation improves maintainability and debugging. |
-| 2 | Add request timing logs — measure endpoint latency | You cannot optimize what you do not measure. |
-| 3 | Add a retrieval endpoint — add a simple semantic search or document lookup route | AI architecture often involves more than one inference component. |
-| 4 | Simulate slow model response — insert artificial delay and observe impact | Latency and timeout behavior matter in architecture design. |
-| 5 | Add caching — cache repeated identical requests | Caching can improve responsiveness and reduce compute cost. |
-| 6 | Load test lightly — send multiple concurrent requests | Concurrency behavior reveals issues that single testing hides. |
-| 7 | Separate online and offline tasks — create one background ingestion script and one online API route | Architecture improves when responsibilities are separated by runtime purpose too. |
-
----
-
-## Common Mistakes
-
-### Expanded Common Mistakes with Reasons and Fixes
-
-| # | Mistake | Reason | Problem | Fix |
-|---|---|---|---|---|
-| 1 | All logic in one file | Fast at the beginning. | Hard to scale, test, and maintain. | Separate routes, services, config, and schemas. |
-| 2 | No logging | It feels optional in small demos. | You cannot debug production failures. | Add structured logs from the beginning. |
-| 3 | No config separation | Hardcoding seems convenient. | Deployment changes become error-prone and secrets become unsafe. | Use environment variables or config files. |
-| 4 | No testing | Manual testing feels enough early on. | Edge cases and regressions are missed. | Test endpoints, invalid input, and failure paths. |
-| 5 | Loading model inside every request | It looks simple in early examples. | Huge latency and wasted resources. | Load models once at startup when possible. |
-| 6 | No schema validation | Raw dictionaries feel flexible. | Bad input causes confusing downstream failures. | Use clear request and response schemas. |
-| 7 | Ignoring bottlenecks | The system works on one request. | It collapses under real traffic or large workloads. | Measure latency by component and optimize the real bottleneck. |
-
----
-
-## Final Understanding
-
-> AI systems are composed of multiple components working together, not just models.
-
-> A production AI system is a combination of model logic, data flow, serving, retrieval, logging, monitoring, and scaling decisions.
-
-> Good architecture is not about making the system look complicated. It is about making it reliable, understandable, and ready to grow.
-
----
-
-## Self Test
+## 25) Extended Self-Test (Merged)
 
 ### Questions
 
-1. What is AI system architecture?
-2. Why is a model not the same as a full AI system?
-3. What components are commonly part of a production AI system?
-4. What is a vector database used for?
-5. Why are embeddings stored in a vector database?
-6. What is nearest neighbor search?
-7. What is approximate nearest neighbor search?
-8. What is model serving?
-9. Why does a model need an API layer in production?
-10. What is the difference between synchronous and batch inference?
-11. What is dynamic batching?
-12. Why are GPUs important for inference?
-13. What kind of operations do GPUs accelerate in AI systems?
-14. What is scaling in system architecture?
-15. What is the difference between vertical and horizontal scaling?
-16. What is load balancing?
-17. What is autoscaling?
-18. Why is caching useful in AI systems?
-19. Why is latency important?
-20. Why is logging important?
-21. What is monitoring?
-22. Why should components be separated?
-23. What is a system flow?
-24. Why is routing important in more advanced AI systems?
-25. Why is post-processing often needed after model output?
-26. Why can overengineering be harmful early?
-27. Why should online and offline workloads be separated?
-28. What is a health endpoint?
-29. Why should the model usually be loaded once instead of per request?
-30. What is the main lesson of this stage?
+1. Why is model quality alone not enough for production AI quality?
+2. What are the minimum components of an AI system architecture?
+3. How do you decide when retrieval is required?
+4. What does nearest-neighbor retrieval do?
+5. Why can high similarity still produce low-quality RAG answers?
+6. What is model serving?
+7. Why should model loading usually happen at startup?
+8. What is dynamic batching and when is it useful?
+9. Why are GPUs important for many inference workloads?
+10. What causes CUDA device mismatch failures?
+11. What is backpressure and why is it necessary?
+12. What is the difference between vertical and horizontal scaling?
+13. Why track p50/p95/p99 instead of only average latency?
+14. What should be in minimum structured logs?
+15. Why are traces useful in multi-component architecture?
+16. Why should online and offline workloads be separated?
+17. What is a canary rollout?
+18. What should trigger rollback?
+19. Why enforce one-change-at-a-time verification?
+20. How do you compare two solution options fairly?
+21. Why is fixed eval/load data required for verification?
+22. What does a production readiness report include?
+23. Why should retrieval diagnostics inspect returned chunks directly?
+24. How do queue depth and error rate relate under overload?
+25. Why must schema validation happen at boundaries?
+26. Why can overengineering early be harmful?
+27. What is an architecture decision record (ADR)?
+28. What core artifacts should a Stage 9 lab generate?
+29. Which signals show troubleshooting is evidence-based?
+30. What is the key Stage 9 graduation capability?
+
+### Short answer key
+
+1. System quality depends on architecture, not only model logic.
+2. API, orchestration, retrieval/storage, model serving, observability, scaling.
+3. Use retrieval when task requires external/fresh knowledge grounding.
+4. Finds closest vectors to a query embedding.
+5. Poor chunking/filtering/freshness can return wrong context.
+6. Exposing model inference via stable runtime/API.
+7. Avoid repeated load latency and resource waste.
+8. Groups near-time requests for better throughput.
+9. Parallel tensor compute improves speed/throughput.
+10. Model and tensors on different devices.
+11. Prevents queue explosion and collapse under burst load.
+12. Bigger machine vs more replicas.
+13. Tail latency reflects user pain and SLA risk.
+14. request id, endpoint, status, latency, error class, route/model info.
+15. They locate slow/failing component spans.
+16. Prevents batch jobs from hurting real-time inference.
+17. Gradual release to a subset of traffic.
+18. Sustained SLA breach or quality regression.
+19. Isolates causality and avoids confounded changes.
+20. Compare on same dataset/load and same metrics.
+21. Enables fair before/after comparison.
+22. Metrics deltas, risk log, rollback plan, decision.
+23. Similarity score alone is insufficient.
+24. Queue growth often precedes latency/error spikes.
+25. Catch invalid inputs/outputs early and consistently.
+26. Complexity before evidence slows progress and increases risk.
+27. Structured record of decision, context, options, tradeoffs.
+28. contracts, metrics, comparison tables, risk/rollback docs.
+29. fixed reruns, measured deltas, explicit decision rationale.
+30. Ability to improve architecture safely with measurable evidence.
 
 ---
 
-### Answers
+## 26) Post-Stage Capability Checklist (Merged)
 
-**1. What is AI system architecture?**
-
-AI system architecture is the design of how all system components fit together to deliver an AI capability in production.
-
-**2. Why is a model not the same as a full AI system?**
-
-Because a real system also needs APIs, data flow, retrieval/storage, serving, logging, monitoring, configuration, and failure handling.
-
-**3. What components are commonly part of a production AI system?**
-
-Common components include data pipelines, model serving, APIs, retrieval or storage layers, logging, monitoring, configuration, and scaling infrastructure.
-
-**4. What is a vector database used for?**
-
-It is used to store embeddings and support efficient similarity search.
-
-**5. Why are embeddings stored in a vector database?**
-
-Because vector databases are designed to search large numbers of embeddings efficiently.
-
-**6. What is nearest neighbor search?**
-
-It is the process of finding stored vectors closest to a query vector.
-
-**7. What is approximate nearest neighbor search?**
-
-It is a faster search approach that finds likely nearest matches without exhaustively comparing every vector.
-
-**8. What is model serving?**
-
-Model serving is making a model available for use through a runtime interface, usually an API.
-
-**9. Why does a model need an API layer in production?**
-
-Because other systems and clients need a stable way to send inputs and receive outputs.
-
-**10. What is the difference between synchronous and batch inference?**
-
-Synchronous inference returns one request's result directly, while batch inference processes multiple inputs together.
-
-**11. What is dynamic batching?**
-
-It is automatically grouping nearby requests together to improve inference efficiency.
-
-**12. Why are GPUs important for inference?**
-
-Because they are much better at the parallel tensor and matrix operations used by many AI models.
-
-**13. What kind of operations do GPUs accelerate in AI systems?**
-
-They accelerate large-scale matrix multiplication, tensor computation, attention operations, and batched neural network inference.
-
-**14. What is scaling in system architecture?**
-
-Scaling is increasing the system's ability to handle more users, more data, or more simultaneous work.
-
-**15. What is the difference between vertical and horizontal scaling?**
-
-Vertical scaling makes one machine stronger. Horizontal scaling adds more machines or instances.
-
-**16. What is load balancing?**
-
-Load balancing distributes traffic across multiple service instances.
-
-**17. What is autoscaling?**
-
-Autoscaling automatically adds or removes instances based on load or metrics.
-
-**18. Why is caching useful in AI systems?**
-
-Because it can reduce repeated computation, lower latency, and lower cost.
-
-**19. Why is latency important?**
-
-Because users and downstream systems care about response speed, not just eventual correctness.
-
-**20. Why is logging important?**
-
-Because it helps you trace requests, errors, performance, and component behavior.
-
-**21. What is monitoring?**
-
-Monitoring is collecting ongoing signals such as health, error rate, latency, and resource usage to understand system behavior over time.
-
-**22. Why should components be separated?**
-
-Because separation makes the system easier to maintain, test, debug, and scale.
-
-**23. What is a system flow?**
-
-A system flow is the sequence of steps a request follows through the architecture.
-
-**24. Why is routing important in more advanced AI systems?**
-
-Because different requests may need different workflows, models, or services.
-
-**25. Why is post-processing often needed after model output?**
-
-Because raw model output may need validation, formatting, schema enforcement, or filtering before it is safe and useful.
-
-**26. Why can overengineering be harmful early?**
-
-Because it adds complexity before the core system has been proven useful.
-
-**27. Why should online and offline workloads be separated?**
-
-Because slow background jobs can interfere with real-time user-serving performance if they are mixed together.
-
-**28. What is a health endpoint?**
-
-A health endpoint is a lightweight route that reports whether the service is running and reachable.
-
-**29. Why should the model usually be loaded once instead of per request?**
-
-Because loading the model repeatedly adds huge latency and wastes resources.
-
-**30. What is the main lesson of this stage?**
-
-An AI product is a system, not just a model, and good AI architecture is about reliable component design, serving, observability, and scalable flow.
-
----
-
-## What You Must Be Able To Do After Stage 9
-
-- [ ] explain what AI system architecture means in plain English
-- [ ] explain why model ≠ full AI system
-- [ ] explain what vector databases do
-- [ ] explain what model serving means
-- [ ] explain why GPU inference matters
-- [ ] explain basic scaling concepts
-- [ ] draw a simple AI request flow
-- [ ] design a modular backend structure for an AI app
-- [ ] identify architecture bottlenecks like latency, logging gaps, and poor separation
-- [ ] understand that reliable AI products are built from connected components, not model demos alone
+- [ ] I can draw and explain the full production request flow.
+- [ ] I can diagnose whether failure is retrieval, serving, or scaling.
+- [ ] I can run PyTorch/CUDA inference with safe fallback behavior.
+- [ ] I can run a fixed before/after verification workflow.
+- [ ] I can produce promote/hold/rollback decisions with evidence.
+- [ ] I can translate architecture tradeoffs into implementation choices.

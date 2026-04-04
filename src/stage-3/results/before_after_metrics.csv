@@ -1,0 +1,4 @@
+﻿run_id,stage,topic_or_module,metric_name,before_value,after_value,delta,dataset_or_eval_set,seed_or_config_id,decision
+stage3-compare-20260404,stage-3,model_selection,accuracy,0.9385964912,0.9824561404,0.0438596491,breast_cancer_test_split_20pct,seed42_decision_tree_to_logistic,promote
+stage3-compare-20260404,stage-3,model_selection,f1,0.9510489510,0.9861111111,0.0350621601,breast_cancer_test_split_20pct,seed42_decision_tree_to_logistic,promote
+stage3-compare-20260404,stage-3,model_selection,roc_auc,0.9341931217,0.9953703704,0.0611772487,breast_cancer_test_split_20pct,seed42_decision_tree_to_logistic,promote

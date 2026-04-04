@@ -1,0 +1,3 @@
+scenario,net_return
+baseline_fill,0.136
+stressed_fill,0.101

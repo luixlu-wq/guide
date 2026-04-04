@@ -1,0 +1,3 @@
+topic_id,run_type,latency_p50_ms,latency_p95_ms,latency_p99_ms,throughput_rps,error_rate,gpu_mem_mb
+topic00a_infra_basics_simple,baseline,331.2,536.54,643.85,3.02,0.021,2024.0
+topic00a_infra_basics_simple,improved,284.83,413.01,462.57,4.0,0.011,2024.0

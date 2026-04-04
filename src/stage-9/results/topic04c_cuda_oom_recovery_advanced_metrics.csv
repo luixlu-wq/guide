@@ -1,0 +1,2 @@
+topic_id,complexity,device,latency_p50_ms,latency_p95_ms,throughput_rps,oom_recovered,loops
+topic04c_cuda_oom_recovery_advanced,advanced,cpu,0.075,0.119,13306.72,False,120

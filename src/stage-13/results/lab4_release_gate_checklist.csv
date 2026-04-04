@@ -1,0 +1,4 @@
+gate,threshold,actual,pass_or_fail
+contract_validity,100%,100%,pass
+quality_score,>=0.80,0.82,pass
+failure_rate,<=0.02,0.015,pass

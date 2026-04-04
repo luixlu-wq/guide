@@ -345,6 +345,35 @@ Required outputs:
 - train/validation/test metrics
 - leakage checks and findings
 
+### 8.1 Stage-Specific Industry Pain-Point Matrix (Mandatory)
+
+| Topic | Typical industry pain point | Common root causes | Resolution strategy (operatable) | Verification evidence | Mapped script/lab |
+|---|---|---|---|---|---|
+| NumPy vectorization | Pipeline is too slow on larger data | Loop-based implementation | Replace loops with vectorized operations and benchmark | Runtime before/after table | `topic01_numpy_vectorization.py` |
+| Shape/broadcasting | Silent shape bugs produce wrong outputs | Weak tensor/array shape discipline | Add shape assertions and broadcast checks | Shape validation log | `topic02_numpy_shape_broadcasting.py` |
+| Data loading/inspection | Wrong dtypes and missing values break downstream steps | No schema checks at load time | Enforce dtype and missing-value audit at ingest | Data profile report | `topic03_pandas_load_inspect.py` |
+| Data cleaning/transforms | Transform logic changes behavior across reruns | In-place mutations and undocumented rules | Standardize transform pipeline and log each step | Transform reproducibility report | `topic04_pandas_clean_transform.py` |
+| Feature engineering | New features add noise not signal | No ablation and weak domain logic | Run feature ablation and keep only validated features | Feature contribution table | `topic05_feature_engineering_time_series.py` |
+| Visual debugging | Plots look good but hide data issues | Wrong scales/aggregation | Add standardized plot checklist and outlier checks | Plot audit summary | `topic06_matplotlib_data_debugging.py` |
+| Split/preprocess | Validation leakage inflates scores | Fit on full dataset before split | Split first, fit transforms on train only | Leakage audit and corrected metrics | `topic07_sklearn_split_preprocess.py` |
+| Pipeline leakage | Manual steps diverge between train and infer | No pipeline encapsulation | Enforce sklearn pipeline for full transform+model flow | Pipeline parity report | `topic08_sklearn_pipeline_leakage.py` |
+| End-to-end quality | Local tests pass but full run fails | Missing integrated run gates | Add fail-fast full pipeline run and fixed acceptance gates | End-to-end run report | `topic09_stage2_end_to_end_pipeline.py` |
+| PyTorch/CUDA bridge | Bridge example unstable across machines | Device handling gaps | Add device checks and CPU fallback verification | CPU/GPU bridge report | `topic10_pytorch_cuda_bridge.py`, `topic11_linear_gradient_example.py` |
+
+### 8.2 Required Matrix Usage Workflow
+
+1. Reproduce failure with fixed input slice and run ID.
+2. Capture schema/profile/metric evidence.
+3. Compare at least 2 fixes and apply one change.
+4. Rerun the same data slice and compare deltas.
+5. Record final decision and residual risk.
+
+### 8.3 Mandatory Artifacts
+
+- `results/stage2/pain_point_matrix.md`
+- `results/stage2/data_and_metric_before_after.csv`
+- `results/stage2/final_decision.md`
+
 ---
 
 ## 9) Debugging and Quality Gates
@@ -534,6 +563,97 @@ P2 (nice to have):
 - extra domain datasets
 - optional benchmark/performance mini-study
 
+
+
+
+
+---
+
+
+## Cross-Plan Consistency Addendum (2026-04-04, Additive-Only)
+
+This addendum is additive and does not remove or override existing content. Existing file names, workflows, and section details remain valid.
+
+### A) Canonical Decision Labels (Use Across All Stages)
+
+- `promote`: change passes all required gates and can move forward
+- `hold`: change is promising but evidence is incomplete or mixed
+- `rollback`: change increases risk/regression and must be reverted to prior baseline
+
+### B) Canonical Troubleshooting Flow Labels
+
+Use these labels in reports for consistency (even if stage-specific wording differs):
+
+1. `identify` (problem statement + failure class)
+2. `evidence` (logs/metrics/traces/schema snapshots)
+3. `compare` (>=2 options and tradeoffs)
+4. `change` (one targeted change only)
+5. `verify` (same dataset/split/eval/load profile)
+6. `decide` (`promote` / `hold` / `rollback`)
+
+### C) Canonical Artifact Naming Convention (Recommended)
+
+Keep all existing stage-specific filenames. In addition, produce or map to these canonical artifact names:
+
+- `pain_point_matrix.md`
+- `before_after_metrics.csv`
+- `verification_report.md`
+- `decision_log.md`
+- `reproducibility.md`
+
+If a stage already uses different names, add one of the following without deleting existing files:
+
+- a short mapping file: `artifact_name_map.md`
+- or duplicate/export canonical alias files that point to existing outputs
+
+### D) Evidence Schema (Minimum Fields for Any Metric Table)
+
+Every before/after metric table should include these columns (additive requirement):
+
+- `run_id`
+- `stage`
+- `topic_or_module`
+- `metric_name`
+- `before_value`
+- `after_value`
+- `delta`
+- `dataset_or_eval_set`
+- `seed_or_config_id`
+- `decision`
+
+### E) Failure Class Taxonomy (Cross-Stage)
+
+Use common labels for easier comparison across plans:
+
+- `data_schema`
+- `data_quality`
+- `feature_or_representation`
+- `training_or_optimization`
+- `retrieval_or_context`
+- `generation_or_reasoning`
+- `tool_or_api`
+- `latency_or_cost`
+- `security_or_policy`
+- `operations_or_release`
+
+### F) Stage Folder and Result Folder Convention
+
+Recommended unified pattern:
+
+- scripts: `red-book/src/stage-<N>/`
+- outputs: `results/stage<N>/`
+
+If a plan already uses another path, keep it and add a path mapping note in stage README.
+
+### G) No-Delete Compatibility Rule
+
+- Do not delete prior deliverable names from existing plan text.
+- Add normalization as aliases/mappings only.
+- When old and canonical names both exist, the stage README must state the mapping.
+
+## Global Key Request Addendum (2026-04-04)
+
+- Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
 
 
 

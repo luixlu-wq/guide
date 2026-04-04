@@ -1,0 +1,2 @@
+quality_score,latency_p95_ms,cost_index,failure_rate
+0.79,730.0,1.5,0.021

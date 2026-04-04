@@ -1,0 +1,15 @@
+{"id": "req_0038", "query": "Provide API schema for inference endpoint.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0149", "query": "Provide API schema for inference endpoint.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0047", "query": "Provide API schema for inference endpoint.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0029", "query": "Provide API schema for inference endpoint.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0045", "query": "Find policy section on data retention for region US.", "gold_route": "retrieval_pipeline", "baseline_route": "retrieval_pipeline", "improved_route": "retrieval_pipeline"}
+{"id": "req_0065", "query": "Provide API schema for inference endpoint.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0080", "query": "Provide API schema for inference endpoint.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0068", "query": "Provide API schema for inference endpoint.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0146", "query": "Provide API schema for inference endpoint.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0120", "query": "Find policy section on data retention for region US.", "gold_route": "retrieval_pipeline", "baseline_route": "retrieval_pipeline", "improved_route": "retrieval_pipeline"}
+{"id": "req_0011", "query": "Provide API schema for inference endpoint.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0160", "query": "Review latency report and classify failure mode.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0131", "query": "Provide API schema for inference endpoint.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0113", "query": "Provide API schema for inference endpoint.", "gold_route": "direct_model", "baseline_route": "direct_model", "improved_route": "direct_model"}
+{"id": "req_0078", "query": "Find policy section on data retention for region US.", "gold_route": "retrieval_pipeline", "baseline_route": "retrieval_pipeline", "improved_route": "retrieval_pipeline"}

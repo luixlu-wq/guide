@@ -1,0 +1,5 @@
+metric,baseline_value,improved_value,delta
+error_rate,0.026,0.012,-0.014
+latency_p95_ms,910.0,690.0,-220.0
+routing_accuracy,0.78,0.87,0.09
+throughput_rps,2.7,3.5,0.8

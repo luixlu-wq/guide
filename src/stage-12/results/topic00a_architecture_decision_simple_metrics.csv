@@ -1,0 +1,3 @@
+topic_id,pattern,run_type,quality_score,latency_p95_ms,cost_index,failure_rate
+topic00a_architecture_decision_simple,llm_app,baseline,0.74,349.6,0.92,0.023
+topic00a_architecture_decision_simple,llm_app,improved,0.777,314.64,0.92,0.012

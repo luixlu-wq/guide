@@ -1,0 +1,5 @@
+layer,schema_pass_rate,missing_rate,accuracy,f1,latency_p95_ms,error_rate
+data,1.0,0.0,,,,
+features,1.0,0.0,,,,
+ml,,,0.5167,0.5915,,
+api,,,,,420.0,0.017

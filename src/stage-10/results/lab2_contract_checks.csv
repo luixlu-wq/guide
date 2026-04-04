@@ -1,0 +1,7 @@
+check_name,pass_flag,error_detail
+data_schema_required_columns,True,
+feature_schema_target_exists,True,
+ml_input_columns_match_train,True,
+llm_payload_has_probabilities,False,missing pred_prob_up
+api_response_schema_complete,True,
+trace_id_propagation,False,trace_id dropped in llm layer

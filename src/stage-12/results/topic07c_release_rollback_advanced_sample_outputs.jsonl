@@ -1,0 +1,15 @@
+{"id": "case_0075", "query": "Research, critique, and summarize with role separation.", "expected_pattern": "multi_agent", "complexity": "medium"}
+{"id": "case_0118", "query": "Fetch latest price and calculate moving average.", "expected_pattern": "agent", "complexity": "high"}
+{"id": "case_0087", "query": "Research, critique, and summarize with role separation.", "expected_pattern": "multi_agent", "complexity": "high"}
+{"id": "case_0015", "query": "Research, critique, and summarize with role separation.", "expected_pattern": "multi_agent", "complexity": "medium"}
+{"id": "case_0064", "query": "Explain a concept in simple terms.", "expected_pattern": "llm_app", "complexity": "high"}
+{"id": "case_0074", "query": "Fetch latest price and calculate moving average.", "expected_pattern": "agent", "complexity": "low"}
+{"id": "case_0036", "query": "Explain a concept in simple terms.", "expected_pattern": "llm_app", "complexity": "low"}
+{"id": "case_0022", "query": "Fetch latest price and calculate moving average.", "expected_pattern": "agent", "complexity": "high"}
+{"id": "case_0120", "query": "Explain a concept in simple terms.", "expected_pattern": "llm_app", "complexity": "medium"}
+{"id": "case_0066", "query": "Fetch latest price and calculate moving average.", "expected_pattern": "agent", "complexity": "high"}
+{"id": "case_0077", "query": "Answer policy question from internal handbook with citation.", "expected_pattern": "rag", "complexity": "medium"}
+{"id": "case_0173", "query": "Answer policy question from internal handbook with citation.", "expected_pattern": "rag", "complexity": "high"}
+{"id": "case_0091", "query": "Research, critique, and summarize with role separation.", "expected_pattern": "multi_agent", "complexity": "high"}
+{"id": "case_0159", "query": "Research, critique, and summarize with role separation.", "expected_pattern": "multi_agent", "complexity": "high"}
+{"id": "case_0046", "query": "Fetch latest price and calculate moving average.", "expected_pattern": "agent", "complexity": "medium"}

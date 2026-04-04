@@ -1,0 +1,4 @@
+scenario,drawdown,recovery_days,pass_fail
+vol_spike,-0.11,19,pass
+corr_spike,-0.14,27,warn
+liquidity_shock,-0.17,33,warn

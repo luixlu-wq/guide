@@ -1,0 +1,4 @@
+﻿run_id,stage,topic_or_module,metric_name,before_value,after_value,delta,dataset_or_eval_set,seed_or_config_id,decision
+stage2-baseline-20260404,stage-2,end_to_end_pipeline,r2,-0.0004,0.9312,0.9316,synthetic_house_split_80_20,seed42_dummy_to_rf,promote
+stage2-baseline-20260404,stage-2,end_to_end_pipeline,mae,94564.0141,22909.2101,-71654.8040,synthetic_house_split_80_20,seed42_dummy_to_rf,promote
+stage2-baseline-20260404,stage-2,end_to_end_pipeline,mse,12022845020.8085,826880013.6155,-11195965007.1930,synthetic_house_split_80_20,seed42_dummy_to_rf,promote

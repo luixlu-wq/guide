@@ -7,4 +7,4 @@
 - Target: digit class 0-9
 - Split policy: train_test_split(test_size=0.2, random_state=81, stratify=y) then validation split with same random_state
 - Random seed: torch.manual_seed(81)
-- Run date: 2026-04-03
+- Run date: 2026-04-04

@@ -1,0 +1,3 @@
+topic_id,run_type,recall_at_5,retrieval_latency_ms,qdrant_reachable,qdrant_status
+topic01c_qdrant_failure_diagnostics_advanced,baseline,0.76,96.0,True,Qdrant reachable on localhost:6333
+topic01c_qdrant_failure_diagnostics_advanced,improved,0.87,85.44,True,Qdrant reachable on localhost:6333

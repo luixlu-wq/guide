@@ -1,0 +1,4 @@
+minute,event,owner,severity
+0,alert_triggered,ops,sev2
+6,domain_classified,ml,sev2
+14,fix_option_selected,ic,sev2

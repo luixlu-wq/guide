@@ -1,0 +1,8 @@
+{
+  "collection_name": "stage9_docs",
+  "points_count_estimate": 1200,
+  "vector_size": 768,
+  "distance": "cosine",
+  "qdrant_reachable": true,
+  "qdrant_status": "Qdrant reachable on localhost:6333"
+}

@@ -1,0 +1,4 @@
+option,quality,latency,cost,risk,weighted_score
+pattern_a,0.82,0.76,0.81,0.74,0.78
+pattern_b,0.85,0.68,0.74,0.71,0.77
+pattern_c,0.79,0.88,0.89,0.8,0.84

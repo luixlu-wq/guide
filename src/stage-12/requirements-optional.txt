@@ -1,0 +1,4 @@
+# Optional dependencies for richer Stage 12 experiments.
+torch>=2.2
+qdrant-client>=1.10
+fastapi>=0.111

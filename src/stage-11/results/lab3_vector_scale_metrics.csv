@@ -1,0 +1,4 @@
+corpus_size,retrieval_latency_ms,qdrant_reachable,status
+10000,72.0,True,Qdrant reachable on localhost:6333
+100000,104.0,True,Qdrant reachable on localhost:6333
+500000,158.0,True,Qdrant reachable on localhost:6333

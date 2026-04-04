@@ -1,0 +1,2 @@
+topic_id,complexity,device,latency_p50_ms,latency_p95_ms,oom_recovered
+topic02_gpu_cuda_ops_intermediate,intermediate,cpu,0.086,0.224,False

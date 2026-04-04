@@ -1,0 +1,3 @@
+topic_id,run_type,latency_p50_ms,latency_p95_ms,latency_p99_ms,throughput_rps,error_rate,gpu_mem_mb
+topic01a_serving_patterns_simple,baseline,386.4,625.97,751.16,2.59,0.021,2024.0
+topic01a_serving_patterns_simple,improved,332.3,481.84,539.66,3.43,0.011,2024.0

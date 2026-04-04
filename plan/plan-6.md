@@ -511,46 +511,35 @@ Lab rules:
 
 ## 11) Troubleshooting and Realistic Problem Playbook
 
-Required failure scenarios:
+### 11.1 Stage-Specific Industry Pain-Point Matrix (Mandatory)
 
-- wrong tool selected
-- malformed tool arguments
-- tool timeout / external API failure
-- retrieval returns irrelevant context
-- memory pollution (irrelevant stale state)
-- runaway loops / excessive tool calls
-- hallucinated action claims
-- policy violation attempt (unsafe action)
-- prompt injection attack succeeds
-- data exfiltration attempt through tool call
-- retry storm from poor backoff design
-- non-deterministic regression after model/prompt change
+| Topic | Typical industry pain point | Common root causes | Resolution strategy (operatable) | Verification evidence | Mapped script/lab |
+|---|---|---|---|---|---|
+| Workflow vs agent choice | Teams overuse agents for deterministic tasks | No decision framework | Apply workflow-first decision checklist before agentization | Architecture decision note with rationale | `topic01_workflow_vs_agent_intermediate.py` |
+| Tool schema and validation | Agent calls fail due to malformed arguments | Weak schema contracts and validation | Enforce strict tool schema + validation + retry policy | Tool call success/failure report | `topic02_tool_validation_intermediate.py` |
+| Memory/retrieval state | Agent uses stale or irrelevant memory | Missing memory TTL and relevance filters | Add memory policy (TTL, relevance, provenance) | Memory hit quality report | `topic03_memory_retrieval_intermediate.py` |
+| Guardrails/HITL | Agent performs unsafe or irreversible actions | No policy gates or human approval boundary | Add policy-gated actions + HITL checkpoints | Guardrail block rate and override log | `topic04_hitl_intermediate.py`, `topic04c_policy_gated_actions_advanced.py` |
+| Eval and traceability | Failures cannot be compared across versions | Missing trace IDs and fixed eval set | Standardize tracing and eval harness for every run | Trace coverage + regression table | `topic05_eval_metrics_intermediate.py`, `topic05c_regression_suite_advanced.py` |
+| Industry architecture patterns | Multi-agent setup adds complexity without gains | Role overlap and unclear ownership | Define role contracts and escalation boundaries | Task success/latency per role | `topic06_industry_patterns.py`, `lab03_multi_agent_ops_assistant.py` |
+| Protocol interoperability | MCP/A2A integration unstable in mixed environments | Protocol boundary ambiguity | Add explicit protocol contracts and compatibility tests | Interop test matrix | `topic07_protocol_interop_intermediate.py`, `topic07c_a2a_collaboration_advanced.py` |
+| Budget/SLO operations | Agent quality improves but cost/latency explodes | No budget caps or SLO gates | Enforce max-step/latency/cost budgets + gate checks | SLO and cost before/after report | `topic08_latency_cost_optimization_intermediate.py`, `topic08c_slo_regression_gate_advanced.py` |
+| Security incidents | Prompt injection or tool abuse succeeds | Missing threat model and permission isolation | Add injection defenses + least-privilege tool permissions | Security drill report + incident timeline | `topic09_policy_and_permissions_intermediate.py`, `topic09c_incident_response_advanced.py` |
+| End-to-end production lab | Agent demo works but not production-ready | Missing reliability and ops evidence | Run full baseline-to-production lab with fixed artifacts | Production readiness scorecard | `lab04_secure_agent_operations.py` |
 
-Required troubleshooting workflow:
+### 11.2 Required Troubleshooting Workflow
 
-1. reproduce with fixed input and trace id
-2. classify failure type
-3. inspect tool input/output schema validity
-4. inspect routing decision and stop conditions
-5. inspect memory retrieval relevance
-6. inspect grounding/citation evidence
-7. inspect policy and permission decisions
-8. apply one targeted fix only
-9. rerun same case and record delta
+1. Reproduce failure with fixed input, trace ID, and run ID.
+2. Classify failure (tooling, memory, policy, protocol, budget, security).
+3. Capture evidence bundle before changes.
+4. Compare at least 2 fixes; apply one targeted change.
+5. Rerun same cases and report metric deltas.
+6. Record promote/hold/rollback decision with residual risk.
 
-Required logs per run:
+### 11.3 Mandatory Artifacts
 
-- query id
-- run id and trace id
-- step index
-- selected tool
-- tool args
-- tool return code
-- latency and token/cost summary
-- guardrail decision path
-- prompt/policy/model version ids
-- final answer and confidence note
-- failure class (if any)
+- `results/stage6/pain_point_matrix.md`
+- `results/stage6/agent_before_after_metrics.csv`
+- `results/stage6/incident_and_release_decision.md`
 
 ---
 
@@ -727,6 +716,97 @@ Handbook must end with `What Comes After Stage 6` and include:
 - mapping from Stage 6 skills to Stage 7 tasks
 - readiness sentence before progression
 
+
+
+
+
+---
+
+
+## Cross-Plan Consistency Addendum (2026-04-04, Additive-Only)
+
+This addendum is additive and does not remove or override existing content. Existing file names, workflows, and section details remain valid.
+
+### A) Canonical Decision Labels (Use Across All Stages)
+
+- `promote`: change passes all required gates and can move forward
+- `hold`: change is promising but evidence is incomplete or mixed
+- `rollback`: change increases risk/regression and must be reverted to prior baseline
+
+### B) Canonical Troubleshooting Flow Labels
+
+Use these labels in reports for consistency (even if stage-specific wording differs):
+
+1. `identify` (problem statement + failure class)
+2. `evidence` (logs/metrics/traces/schema snapshots)
+3. `compare` (>=2 options and tradeoffs)
+4. `change` (one targeted change only)
+5. `verify` (same dataset/split/eval/load profile)
+6. `decide` (`promote` / `hold` / `rollback`)
+
+### C) Canonical Artifact Naming Convention (Recommended)
+
+Keep all existing stage-specific filenames. In addition, produce or map to these canonical artifact names:
+
+- `pain_point_matrix.md`
+- `before_after_metrics.csv`
+- `verification_report.md`
+- `decision_log.md`
+- `reproducibility.md`
+
+If a stage already uses different names, add one of the following without deleting existing files:
+
+- a short mapping file: `artifact_name_map.md`
+- or duplicate/export canonical alias files that point to existing outputs
+
+### D) Evidence Schema (Minimum Fields for Any Metric Table)
+
+Every before/after metric table should include these columns (additive requirement):
+
+- `run_id`
+- `stage`
+- `topic_or_module`
+- `metric_name`
+- `before_value`
+- `after_value`
+- `delta`
+- `dataset_or_eval_set`
+- `seed_or_config_id`
+- `decision`
+
+### E) Failure Class Taxonomy (Cross-Stage)
+
+Use common labels for easier comparison across plans:
+
+- `data_schema`
+- `data_quality`
+- `feature_or_representation`
+- `training_or_optimization`
+- `retrieval_or_context`
+- `generation_or_reasoning`
+- `tool_or_api`
+- `latency_or_cost`
+- `security_or_policy`
+- `operations_or_release`
+
+### F) Stage Folder and Result Folder Convention
+
+Recommended unified pattern:
+
+- scripts: `red-book/src/stage-<N>/`
+- outputs: `results/stage<N>/`
+
+If a plan already uses another path, keep it and add a path mapping note in stage README.
+
+### G) No-Delete Compatibility Rule
+
+- Do not delete prior deliverable names from existing plan text.
+- Add normalization as aliases/mappings only.
+- When old and canonical names both exist, the stage README must state the mapping.
+
+## Global Key Request Addendum (2026-04-04)
+
+- Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
 
 
 

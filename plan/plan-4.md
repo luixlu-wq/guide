@@ -402,6 +402,33 @@ Minimum acceptance checks:
 - Before/after improvement evidence exists
 - One concrete failure diagnosis + fix is documented
 
+### 8.1 Stage-Specific Industry Pain-Point Matrix (Mandatory)
+
+| Topic | Typical industry pain point | Common root causes | Resolution strategy (operatable) | Verification evidence | Mapped script/lab |
+|---|---|---|---|---|---|
+| Training loop anatomy | Model runs but gradients are wrong | Incorrect zero_grad/backward/step ordering | Enforce 5-step loop checklist and gradient sanity checks | Gradient norm and loss trend report | `topic01_loop_anatomy.py` |
+| MLP baseline | Accuracy stalls early | Weak normalization/learning-rate setup | Tune LR and normalization with fixed epochs | Learning-curve comparison | `topic02_mlp_intermediate.py` |
+| CNN module | CNN performs worse than MLP on images | Bad shape handling and augment mismatch | Add shape assertions and augmentation audit | Shape trace + augmentation effect table | `topic03_cnn_intermediate.py` |
+| RNN/sequence modeling | Sequence model unstable or slow | Long dependency issues and batching problems | Apply sequence-length policy + gradient clipping | Sequence loss stability report | `topic04_rnn_intermediate.py` |
+| Transformer basics | Attention code works but predictions unstable | Mask/position handling errors | Add mask/position validation tests | Attention mask validity report | `topic05_transformer_intermediate.py` |
+| CUDA/AMP | GPU path faster but numerically unstable | AMP misuse and overflow handling gaps | Add AMP guardrails and fallback execution path | CPU/GPU/AMP comparison report | `topic06_cuda_intermediate.py` |
+| Failure modes | Team cannot localize deep learning failures | No failure taxonomy | Use structured failure drill and one-change rerun | Failure diagnosis and fix log | `topic07_failure_modes.py` |
+| Project baseline to improvement | Final model chosen without evidence | Missing baseline-vs-improved protocol | Enforce fixed baseline, one controlled improvement, and decision gate | Before/after metrics + final rationale | `topic08_project_baseline.py` |
+
+### 8.2 Required Matrix Usage Workflow
+
+1. Reproduce issue with fixed seed/data split and run ID.
+2. Capture loss/metric/shape/device evidence.
+3. Compare 2 fix options and apply one change.
+4. Rerun same training budget and evaluation.
+5. Record release/hold decision and rollback trigger.
+
+### 8.3 Mandatory Artifacts
+
+- `results/stage4/pain_point_matrix.md`
+- `results/stage4/training_before_after.csv`
+- `results/stage4/model_selection_decision.md`
+
 ---
 
 ## 9) Debugging and Quality Gates
@@ -558,6 +585,97 @@ Use this for every hard section:
 
 Per-module must include `why this is hard` and one checkpoint question before moving forward.
 
+
+
+
+
+---
+
+
+## Cross-Plan Consistency Addendum (2026-04-04, Additive-Only)
+
+This addendum is additive and does not remove or override existing content. Existing file names, workflows, and section details remain valid.
+
+### A) Canonical Decision Labels (Use Across All Stages)
+
+- `promote`: change passes all required gates and can move forward
+- `hold`: change is promising but evidence is incomplete or mixed
+- `rollback`: change increases risk/regression and must be reverted to prior baseline
+
+### B) Canonical Troubleshooting Flow Labels
+
+Use these labels in reports for consistency (even if stage-specific wording differs):
+
+1. `identify` (problem statement + failure class)
+2. `evidence` (logs/metrics/traces/schema snapshots)
+3. `compare` (>=2 options and tradeoffs)
+4. `change` (one targeted change only)
+5. `verify` (same dataset/split/eval/load profile)
+6. `decide` (`promote` / `hold` / `rollback`)
+
+### C) Canonical Artifact Naming Convention (Recommended)
+
+Keep all existing stage-specific filenames. In addition, produce or map to these canonical artifact names:
+
+- `pain_point_matrix.md`
+- `before_after_metrics.csv`
+- `verification_report.md`
+- `decision_log.md`
+- `reproducibility.md`
+
+If a stage already uses different names, add one of the following without deleting existing files:
+
+- a short mapping file: `artifact_name_map.md`
+- or duplicate/export canonical alias files that point to existing outputs
+
+### D) Evidence Schema (Minimum Fields for Any Metric Table)
+
+Every before/after metric table should include these columns (additive requirement):
+
+- `run_id`
+- `stage`
+- `topic_or_module`
+- `metric_name`
+- `before_value`
+- `after_value`
+- `delta`
+- `dataset_or_eval_set`
+- `seed_or_config_id`
+- `decision`
+
+### E) Failure Class Taxonomy (Cross-Stage)
+
+Use common labels for easier comparison across plans:
+
+- `data_schema`
+- `data_quality`
+- `feature_or_representation`
+- `training_or_optimization`
+- `retrieval_or_context`
+- `generation_or_reasoning`
+- `tool_or_api`
+- `latency_or_cost`
+- `security_or_policy`
+- `operations_or_release`
+
+### F) Stage Folder and Result Folder Convention
+
+Recommended unified pattern:
+
+- scripts: `red-book/src/stage-<N>/`
+- outputs: `results/stage<N>/`
+
+If a plan already uses another path, keep it and add a path mapping note in stage README.
+
+### G) No-Delete Compatibility Rule
+
+- Do not delete prior deliverable names from existing plan text.
+- Add normalization as aliases/mappings only.
+- When old and canonical names both exist, the stage README must state the mapping.
+
+## Global Key Request Addendum (2026-04-04)
+
+- Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
 
 
 

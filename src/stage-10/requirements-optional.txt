@@ -1,0 +1,6 @@
+# Optional dependencies for richer Stage 10 operations.
+pandas>=2.0
+fastapi>=0.111
+uvicorn>=0.30
+torch>=2.2
+qdrant-client>=1.10

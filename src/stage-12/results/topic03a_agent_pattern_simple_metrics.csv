@@ -1,0 +1,3 @@
+topic_id,pattern,run_type,quality_score,latency_p95_ms,cost_index,failure_rate
+topic03a_agent_pattern_simple,agent,baseline,0.78,634.8,1.656,0.023
+topic03a_agent_pattern_simple,agent,improved,0.819,571.32,1.656,0.012

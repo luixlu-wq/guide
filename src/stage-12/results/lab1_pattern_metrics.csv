@@ -1,0 +1,5 @@
+pattern,quality_score,latency_p95_ms,cost_index,failure_rate
+llm_app,0.74,380.0,1.0,0.023
+rag,0.81,520.0,1.4,0.019
+agent,0.78,690.0,1.8,0.025
+multi_agent,0.8,820.0,2.2,0.028

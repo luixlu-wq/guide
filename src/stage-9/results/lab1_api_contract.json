@@ -1,0 +1,40 @@
+{
+  "service_name": "stage9_ai_backend",
+  "version": "v1",
+  "endpoints": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "request_schema": {},
+      "response_schema": {
+        "status": "str"
+      }
+    },
+    {
+      "path": "/predict",
+      "method": "POST",
+      "request_schema": {
+        "query": "str",
+        "context": "optional[str]"
+      },
+      "response_schema": {
+        "route": "str",
+        "answer": "str",
+        "trace_id": "str"
+      }
+    },
+    {
+      "path": "/retrieve",
+      "method": "POST",
+      "request_schema": {
+        "query": "str",
+        "top_k": "int",
+        "filters": "optional[dict]"
+      },
+      "response_schema": {
+        "matches": "list[dict]",
+        "trace_id": "str"
+      }
+    }
+  ]
+}

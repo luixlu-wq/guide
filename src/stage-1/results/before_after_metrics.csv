@@ -1,0 +1,4 @@
+﻿run_id,stage,topic_or_module,metric_name,before_value,after_value,delta,dataset_or_eval_set,seed_or_config_id,decision
+stage1-reg-20260404,stage-1,regularization_selection,test_accuracy,0.9298,0.9825,0.0527,breast_cancer_test_split_20pct,seed42_C1000_to_C1,promote
+stage1-val-20260404,stage-1,validation_selection,validation_accuracy,0.8509,0.9912,0.1403,breast_cancer_validation_split,seed42_C0.001_to_C1,promote
+stage1-gd-20260404,stage-1,gradient_descent_tuning,mse_loss,415.8359,4.1837,-411.6522,synthetic_linear_regression,seed42_lr0.001_epochs3000,promote

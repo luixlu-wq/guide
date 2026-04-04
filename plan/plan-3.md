@@ -427,6 +427,34 @@ Required outputs:
 - at least 3 analysis figures
 - short model-selection rationale
 
+### 8.1 Stage-Specific Industry Pain-Point Matrix (Mandatory)
+
+| Topic | Typical industry pain point | Common root causes | Resolution strategy (operatable) | Verification evidence | Mapped script/lab |
+|---|---|---|---|---|---|
+| Linear regression | Model underfits despite clean pipeline | Missing feature scaling/interaction terms | Add feature diagnostics and residual analysis | Residual and error trend report | `topic01_linear_regression.py` |
+| Logistic regression | High accuracy but poor minority recall | Class imbalance and threshold misuse | Add class-aware metrics and threshold tuning | Precision/recall/F1 by class | `topic02_logistic_regression.py` |
+| Decision tree | Training score near perfect, test score poor | Overfitting from deep trees | Tune depth/min samples with fixed CV | Train/test gap vs depth chart | `topic03_decision_tree_depth.py` |
+| Random forest | Improved average but unstable across runs | Weak seed/control and limited search | Lock seeds and run parameter sweep | Mean/std across runs table | `topic04_random_forest_baseline.py` |
+| SVM | Performance highly sensitive to parameters | No scaling and poor C/gamma search | Enforce scaling + grid search with fixed folds | Grid search result table | `topic05_svm_tuning.py` |
+| KMeans | Clusters not meaningful for business use | Wrong K and unscaled features | Use silhouette + domain constraints for K selection | Silhouette and cluster diagnostics | `topic06_kmeans_silhouette.py` |
+| Fair comparison | Team compares models on different setups | Split/preprocess inconsistency | Enforce one shared split/preprocess/metric protocol | Fair comparison checklist | `topic07_fair_model_comparison.py` |
+| Failure mode diagnosis | Regressions repeat after small changes | No structured error analysis | Add failure taxonomy and one-change rerun rule | Failure-class before/after report | `topic08_failure_modes_overfit_leakage.py` |
+| PyTorch/CUDA bridge | Classical and PyTorch versions disagree | Implementation mismatch/device errors | Add parity tests and device-safe paths | CPU vs GPU parity + tolerance report | `topic09_pytorch_cuda_bridge.py` |
+
+### 8.2 Required Matrix Usage Workflow
+
+1. Reproduce the issue with fixed split/CV and seed.
+2. Capture baseline metrics and failure slices.
+3. Compare 2+ fixes; apply one targeted change.
+4. Rerun identical evaluation protocol.
+5. Record promotion/hold decision with evidence.
+
+### 8.3 Mandatory Artifacts
+
+- `results/stage3/pain_point_matrix.md`
+- `results/stage3/model_compare_before_after.csv`
+- `results/stage3/decision_and_risk.md`
+
 ---
 
 ## 9) Debugging and Quality Gates
@@ -685,6 +713,97 @@ Use in this strict order when learner is stuck:
 - Add one failure-mode script showing overfitting and leakage examples.
 
 
+
+
+
+
+---
+
+
+## Cross-Plan Consistency Addendum (2026-04-04, Additive-Only)
+
+This addendum is additive and does not remove or override existing content. Existing file names, workflows, and section details remain valid.
+
+### A) Canonical Decision Labels (Use Across All Stages)
+
+- `promote`: change passes all required gates and can move forward
+- `hold`: change is promising but evidence is incomplete or mixed
+- `rollback`: change increases risk/regression and must be reverted to prior baseline
+
+### B) Canonical Troubleshooting Flow Labels
+
+Use these labels in reports for consistency (even if stage-specific wording differs):
+
+1. `identify` (problem statement + failure class)
+2. `evidence` (logs/metrics/traces/schema snapshots)
+3. `compare` (>=2 options and tradeoffs)
+4. `change` (one targeted change only)
+5. `verify` (same dataset/split/eval/load profile)
+6. `decide` (`promote` / `hold` / `rollback`)
+
+### C) Canonical Artifact Naming Convention (Recommended)
+
+Keep all existing stage-specific filenames. In addition, produce or map to these canonical artifact names:
+
+- `pain_point_matrix.md`
+- `before_after_metrics.csv`
+- `verification_report.md`
+- `decision_log.md`
+- `reproducibility.md`
+
+If a stage already uses different names, add one of the following without deleting existing files:
+
+- a short mapping file: `artifact_name_map.md`
+- or duplicate/export canonical alias files that point to existing outputs
+
+### D) Evidence Schema (Minimum Fields for Any Metric Table)
+
+Every before/after metric table should include these columns (additive requirement):
+
+- `run_id`
+- `stage`
+- `topic_or_module`
+- `metric_name`
+- `before_value`
+- `after_value`
+- `delta`
+- `dataset_or_eval_set`
+- `seed_or_config_id`
+- `decision`
+
+### E) Failure Class Taxonomy (Cross-Stage)
+
+Use common labels for easier comparison across plans:
+
+- `data_schema`
+- `data_quality`
+- `feature_or_representation`
+- `training_or_optimization`
+- `retrieval_or_context`
+- `generation_or_reasoning`
+- `tool_or_api`
+- `latency_or_cost`
+- `security_or_policy`
+- `operations_or_release`
+
+### F) Stage Folder and Result Folder Convention
+
+Recommended unified pattern:
+
+- scripts: `red-book/src/stage-<N>/`
+- outputs: `results/stage<N>/`
+
+If a plan already uses another path, keep it and add a path mapping note in stage README.
+
+### G) No-Delete Compatibility Rule
+
+- Do not delete prior deliverable names from existing plan text.
+- Add normalization as aliases/mappings only.
+- When old and canonical names both exist, the stage README must state the mapping.
+
+## Global Key Request Addendum (2026-04-04)
+
+- Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
 
 
 

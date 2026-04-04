@@ -1,0 +1,3 @@
+topic_id,run_type,quality_score,latency_p95_ms,cost_index,failure_rate
+topic02a_risk_engine_simple,baseline,0.6992,570.4,1.15,0.022
+topic02a_risk_engine_simple,improved,0.7481,507.66,1.15,0.012

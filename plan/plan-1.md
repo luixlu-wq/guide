@@ -458,6 +458,34 @@ Expected output documentation (required for every script):
   - `topic05_gradient_descent.py` → expected: loss decreases from ~X to ~Y over N iterations, final w and b printed
 - If a script produces a plot, state what the plot should look like (e.g., "loss should curve downward and flatten").
 
+### 8.1 Stage-Specific Industry Pain-Point Matrix (Mandatory)
+
+| Topic | Typical industry pain point | Common root causes | Resolution strategy (operatable) | Verification evidence | Mapped script/lab |
+|---|---|---|---|---|---|
+| Supervised baseline | High score in notebook but poor generalization | Data leakage and unstable split | Lock split/seed and run leakage checks before training | Train/test delta + leakage checklist | `topic01_supervised_learning.py` |
+| Unsupervised learning | Clusters look plausible but are not useful | Missing scaling and weak feature design | Standardize features and compare silhouette/inertia with fixed K set | Cluster quality table | `topic02_unsupervised_learning.py` |
+| Features vs target | Model learns target leakage columns | Target-derived features included in inputs | Enforce feature whitelist and target isolation checks | Feature audit report | `topic03_features_vs_target.py` |
+| Loss/optimization | Loss does not decrease as expected | Wrong objective or unstable learning rate | Verify loss definition and tune LR with controlled reruns | Loss curve before/after | `topic04_cost_function.py`, `topic05_gradient_descent.py` |
+| Train/test discipline | Strong training score but weak test score | Overfitting and weak validation process | Add validation set and regularization path | Train/val/test comparison | `topic06_training_vs_testing.py`, `topic11_regularization.py` |
+| Overfitting/bias-variance | Team cannot decide whether to add complexity | No bias-variance diagnosis workflow | Use underfit/overfit decision flow with one change at a time | Bias-variance diagnosis note | `topic07_overfitting.py`, `topic08_bias_variance.py` |
+| Validation strategy | Model choice changes every run | Inconsistent split/CV policy | Fix split/CV strategy and compare under same protocol | CV summary with confidence range | `topic09_validation_set.py` |
+| Feature engineering | Feature changes hurt model unexpectedly | No ablation or impact tracking | Run feature ablation with baseline holdout | Feature impact table | `topic10_feature_engineering.py` |
+| PyTorch/CUDA bridge | GPU path fails or differs from CPU | Device mismatch and missing fallback | Add explicit device checks + deterministic CPU fallback | CPU vs GPU parity report | `topic12_pytorch_cuda.py` |
+
+### 8.2 Required Matrix Usage Workflow
+
+1. Reproduce issue with fixed split/seed and run ID.
+2. Capture baseline metrics and error cases.
+3. Compare at least 2 options; apply one targeted change.
+4. Rerun same evaluation and report deltas.
+5. Record promote/hold/rollback decision.
+
+### 8.3 Mandatory Artifacts
+
+- `results/stage1/pain_point_matrix.md`
+- `results/stage1/before_after_metrics.csv`
+- `results/stage1/final_decision.md`
+
 ---
 
 ## 9) Debugging and Quality Gates
@@ -652,6 +680,97 @@ P1 (should include):
 - Add a tiny "link status table" with last-check date for each primary resource.
 - Add a validation log file template for smoke-test outputs.
 
+
+
+
+
+---
+
+
+## Cross-Plan Consistency Addendum (2026-04-04, Additive-Only)
+
+This addendum is additive and does not remove or override existing content. Existing file names, workflows, and section details remain valid.
+
+### A) Canonical Decision Labels (Use Across All Stages)
+
+- `promote`: change passes all required gates and can move forward
+- `hold`: change is promising but evidence is incomplete or mixed
+- `rollback`: change increases risk/regression and must be reverted to prior baseline
+
+### B) Canonical Troubleshooting Flow Labels
+
+Use these labels in reports for consistency (even if stage-specific wording differs):
+
+1. `identify` (problem statement + failure class)
+2. `evidence` (logs/metrics/traces/schema snapshots)
+3. `compare` (>=2 options and tradeoffs)
+4. `change` (one targeted change only)
+5. `verify` (same dataset/split/eval/load profile)
+6. `decide` (`promote` / `hold` / `rollback`)
+
+### C) Canonical Artifact Naming Convention (Recommended)
+
+Keep all existing stage-specific filenames. In addition, produce or map to these canonical artifact names:
+
+- `pain_point_matrix.md`
+- `before_after_metrics.csv`
+- `verification_report.md`
+- `decision_log.md`
+- `reproducibility.md`
+
+If a stage already uses different names, add one of the following without deleting existing files:
+
+- a short mapping file: `artifact_name_map.md`
+- or duplicate/export canonical alias files that point to existing outputs
+
+### D) Evidence Schema (Minimum Fields for Any Metric Table)
+
+Every before/after metric table should include these columns (additive requirement):
+
+- `run_id`
+- `stage`
+- `topic_or_module`
+- `metric_name`
+- `before_value`
+- `after_value`
+- `delta`
+- `dataset_or_eval_set`
+- `seed_or_config_id`
+- `decision`
+
+### E) Failure Class Taxonomy (Cross-Stage)
+
+Use common labels for easier comparison across plans:
+
+- `data_schema`
+- `data_quality`
+- `feature_or_representation`
+- `training_or_optimization`
+- `retrieval_or_context`
+- `generation_or_reasoning`
+- `tool_or_api`
+- `latency_or_cost`
+- `security_or_policy`
+- `operations_or_release`
+
+### F) Stage Folder and Result Folder Convention
+
+Recommended unified pattern:
+
+- scripts: `red-book/src/stage-<N>/`
+- outputs: `results/stage<N>/`
+
+If a plan already uses another path, keep it and add a path mapping note in stage README.
+
+### G) No-Delete Compatibility Rule
+
+- Do not delete prior deliverable names from existing plan text.
+- Add normalization as aliases/mappings only.
+- When old and canonical names both exist, the stage README must state the mapping.
+
+## Global Key Request Addendum (2026-04-04)
+
+- Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
 
 
 

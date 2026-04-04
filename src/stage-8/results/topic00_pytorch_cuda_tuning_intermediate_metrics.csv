@@ -1,2 +1,2 @@
 topic_id,device,complexity,final_loss,duration_ms
-topic00_pytorch_cuda_tuning_intermediate,cpu,intermediate,0.109524,17.87
+topic00_pytorch_cuda_tuning_intermediate,cpu,intermediate,0.109524,16.31

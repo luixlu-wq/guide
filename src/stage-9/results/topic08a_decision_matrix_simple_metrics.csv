@@ -1,0 +1,3 @@
+topic_id,topic_name,run_type,routing_accuracy,route_error_rate,latency_p50_ms,latency_p95_ms,latency_p99_ms,throughput_rps,queue_depth_avg,error_rate,gpu_mem_mb
+topic08a_decision_matrix_simple,Architecture Decision Records,baseline,1.0,0.0,243.0,400.95,489.16,4.12,3.81,0.018,1620.0
+topic08a_decision_matrix_simple,Architecture Decision Records,improved,1.0,0.0,213.84,316.48,360.79,5.42,2.36,0.009,1620.0

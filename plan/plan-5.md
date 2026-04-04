@@ -430,6 +430,33 @@ Minimum acceptance checks:
 - output schema validation is documented
 - one concrete failure diagnosis + fix is documented
 
+### 8.1 Stage-Specific Industry Pain-Point Matrix (Mandatory)
+
+| Topic | Typical industry pain point | Common root causes | Resolution strategy (operatable) | Verification evidence | Mapped script/lab |
+|---|---|---|---|---|---|
+| Tokenization | Prompt behavior changes unexpectedly across inputs | Token boundary assumptions and truncation | Add token budget checks and truncation policy | Token-length and truncation audit | `topic01_tokenization_intermediate.py` |
+| Multi-head attention | Students can run code but not reason about heads | Weak tensor-shape intuition and head semantics | Add shape-trace walkthrough and head-by-head diagnostics | Attention shape and head behavior report | `topic01_multihead_attention.py` |
+| Prompt engineering | Prompt improvements are not reproducible | No prompt versioning or regression suite | Use versioned prompts and fixed eval set | Prompt regression comparison table | `topic02_prompting_intermediate.py`, `topic07_prompt_eval_regression.py` |
+| Structured output | JSON output breaks in production | Schema not enforced and weak retry logic | Add strict schema validation + repair strategy | Parse-valid rate and error-class report | `topic03_structured_output_intermediate.py` |
+| RAG basics | Fluent answers are weakly grounded | Retrieval quality and context assembly issues | Add retrieval diagnostics + citation-required answers | Groundedness/citation coverage report | `topic04_rag_intermediate.py` |
+| Embeddings | Similarity search returns near-duplicates | Embedding mismatch and no dedup policy | Tune embedding/index settings and dedup filters | Retrieval diversity and relevance table | `topic05_embeddings_intermediate.py` |
+| PyTorch/CUDA path | LLM example fails on local hardware | Device mismatch/OOM/no fallback | Add device checks, batch ladder, and CPU fallback | GPU stability and parity report | `topic00_pytorch_cuda_intermediate.py` |
+| End-to-end mini LLM lab | Lab runs but no objective quality evidence | Missing baseline and acceptance gates | Compare baseline vs improved setup under fixed eval | Lab before/after results and decision | `lab01_simple_mha_llm.py` |
+
+### 8.2 Required Matrix Usage Workflow
+
+1. Reproduce issue with fixed prompt/data/run ID.
+2. Capture baseline output quality and failure classes.
+3. Compare at least 2 options and apply one change.
+4. Rerun identical eval and verify deltas.
+5. Record promote/hold/rollback decision.
+
+### 8.3 Mandatory Artifacts
+
+- `results/stage5/pain_point_matrix.md`
+- `results/stage5/quality_before_after.csv`
+- `results/stage5/release_decision.md`
+
 ---
 
 ## 9) Debugging and Quality Gates
@@ -598,6 +625,97 @@ Per-module must include:
 - one checkpoint question before moving forward
 - one explicit `do not trust this blindly` reliability note for LLM outputs
 
+
+
+
+
+---
+
+
+## Cross-Plan Consistency Addendum (2026-04-04, Additive-Only)
+
+This addendum is additive and does not remove or override existing content. Existing file names, workflows, and section details remain valid.
+
+### A) Canonical Decision Labels (Use Across All Stages)
+
+- `promote`: change passes all required gates and can move forward
+- `hold`: change is promising but evidence is incomplete or mixed
+- `rollback`: change increases risk/regression and must be reverted to prior baseline
+
+### B) Canonical Troubleshooting Flow Labels
+
+Use these labels in reports for consistency (even if stage-specific wording differs):
+
+1. `identify` (problem statement + failure class)
+2. `evidence` (logs/metrics/traces/schema snapshots)
+3. `compare` (>=2 options and tradeoffs)
+4. `change` (one targeted change only)
+5. `verify` (same dataset/split/eval/load profile)
+6. `decide` (`promote` / `hold` / `rollback`)
+
+### C) Canonical Artifact Naming Convention (Recommended)
+
+Keep all existing stage-specific filenames. In addition, produce or map to these canonical artifact names:
+
+- `pain_point_matrix.md`
+- `before_after_metrics.csv`
+- `verification_report.md`
+- `decision_log.md`
+- `reproducibility.md`
+
+If a stage already uses different names, add one of the following without deleting existing files:
+
+- a short mapping file: `artifact_name_map.md`
+- or duplicate/export canonical alias files that point to existing outputs
+
+### D) Evidence Schema (Minimum Fields for Any Metric Table)
+
+Every before/after metric table should include these columns (additive requirement):
+
+- `run_id`
+- `stage`
+- `topic_or_module`
+- `metric_name`
+- `before_value`
+- `after_value`
+- `delta`
+- `dataset_or_eval_set`
+- `seed_or_config_id`
+- `decision`
+
+### E) Failure Class Taxonomy (Cross-Stage)
+
+Use common labels for easier comparison across plans:
+
+- `data_schema`
+- `data_quality`
+- `feature_or_representation`
+- `training_or_optimization`
+- `retrieval_or_context`
+- `generation_or_reasoning`
+- `tool_or_api`
+- `latency_or_cost`
+- `security_or_policy`
+- `operations_or_release`
+
+### F) Stage Folder and Result Folder Convention
+
+Recommended unified pattern:
+
+- scripts: `red-book/src/stage-<N>/`
+- outputs: `results/stage<N>/`
+
+If a plan already uses another path, keep it and add a path mapping note in stage README.
+
+### G) No-Delete Compatibility Rule
+
+- Do not delete prior deliverable names from existing plan text.
+- Add normalization as aliases/mappings only.
+- When old and canonical names both exist, the stage README must state the mapping.
+
+## Global Key Request Addendum (2026-04-04)
+
+- Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
 
 
 

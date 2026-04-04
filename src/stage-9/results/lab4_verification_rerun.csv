@@ -1,0 +1,4 @@
+metric,before,after,delta
+latency_p95_ms,1210.0,890.0,-320.0
+error_rate,0.049,0.021,-0.028
+queue_depth,11.4,5.8,-5.6

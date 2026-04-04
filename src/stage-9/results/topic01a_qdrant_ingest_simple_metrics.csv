@@ -1,0 +1,3 @@
+topic_id,run_type,recall_at_5,retrieval_latency_ms,qdrant_reachable,qdrant_status
+topic01a_qdrant_ingest_simple,baseline,0.62,68.0,True,Qdrant reachable on localhost:6333
+topic01a_qdrant_ingest_simple,improved,0.73,60.52,True,Qdrant reachable on localhost:6333

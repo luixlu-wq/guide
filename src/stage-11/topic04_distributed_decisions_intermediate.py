@@ -1,0 +1,29 @@
+﻿"""
+topic04_distributed_decisions_intermediate
+
+Stage 11 topic script.
+
+Functional flow:
+1. Declare infrastructure workload schema.
+2. Run baseline and improved paths with fixed workload profile.
+3. Save metrics and sample outputs.
+4. Print interpretation for operations decisions.
+"""
+
+from pathlib import Path
+import sys
+
+THIS_DIR = Path(__file__).resolve().parent
+if str(THIS_DIR) not in sys.path:
+    sys.path.insert(0, str(THIS_DIR))
+
+from stage11_utils import run_topic_demo, run_gpu_demo
+
+
+if __name__ == "__main__":
+    run_topic_demo(
+        topic_id="topic04_distributed_decisions_intermediate",
+        topic_name="Distributed Decisions",
+        complexity="intermediate",
+        method_focus="distributed_decisions",
+    )

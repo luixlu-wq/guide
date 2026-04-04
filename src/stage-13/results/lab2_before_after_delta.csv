@@ -1,0 +1,5 @@
+metric,baseline_value,improved_value,delta
+cost_index,1.55,1.58,0.03
+failure_rate,0.026,0.017,-0.009
+latency_p95_ms,820.0,760.0,-60.0
+quality_score,0.74,0.81,0.07

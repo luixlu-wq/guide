@@ -1,0 +1,15 @@
+{"id": "case_0095", "request_type": "decision", "difficulty": "high", "expected_behavior": "stable"}
+{"id": "case_0065", "request_type": "analysis", "difficulty": "medium", "expected_behavior": "hold"}
+{"id": "case_0023", "request_type": "decision", "difficulty": "medium", "expected_behavior": "stable"}
+{"id": "case_0078", "request_type": "comparison", "difficulty": "medium", "expected_behavior": "hold"}
+{"id": "case_0007", "request_type": "decision", "difficulty": "high", "expected_behavior": "improve"}
+{"id": "case_0115", "request_type": "decision", "difficulty": "medium", "expected_behavior": "hold"}
+{"id": "case_0028", "request_type": "baseline", "difficulty": "low", "expected_behavior": "improve"}
+{"id": "case_0114", "request_type": "comparison", "difficulty": "high", "expected_behavior": "improve"}
+{"id": "case_0140", "request_type": "baseline", "difficulty": "high", "expected_behavior": "hold"}
+{"id": "case_0124", "request_type": "baseline", "difficulty": "low", "expected_behavior": "stable"}
+{"id": "case_0048", "request_type": "baseline", "difficulty": "low", "expected_behavior": "improve"}
+{"id": "case_0038", "request_type": "comparison", "difficulty": "medium", "expected_behavior": "improve"}
+{"id": "case_0130", "request_type": "comparison", "difficulty": "high", "expected_behavior": "stable"}
+{"id": "case_0127", "request_type": "decision", "difficulty": "high", "expected_behavior": "stable"}
+{"id": "case_0104", "request_type": "baseline", "difficulty": "high", "expected_behavior": "stable"}

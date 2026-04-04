@@ -1,0 +1,4 @@
+﻿torch>=2.2
+pandas>=2.0
+qdrant-client>=1.8
+

@@ -1,0 +1,3 @@
+topic_id,run_type,latency_p50_ms,latency_p95_ms,latency_p99_ms,throughput_rps,error_rate,gpu_mem_mb
+topic06c_capacity_cost_advanced,baseline,437.0,707.94,849.53,2.29,0.021,2530.0
+topic06c_capacity_cost_advanced,improved,375.82,544.94,610.33,3.03,0.011,2530.0

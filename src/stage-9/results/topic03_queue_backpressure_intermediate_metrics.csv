@@ -1,0 +1,3 @@
+topic_id,topic_name,run_type,routing_accuracy,route_error_rate,latency_p50_ms,latency_p95_ms,latency_p99_ms,throughput_rps,queue_depth_avg,error_rate,gpu_mem_mb
+topic03_queue_backpressure_intermediate,Scaling and Capacity,baseline,1.0,0.0,340.0,561.0,684.42,2.94,5.41,0.018,1800.0
+topic03_queue_backpressure_intermediate,Scaling and Capacity,improved,1.0,0.0,299.2,442.82,504.81,3.88,3.63,0.009,1800.0

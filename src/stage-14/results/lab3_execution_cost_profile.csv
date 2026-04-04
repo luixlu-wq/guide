@@ -1,0 +1,4 @@
+regime,fee_bps,slip_bps,cost_impact
+low,3,4,-0.012
+medium,5,8,-0.027
+high,8,14,-0.046

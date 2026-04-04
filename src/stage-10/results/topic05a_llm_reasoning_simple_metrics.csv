@@ -1,0 +1,3 @@
+topic_id,run_type,accuracy,f1,latency_p95_ms,error_rate
+topic05a_llm_reasoning_simple,baseline,0.5167,0.5915,340.0,0.018
+topic05a_llm_reasoning_simple,improved,0.5167,0.6027,306.0,0.011

@@ -1,0 +1,4 @@
+control,target,observed,pass_or_fail
+input_schema_validation,enabled,enabled,pass
+output_policy_check,enabled,enabled,pass
+run_id_traceability,100%,96%,warn

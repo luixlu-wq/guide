@@ -1,0 +1,3 @@
+metric,before,after,delta
+grounding_score,0.69,0.82,0.13
+failure_rate,0.031,0.015,-0.016

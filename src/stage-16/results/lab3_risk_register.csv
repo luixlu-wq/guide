@@ -1,0 +1,3 @@
+risk,severity,mitigation
+trace_gap,medium,enforce correlation-id middleware
+stale_index_window,high,tighten reindex policy

@@ -1,0 +1,6 @@
+# Optional dependencies for richer Stage 9 experiments.
+torch>=2.2
+fastapi>=0.111
+uvicorn>=0.30
+qdrant-client>=1.10
+ray[serve]>=2.20

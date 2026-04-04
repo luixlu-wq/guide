@@ -1,0 +1,3 @@
+topic_id,run_type,latency_p50_ms,latency_p95_ms,latency_p99_ms,throughput_rps,error_rate,gpu_mem_mb
+topic02_gpu_cuda_ops_intermediate,baseline,310.0,502.2,602.64,3.23,0.021,2200.0
+topic02_gpu_cuda_ops_intermediate,improved,266.6,386.57,432.96,4.28,0.011,2200.0

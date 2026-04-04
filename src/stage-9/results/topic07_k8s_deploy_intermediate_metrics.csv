@@ -1,0 +1,3 @@
+topic_id,topic_name,run_type,routing_accuracy,route_error_rate,latency_p50_ms,latency_p95_ms,latency_p99_ms,throughput_rps,queue_depth_avg,error_rate,gpu_mem_mb
+topic07_k8s_deploy_intermediate,Deployment Patterns,baseline,1.0,0.0,325.0,536.25,654.23,3.08,5.16,0.018,1800.0
+topic07_k8s_deploy_intermediate,Deployment Patterns,improved,1.0,0.0,286.0,423.28,482.54,4.06,3.43,0.009,1800.0

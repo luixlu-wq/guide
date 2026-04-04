@@ -1,0 +1,3 @@
+topic_id,run_type,accuracy,f1,latency_p95_ms,error_rate
+topic08a_ops_release_simple,baseline,0.5167,0.5915,340.0,0.018
+topic08a_ops_release_simple,improved,0.5167,0.6027,306.0,0.011

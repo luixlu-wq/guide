@@ -1,0 +1,6 @@
+component,latency_p50_ms,latency_p95_ms,latency_p99_ms
+api,23.5,25.0,25.0
+retrieval,58.0,61.0,61.0
+model,165.0,170.0,170.0
+postprocess,15.0,16.0,16.0
+end_to_end,261.5,268.0,268.0

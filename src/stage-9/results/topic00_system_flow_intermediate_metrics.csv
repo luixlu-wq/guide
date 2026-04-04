@@ -1,0 +1,3 @@
+topic_id,topic_name,run_type,routing_accuracy,route_error_rate,latency_p50_ms,latency_p95_ms,latency_p99_ms,throughput_rps,queue_depth_avg,error_rate,gpu_mem_mb
+topic00_system_flow_intermediate,System Flow Fundamentals,baseline,1.0,0.0,280.0,462.0,563.64,3.57,4.42,0.018,1800.0
+topic00_system_flow_intermediate,System Flow Fundamentals,improved,1.0,0.0,246.4,364.67,415.73,4.71,2.85,0.009,1800.0

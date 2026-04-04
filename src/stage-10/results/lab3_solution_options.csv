@@ -1,0 +1,3 @@
+option,expected_latency_delta,expected_error_delta,cost_impact,chosen
+add queue backpressure + worker scale,-250.0,-0.02,medium,yes
+increase timeout only,-80.0,0.004,low,no

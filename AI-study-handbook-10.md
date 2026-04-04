@@ -1,1010 +1,677 @@
-# Stage 10 — Final AI System
+﻿# Stage 10 - Final AI System
 
-**(Week 18–20)**
+**Week 18-20**
 
 ---
 
-## Goal
+## 0) If This Chapter Feels Hard
 
-Build a complete AI system end-to-end.
+Use this 4-pass method:
 
-This stage integrates everything you learned:
+1. Pass 1: learn system boundaries and layer contracts only.
+2. Pass 2: run baseline pipeline and collect artifacts.
+3. Pass 3: diagnose one failure and verify one fix.
+4. Pass 4: make a release decision with evidence.
 
-- data processing
-- ML models
-- LLM
-- system architecture
+This stage is systems engineering, not model-only learning.
 
-This is the stage where isolated knowledge becomes a real product pipeline.
+---
 
-You are learning how to combine:
+## 1) Stage Goal
 
-- data ingestion
+Build a production-style end-to-end AI system that integrates:
+
+- market data ingestion
 - feature engineering
-- classical ML
-- LLM reasoning
-- system architecture
-- evaluation
-- API serving
-
-into one working system.
-
----
-
-## Quick Summary
-
-A final AI system is not one model. It is a coordinated pipeline where each part has a clear responsibility.
-
-In this stage, the example system is an **AI Trading Assistant**.
-
-Its job is to combine:
-
-- structured market data
-- engineered features
 - ML prediction
-- text/news understanding
-- LLM explanation
-- API delivery
+- retrieval/news context
+- LLM reasoning
+- API serving
+- observability and operations
 
-A beginner should finish this stage understanding:
+Reference project: **AI Trading Assistant**.
 
-- how to combine multiple AI components into one system
-- why each component must have a clear role
-- how to debug a multi-stage pipeline
-- why evaluation must happen at every layer
-- how to keep the MVP simple while still complete
-- how to design a modular end-to-end AI product
+By the end of Stage 10, you must be able to:
 
----
-
-## Project: AI Trading Assistant
-
-### Architecture
-
-```
-Market Data
-↓
-Feature Engineering
-↓
-ML Prediction
-↓
-News Analysis
-↓
-LLM Reasoning
-↓
-Trade Recommendation
-```
+- define strict contracts between all layers
+- run baseline and improved versions with fixed evaluation policy
+- localize failures to the correct layer
+- troubleshoot using `identify -> compare -> verify`
+- decide `promote`, `hold`, or `rollback` using gates
 
 ---
 
-## Key Knowledge (Deep Understanding)
+## 2) Prerequisites and Environment
 
-### 1. End-to-End Pipeline Thinking
+### Required background
 
-**You are building a pipeline:**
+- Python and pandas basics
+- ML training/evaluation basics
+- LLM prompting basics
+- basic API knowledge (FastAPI)
 
-```
-data → features → model → reasoning → output
-```
+### Environment
 
-Each stage must be: independent, testable, replaceable.
+- Python 3.10+
+- optional CUDA GPU
+- optional local vector DB (Qdrant)
 
-#### Beginner Explanation
+### Core dependencies
 
-A final AI system is not one giant block of code. It is a sequence of connected steps.
+- `pandas`, `numpy`, `scikit-learn`
+- `fastapi`, `uvicorn`
+- optional: `torch`, `qdrant-client`
 
-Each step does one main job:
+### Data declaration (mandatory in all examples)
 
-1. get market data
-2. create indicators
-3. run ML prediction
-4. summarize news
-5. let LLM explain everything
-6. return recommendation
-
-This is called **pipeline thinking**.
-
-Instead of asking: *"Can my AI do everything?"*
-
-you ask: *"What exact step should each component do?"*
-
-That is how real systems stay understandable and maintainable.
-
-#### Why Pipeline Thinking Matters
-
-| Without Pipeline Thinking | With Pipeline Thinking |
-|---|---|
-| everything gets mixed together | each stage can be tested alone |
-| debugging becomes hard | failures can be isolated |
-| outputs become hard to trust | one layer can be replaced without rewriting the whole system |
-| components cannot be improved independently | |
-
-#### Step-by-Step Mental Model
-
-| Step | What Happens |
-|---|---|
-| Step 1 — Raw input enters system | ticker symbol, time range, optional user question, optional news text |
-| Step 2 — Data layer prepares structured input | The system fetches and normalizes market data. |
-| Step 3 — Feature layer transforms data | Indicators and target features are created. |
-| Step 4 — ML layer predicts signal | Output: bullish/bearish class, probability, score |
-| Step 5 — Text layer processes news/context | News is summarized or prepared for reasoning. |
-| Step 6 — LLM layer explains | The LLM uses structured signals plus news to write a natural-language recommendation. |
-| Step 7 — Output layer packages result | prediction, explanation, recommendation, optional risk notes |
-
-#### Important Algorithms / Mechanisms
-
-**A. Sequential Pipeline Processing**
-
-Each stage consumes the previous stage's output.
-
-How it works: input arrives → stage 1 transforms → stage 2 uses result → later stages continue transformation.
-
-> Why important: This is the core operational pattern of end-to-end AI systems.
-
-**B. Modular Composition**
-
-The system is built from modules that can be swapped independently.
-
-Examples: replace logistic regression with random forest, replace one LLM with another, replace local news summarizer with API news service.
-
-> Why important: This keeps the final system adaptable.
-
-**C. Interface Contracts**
-
-Each stage should return structured output with a stable schema.
-
-Example: feature layer always returns a DataFrame with required columns.
-
-> Why important: Good interfaces reduce integration bugs.
-
-**D. Stage-Level Evaluation**
-
-Each step should be measurable on its own.
-
-> Why important: A final system can fail even if one layer works well in isolation.
-
-#### Strengths / Weaknesses
-
-| Strengths | Weaknesses of Poor Pipeline Thinking |
-|---|---|
-| easier to debug | tangled logic |
-| easier to improve incrementally | hidden dependencies |
-| more maintainable | hard-to-trust outputs |
-| more testable | one failure breaks everything |
-| better fit for production design | impossible to know which component is responsible |
-
----
-
-### 2. Combining ML + LLM
-
-**ML:** predicts numeric signals
-
-**LLM:** explains, reasons, summarizes
-
-#### Beginner Explanation
-
-Different components are good at different things.
-
-| ML is good at | LLM is good at |
-|---|---|
-| structured numerical patterns | explanation |
-| classification | summarization |
-| regression | natural-language output |
-| probability estimation | combining text context with structured data |
-| consistent signal generation | user-friendly reasoning style |
-
-A strong system does not ask one component to do everything. It gives each component the job it is best suited for.
-
-#### Simple Mental Model
-
-Think of ML as the **signal engine**.
-
-Think of the LLM as the **communication and reasoning layer**.
-
-Example:
-
-- ML says: *"probability of next-day upward move = 0.71"*
-- LLM says: *"The technical indicators suggest bullish momentum, but recent news introduces moderate risk."*
-
-#### Why This Combination Matters
-
-| Only LLM | Only ML | Combined |
-|---|---|---|
-| results may be unstable | output may be too raw for users | structured prediction |
-| exact computation may be weak | explanations may be poor | natural-language interpretation |
-| outputs may sound smart but not be disciplined | news and language context may be underused | more usable system output |
-
-#### Step-by-Step Combination Logic
-
-| Step | What Happens |
-|---|---|
-| Step 1 — ML computes structured signal | class prediction, confidence score, trend probability |
-| Step 2 — News/text is processed | Summarized or reduced into key sentiment points. |
-| Step 3 — LLM receives structured inputs | MA20, MA50, RSI, probability, news summary |
-| Step 4 — LLM generates explanation | The LLM turns technical results into understandable reasoning. |
-
-#### Important Algorithms / Mechanisms
-
-**A. Classification / Regression Prediction**
-
-Classical ML provides numeric or categorical signal.
-
-How it works: The model uses engineered features to estimate a target.
-
-> Why important: This gives the system a disciplined signal source.
-
-**B. Prompt-Based Reason Synthesis**
-
-The LLM is prompted with structured outputs from earlier stages.
-
-How it works: The prompt includes ML outputs and asks for explanation, risk analysis, or recommendation.
-
-> Why important: This is how ML signals become user-facing reasoning.
-
-**C. Feature-to-Language Translation**
-
-The system converts numerical features into natural-language interpretation.
-
-> Why important: This is the bridge from model score to useful explanation.
-
-**D. Layered Decision Design**
-
-One layer predicts, another layer explains.
-
-> Why important: Prevents responsibility confusion between components.
-
-#### Strengths / Weaknesses
-
-| Strengths | Weaknesses |
-|---|---|
-| combines numerical rigor with language usability | easy to mix responsibilities badly |
-| better user experience | LLM may overstate weak ML signals |
-| easier to explain outputs | prompt design matters a lot |
-| supports hybrid AI product design | debugging becomes multi-layered |
-
----
-
-### 3. Modular Design
-
-Separate: data layer, ML layer, LLM layer, API layer.
-
-#### Beginner Explanation
-
-Modular design means splitting the system into clean parts.
-
-A beginner mistake is to write everything in one script — fetch data, train model, call LLM, return JSON, handle API, print logs.
-
-That works for a tiny experiment, but it quickly becomes hard to maintain.
-
-#### Suggested Module Roles
-
-| Module | Responsibilities |
-|---|---|
-| **Data Layer** | market data fetching, cleaning, preprocessing, news input normalization |
-| **Feature Layer** | moving averages, returns, RSI, target construction, feature tables |
-| **ML Layer** | training, loading model, inference, prediction probabilities |
-| **LLM Layer** | prompt building, explanation generation, formatting recommendation |
-| **API Layer** | request validation, calling services, returning response, error handling |
-
-#### Why Modular Design Matters
-
-It helps you: debug faster, swap components, test each part separately, reuse components later, keep code clean.
-
-#### Important Algorithms / Mechanisms
-
-**A. Separation of Concerns**
-
-Each module has one main responsibility.
-
-> Why important: This is the main software design rule that makes AI systems manageable.
-
-**B. Dependency Flow**
-
-Higher-level layers depend on lower-level outputs through defined interfaces.
-
-> Why important: Avoids random coupling and unpredictable side effects.
-
-**C. Service Layer Pattern**
-
-Business logic is grouped in service modules rather than API routes.
-
-> Why important: Keeps APIs thin and logic reusable.
-
-**D. Schema-Based Boundaries**
-
-Use structured request/response objects between layers.
-
-> Why important: Reduces integration ambiguity and bugs.
-
-#### Strengths / Weaknesses
-
-| Strengths | Weaknesses of Non-Modular Systems |
-|---|---|
-| easier refactoring | brittle code |
-| easier testing | hard debugging |
-| easier scaling | hidden dependencies |
-| easier team collaboration | poor reuse |
-| | hard deployment evolution |
-
----
-
-### 4. System Flow
-
-```
-user request → fetch data → compute features → ML prediction → LLM explanation → response
-```
-
-#### Beginner Explanation
-
-System flow is the exact order in which the request moves through the system. This must be explicit.
-
-For the AI Trading Assistant, a clean flow looks like this:
-
-1. user asks for stock analysis
-2. backend fetches market data
-3. backend computes features
-4. ML model predicts signal
-5. news or text context is prepared
-6. LLM explains result
-7. API returns final structured response
-
-#### System Flow Variants
-
-| Flow | Path |
-|---|---|
-| **Simple MVP** | `request → market data → features → ML → LLM → JSON response` |
-| **Enhanced** | `request → market data + news → features → ML → news summarization → LLM reasoning → validation → response` |
-| **Production-Like** | `request → validation → caching check → fetch data → feature computation → ML inference → LLM explanation → response logging → API response` |
-
-#### Important Algorithms / Mechanisms
-
-**A. Orchestration**
-
-One controller coordinates multiple stages.
-
-> Why important: Multi-stage AI systems need a clear execution order.
-
-**B. Validation at Boundaries**
-
-Each stage checks whether its inputs are valid before continuing.
-
-> Why important: Prevents bad upstream data from silently breaking later steps.
-
-**C. Post-Processing**
-
-The final result is structured into a response object.
-
-> Why important: Raw model output is usually not yet product-ready.
-
-**D. Failure Isolation**
-
-Each stage should fail clearly and observably.
-
-> Why important: You need to know which part broke.
-
----
-
-### 5. Evaluation
-
-Evaluate each layer: data correctness, model accuracy, LLM reasoning quality.
-
-#### Beginner Explanation
-
-A complete AI system cannot be judged by one metric alone. A failure can happen even if the final answer "looks good." So you need **layered evaluation**.
-
-#### What to Evaluate
-
-| Layer | Check |
-|---|---|
-| **Data** | dates are correct, rows are complete, missing values handled, prices make sense |
-| **Features** | rolling indicators computed correctly, target aligned correctly, no leakage, feature columns stable |
-| **ML** | train/test performance, confusion matrix, probability calibration, overfitting |
-| **LLM** | explanation quality, consistency, follows prompt rules, reflects actual model signal, no hallucination |
-| **API/System** | JSON schema correctness, latency, error handling, empty-data handling, response completeness |
-
-#### Important Algorithms / Mechanisms
-
-**A. Layered Evaluation**
-
-Evaluate each system component separately.
-
-> Why important: End-to-end success can hide internal weaknesses.
-
-**B. Component Metrics**
-
-Different layers need different metrics.
-
-| Layer | Metrics |
-|---|---|
-| Classification ML | accuracy, precision, recall, F1, AUC |
-| Regression ML | MSE, MAE |
-| LLM | rubric scoring, output validity, schema success rate |
-| System | latency, error rate |
-
-**C. Ablation Testing**
-
-Remove one component and compare behavior.
-
-Examples: system with/without news input; with/without LLM explanation; with different feature sets.
-
-> Why important: Shows what each component actually contributes.
-
-**D. End-to-End Scenario Testing**
-
-Test real user-like workflows.
-
-> Why important: A system can pass unit tests and still fail in realistic usage.
-
-#### Strengths / Weaknesses
-
-| Strengths of Good Evaluation | Weaknesses of Poor Evaluation |
-|---|---|
-| builds trust | false confidence |
-| reveals weak layers | hard-to-debug failures |
-| supports systematic improvement | unreliable product behavior |
-| avoids demo-driven illusions | wasted time optimizing the wrong part |
-
----
-
-## Difficulty Points
-
-### 1. Integrating components
-
-**Why this happens:** Components are often tested in isolation — data script works, model notebook works, prompt works, API works. But when connected: schemas mismatch, assumptions differ, outputs are missing fields, timing/order breaks.
-
-**Why this is a problem:** A system that "almost works" in pieces can still fail as a product.
-
-**Fix:** Define interfaces clearly, test stage-to-stage handoff, use structured schemas, run integration tests early.
-
----
-
-### 2. Debugging pipeline
-
-**Why this happens:** When the final answer looks wrong, it is not obvious which stage caused it.
-
-**Why this is a problem:** You may blame the LLM when the issue is the ML feature table, or blame the ML model when the problem is bad data.
-
-**Fix:** Debug in order — data → features → model output → prompt construction → LLM answer → API formatting. Log intermediate outputs.
-
----
-
-### 3. Mixing responsibilities
-
-**Why this happens:** LLMs feel powerful, so beginners ask them to do everything.
-
-**Why this is a problem:** LLM may do weak numeric prediction; ML may be asked to do what needs language interpretation; system becomes conceptually muddy.
-
-**Fix:** Keep roles clear — ML = structured prediction, LLM = explanation/summarization/reasoning, API = orchestration, data layer = input preparation.
-
----
-
-### 4. No evaluation strategy
-
-**Why this happens:** Beginners often test by asking a few example questions and looking at outputs.
-
-**Why this is a problem:** You do not know if model really works, if prompts are stable, if outputs are safe, if pipeline handles edge cases.
-
-**Fix:** Create dataset checks, model evaluation set, LLM rubric, API test cases, end-to-end scenarios.
-
----
-
-### 5. Overcomplication
-
-**Why this happens:** At final-stage projects, people want to use everything — agents, RAG, fine-tuning, multiple models, complex orchestration.
-
-**Why this is a problem:** The system becomes too large to debug and too slow to finish.
-
-**Fix:** Start with a simple MVP: `market data → features → logistic regression → LLM explanation → FastAPI`. Only add complexity after baseline works.
-
----
-
-### 6. Weak feature engineering
-
-**Why this happens:** People rush toward models and LLMs because they seem more exciting.
-
-**Why this is a problem:** If inputs are weak, downstream outputs will also be weak.
-
-**Fix:** Invest in returns, moving averages, volatility features, volume signals, target design, and data cleaning before trying more complex models.
-
----
-
-### 7. Letting the LLM overrule the signal
-
-**Why this happens:** The LLM can sound more confident than the ML model.
-
-**Why this is a problem:** The explanation layer may drift away from the actual signal and invent stronger recommendations than justified.
-
-**Fix:** Prompt the LLM to stay faithful to provided indicators, state uncertainty, separate signal from speculation, avoid unsupported certainty.
-
----
-
-## Final AI System Workflow (Real World)
-
-| Step | Action | Beginner Explanation |
-|---|---|---|
-| 1 | Define MVP scope | Keep it narrow. Example: "Analyze one stock ticker and return a short structured recommendation." |
-| 2 | Define system responsibilities | Write down what each layer does. |
-| 3 | Design request/response schema | Be explicit about API format. |
-| 4 | Build data pipeline | Fetch and validate input data. |
-| 5 | Build feature pipeline | Create indicators and target logic. |
-| 6 | Train baseline ML model | Start simple, such as logistic regression. |
-| 7 | Build news/text input path | Use simple manual or fetched news summaries. |
-| 8 | Design LLM prompt | Make the reasoning layer constrained and structured. |
-| 9 | Create orchestration layer | Connect all components in the correct order. |
-| 10 | Add API | Expose the system to users. |
-| 11 | Add logging and evaluation | Make the pipeline observable. |
-| 12 | Test end-to-end | Run realistic scenarios, not just unit tests. |
-| 13 | Improve weak layers one by one | Do not rewrite everything at once. |
-
----
-
-## Debugging Checklist for Stage 10
-
-If the final AI system gives poor results, check:
-
-- [ ] Is market data loaded correctly?
-- [ ] Are features computed correctly?
-- [ ] Is target leakage present?
-- [ ] Does the ML model have meaningful performance?
-- [ ] Is news input relevant and clean?
-- [ ] Does the LLM prompt clearly separate facts from recommendation?
-- [ ] Is the LLM faithfully using provided signals?
-- [ ] Are intermediate outputs logged?
-- [ ] Is the JSON response schema stable?
-- [ ] Is the system too complex for the current stage?
-- [ ] Did you evaluate each layer separately?
-- [ ] Would a simpler MVP outperform the current design?
-
----
-
-## Practice Project
-
-### Project: AI Trading Assistant
-
-### Step-by-Step Instructions
-
-**Step 1 — Market Data**
-
-```python
-import yfinance as yf
-
-df = yf.download("NVDA", period="1y")
-```
-
-> Why this step matters: The whole system depends on reliable market data. This is the raw input of your pipeline. If this is wrong, everything after it becomes unreliable.
-
-Extra checks to add:
-
-```python
-print(df.head())
-print(df.info())
-print(df.isna().sum())
-```
-
-Check: column names, missing values, whether dates are present, whether close prices make sense.
-
----
-
-**Step 2 — Feature Engineering**
-
-```python
-df["return"] = df["Close"].pct_change()
-df["ma20"] = df["Close"].rolling(20).mean()
-df["ma50"] = df["Close"].rolling(50).mean()
-```
-
-> Why this step matters: Raw prices alone are often not enough. Features help the ML model detect patterns.
-
-Feature meanings:
-- `return` = day-to-day price change
-- `ma20` = short-term trend
-- `ma50` = longer-term trend
-
-Extra features you can add later: volatility, volume change, RSI, price relative to moving average, rolling max/min.
-
-**Important Algorithms / Mechanisms for Feature Engineering:**
-
-| Mechanism | How It Works | Why Important |
-|---|---|---|
-| Rolling Window Computation | A sliding window computes statistics over recent rows | Foundation of many trading features |
-| Percentage Change | Measures relative change between consecutive values | Returns are often more informative than absolute prices |
-| Feature Scaling / Normalization | Rescales features to comparable scales | Some models behave better with normalized inputs |
-
----
-
-**Step 3 — ML Prediction**
-
-```python
-df["target"] = (df["Close"].shift(-1) > df["Close"]).astype(int)
-```
-
-Train model: logistic regression.
-
-> Why this step matters: You need a target variable and a baseline prediction model.
-
-Target meaning:
-- `1` if tomorrow's close is higher than today's close
-- `0` otherwise
-
-Next steps: remove rows with missing values → define features X → define target y → split train/test → train logistic regression → compare train/test performance.
-
-**Important Algorithms / Mechanisms for ML Prediction:**
-
-| Mechanism | How It Works | Why Important |
-|---|---|---|
-| Logistic Regression | Estimates probability that target is class 1 | Simple, fast, interpretable baseline |
-| Train/Test Split | Separates learning data from evaluation data | Prevents fake confidence from testing on seen examples |
-| Probability Thresholding | Converts predicted probabilities into class labels | Turns model output into actionable signal logic |
-
----
-
-**Step 4 — News Analysis**
-
-Simulate or fetch news: use simple text input.
-
-> Why this step matters: Price signals are not the whole picture. Text context can influence how a recommendation is framed.
-
-At first, keep this simple — one manual text summary, one pasted news paragraph, or one simple news headline bundle. Later, you can fetch news automatically.
-
-**Important Algorithms / Mechanisms for News Analysis:**
-
-| Mechanism | Why Important |
-|---|---|
-| Summarization | The LLM prompt should stay concise. |
-| Sentiment Extraction | Provides another structured input into the reasoning layer. |
-| Keyword / Entity Extraction | Makes text context more structured and usable. |
-
----
-
-**Step 5 — LLM Reasoning**
-
-Basic prompt:
-
-```
-Given:
-- trend indicators
-- prediction
-- news summary
-
-Provide:
-- recommendation
-- risk
-- reasoning
-```
-
-> Why this step matters: This is the layer that turns signals into user-facing explanation.
-
-Better beginner prompt:
-
-```
-You are a cautious market analysis assistant.
-
-Given:
-- technical indicators
-- ML prediction probability
-- news summary
-
-Return:
-1. short market interpretation
-2. main risk
-3. cautious recommendation
-
-Rules:
-- do not invent facts
-- do not overstate certainty
-- use only the provided inputs
-- if signals conflict, say so
-```
-
-**Important Algorithms / Mechanisms for LLM Reasoning:**
-
-| Mechanism | How It Works | Why Important |
-|---|---|---|
-| Structured Prompting | Prompt defines sections and expected response types | Improves consistency and faithfulness |
-| Grounded Prompting | LLM is told to rely only on provided indicators and text | Reduces speculation |
-| Controlled Generation | Clear constraints such as cautious tone and uncertainty handling | Keeps explanation layer aligned with system goals |
-
----
-
-**Step 6 — Combine Output**
-
-Basic response:
-
-```json
-{
-  "prediction": "...",
-  "analysis": "...",
-  "recommendation": "..."
-}
-```
-
-> Why this step matters: The final product needs a clean output structure.
-
-Better response design:
-
-```json
-{
-  "ticker": "NVDA",
-  "prediction_class": "up",
-  "prediction_probability": 0.71,
-  "analysis": "Short-term momentum appears stronger than long-term trend.",
-  "risk": "Recent news may introduce volatility.",
-  "recommendation": "Cautious bullish"
-}
-```
-
-**Important Algorithms / Mechanisms for Output Composition:**
-
-| Mechanism | Why Important |
-|---|---|
-| Schema-Based Response Design | Makes integration and testing easier. |
-| Post-Processing Validation | Prevents malformed API responses. |
-| Confidence Propagation | Users should see signal strength, not only final language. |
-
----
-
-**Step 7 — API Layer**
-
-Wrap system using FastAPI.
-
-> Why this step matters: This makes the project a usable application, not just a notebook experiment.
-
-The API layer: receives request, calls your pipeline, returns JSON response, handles errors.
-
-Suggested request schema:
-
-```json
-{
-  "ticker": "NVDA",
-  "news_text": "AI demand remains strong, but analysts warn of valuation risk."
-}
-```
-
-Suggested response schema:
-
-```json
-{
-  "ticker": "NVDA",
-  "prediction_class": "up",
-  "prediction_probability": 0.71,
-  "analysis": "...",
-  "risk": "...",
-  "recommendation": "..."
-}
+```text
+Data: <name and source>
+Records/Samples: <count>
+Input schema: <fields and types>
+Output schema: <fields and types>
+Split/Eval policy: <fixed split or fixed scenario set>
+Type: <data/feature/ml/retrieval/llm/api/integration>
 ```
 
 ---
 
-### Deliverables
+## 3) System Architecture and Layer Contracts
 
-- full pipeline code
-- ML model
-- LLM prompts
-- API
-- test cases
+Reference flow:
 
----
+`request -> data -> features -> ML signal -> retrieval context -> LLM reasoning -> API response -> telemetry`
 
-### Experiment Tasks
+### Contract-first rule
 
-| Experiment | Task | Lesson |
-|---|---|---|
-| 1 | ML only vs ML + LLM — compare raw model output vs model output + LLM explanation | LLM improves usability, but not necessarily signal quality. |
-| 2 | Add more features — try RSI, volatility, volume-based features | Feature engineering can matter more than model complexity. |
-| 3 | Better prompt vs weak prompt — compare a vague LLM prompt with a structured grounded prompt | Prompt design strongly affects explanation quality. |
-| 4 | Manual news vs no news — run system with and without text context | News changes interpretation, but may also add noise. |
-| 5 | Schema validation — force strict JSON output and validate fields | Structured output improves product reliability. |
-| 6 | Simulate bad data — inject missing values or broken input | Pipeline robustness matters as much as happy-path performance. |
-| 7 | End-to-end logging — log fetched data summary, feature snapshot, model probability, prompt, final answer | Integrated systems require transparent debugging. |
+Each layer must define:
 
----
+- input schema
+- output schema
+- owner
+- validation rules
+- failure behavior
 
-## Common Mistakes
+### Contract map
 
-### Expanded Common Mistakes with Reasons and Fixes
-
-| # | Mistake | Reason | Problem | Fix |
+| Layer | Input | Output | Owner | Common failure |
 |---|---|---|---|---|
-| 1 | Skipping feature engineering | People rush toward models and LLM output. | Prediction layer becomes weak. | Build a solid feature layer before trying more model complexity. |
-| 2 | Poor prompt design | Beginners use vague prompts. | LLM gives generic or overconfident recommendations. | Use structured, grounded, constrained prompts. |
-| 3 | No evaluation | Outputs look impressive in demos. | System may be unreliable and inconsistent. | Evaluate each layer and the full pipeline separately. |
-| 4 | No modular design | Everything written in one notebook or script. | Hard to test, debug, or improve. | Separate data, features, ML, LLM, and API layers. |
-| 5 | Letting LLM do unsupported prediction | LLMs sound persuasive. | May invent conclusions not backed by data. | Use ML for prediction, LLM for explanation. |
-| 6 | No logging of intermediate stages | Only final output is inspected. | Pipeline failures are hard to localize. | Log each stage's structured outputs. |
-| 7 | Overbuilding the MVP | Trying to include every advanced concept at once. | You finish nothing reliable. | Start with the smallest complete useful system. |
+| Data | ticker/time range | OHLCV table | data module | missing values, schema drift |
+| Features | OHLCV table | feature table | feature module | leakage, parity mismatch |
+| ML | feature table | class/probability | model module | overfit, poor calibration |
+| Retrieval | query/date | context bundle | retrieval module | stale or irrelevant context |
+| LLM | ML signal + context | explanation JSON | reasoning module | unsupported claims |
+| API | request payload | response payload | API module | schema mismatch, timeout |
+| Ops | all events | logs/metrics/traces | ops module | missing correlation IDs |
+
+If ownership is unclear, incident response becomes slow and unsafe.
 
 ---
 
-## Final Self-Evaluation
+## 4) End-to-End Workflow (Industry Standard)
 
-You should be able to:
+Use this fixed workflow:
 
-- build ML models
-- train neural networks
-- fine tune LLMs
-- build RAG systems
-- create AI agents
-- design AI systems
+1. define objective and acceptance gates
+2. lock data and evaluation policy
+3. run baseline end to end
+4. capture per-layer artifacts
+5. identify bottleneck or failure layer
+6. compare at least two fix options
+7. apply one controlled change
+8. rerun identical tests
+9. compare before/after deltas
+10. decide `promote`, `hold`, or `rollback`
 
----
+### Minimum baseline metrics
 
-## Final Understanding
-
-> "A real AI system combines multiple components into a cohesive pipeline that produces useful, explainable outputs."
-
-> The quality of a final AI system depends not only on model choice, but on clean data flow, feature quality, modular design, grounded prompting, and layer-by-layer evaluation.
-
----
-
-## Self Test
-
-### Questions
-
-1. What is an end-to-end AI pipeline?
-2. Why should each stage in the pipeline be independent and testable?
-3. What is the main role of the ML layer in this trading assistant example?
-4. What is the main role of the LLM layer in this trading assistant example?
-5. Why is combining ML and LLM often stronger than using only one of them?
-6. What is modular design?
-7. Why should data, ML, LLM, and API layers be separated?
-8. What is system flow?
-9. Why does clear system flow help debugging?
-10. Why is evaluation needed at multiple layers?
-11. What should you evaluate in the data layer?
-12. What should you evaluate in the feature layer?
-13. What should you evaluate in the ML layer?
-14. What should you evaluate in the LLM layer?
-15. Why can integration fail even if each component works alone?
-16. What is a common danger when the LLM is asked to do ML work?
-17. Why is feature engineering important in this project?
-18. Why is logistic regression a reasonable first baseline here?
-19. What does the target `(Close.shift(-1) > Close).astype(int)` represent?
-20. Why is news analysis useful in this system?
-21. Why should the LLM prompt include constraints like "do not invent facts"?
-22. Why is structured JSON output important?
-23. Why should the final response include model confidence when possible?
-24. What is an MVP in this stage?
-25. Why is overcomplication dangerous in the final project?
-26. What should you log in an end-to-end AI system?
-27. Why should you test with bad or missing data?
-28. What is one sign that the LLM is drifting away from the ML signal?
-29. What is the difference between a working demo and a reliable AI system?
-30. What is the main lesson of this stage?
+- data quality: schema pass rate, missing rate
+- ML quality: accuracy/F1/AUC (or MAE/RMSE)
+- reasoning quality: format validity and rubric score
+- system quality: p50/p95 latency, error rate
 
 ---
 
-### Answers
+## 5) Module A - Data Layer
 
-**1. What is an end-to-end AI pipeline?**
+### What it is
 
-It is a complete sequence of connected stages that transforms raw input into a final AI-driven output.
+Ingestion and normalization for structured market data and optional text/news data.
 
-**2. Why should each stage in the pipeline be independent and testable?**
+### Why it matters
 
-Because independent stages are easier to debug, replace, improve, and trust.
+Most downstream failures begin as data contract failures.
 
-**3. What is the main role of the ML layer in this trading assistant example?**
+### Operatable checklist
 
-Its main role is to generate structured predictive signals from engineered market features.
+1. enforce schema validation at ingest
+2. handle missing values explicitly
+3. version snapshots
+4. log row count and date range
 
-**4. What is the main role of the LLM layer in this trading assistant example?**
+### Typical issues
 
-Its main role is to explain, summarize, and communicate the structured signals in natural language.
+- date gaps
+- missing columns
+- stale snapshots
+- outlier spikes from bad source records
 
-**5. Why is combining ML and LLM often stronger than using only one of them?**
+### Troubleshooting
 
-Because ML is better for structured prediction and LLMs are better for explanation and text reasoning.
+- compare raw source vs normalized table
+- isolate first invalid record
+- rerun with same source version
 
-**6. What is modular design?**
+### Metrics
 
-Modular design is splitting the system into separate components with clear responsibilities.
+- schema pass rate
+- missing rate by column
+- freshness lag
 
-**7. Why should data, ML, LLM, and API layers be separated?**
+### Related scripts
 
-Because separation makes the system easier to maintain, test, debug, and improve.
-
-**8. What is system flow?**
-
-System flow is the ordered path a request follows through the different parts of the system.
-
-**9. Why does clear system flow help debugging?**
-
-Because it lets you isolate where a failure happened instead of guessing.
-
-**10. Why is evaluation needed at multiple layers?**
-
-Because a final answer can look good while hidden failures exist in data, features, prediction, or reasoning layers.
-
-**11. What should you evaluate in the data layer?**
-
-Correctness, completeness, missing values, and whether the fetched market data makes sense.
-
-**12. What should you evaluate in the feature layer?**
-
-Correctness of engineered features, target alignment, leakage risk, and stability of feature definitions.
-
-**13. What should you evaluate in the ML layer?**
-
-Train/test performance, overfitting, useful signal quality, and confidence behavior.
-
-**14. What should you evaluate in the LLM layer?**
-
-Explanation quality, faithfulness to inputs, consistency, and avoidance of unsupported claims.
-
-**15. Why can integration fail even if each component works alone?**
-
-Because interfaces, schemas, assumptions, and timing can break when components are connected.
-
-**16. What is a common danger when the LLM is asked to do ML work?**
-
-It may produce persuasive but weak or unsupported predictions instead of disciplined numerical signals.
-
-**17. Why is feature engineering important in this project?**
-
-Because better features improve the predictive value of the ML layer and strengthen the whole pipeline.
-
-**18. Why is logistic regression a reasonable first baseline here?**
-
-Because it is simple, interpretable, fast, and good enough to validate the first full pipeline.
-
-**19. What does the target `(Close.shift(-1) > Close).astype(int)` represent?**
-
-It represents whether the next day's close is higher than the current day's close.
-
-**20. Why is news analysis useful in this system?**
-
-Because price signals alone may miss contextual risks or events that affect interpretation.
-
-**21. Why should the LLM prompt include constraints like "do not invent facts"?**
-
-Because constraints help keep explanations grounded in the actual system inputs.
-
-**22. Why is structured JSON output important?**
-
-Because it makes the system easier to parse, validate, test, and integrate with other software.
-
-**23. Why should the final response include model confidence when possible?**
-
-Because users should understand signal strength and uncertainty, not just the final wording.
-
-**24. What is an MVP in this stage?**
-
-An MVP is the smallest complete version of the trading assistant that is useful and testable end to end.
-
-**25. Why is overcomplication dangerous in the final project?**
-
-Because it increases failure points and makes the system harder to finish and debug.
-
-**26. What should you log in an end-to-end AI system?**
-
-You should log data summaries, feature snapshots, model outputs, prompt inputs, final outputs, errors, and latency.
-
-**27. Why should you test with bad or missing data?**
-
-Because real systems encounter imperfect inputs, and robustness matters in production.
-
-**28. What is one sign that the LLM is drifting away from the ML signal?**
-
-It gives strong recommendations or claims that are not supported by the actual indicators or prediction probabilities.
-
-**29. What is the difference between a working demo and a reliable AI system?**
-
-A working demo produces a nice result once; a reliable AI system produces consistent, testable, debuggable results under realistic conditions.
-
-**30. What is the main lesson of this stage?**
-
-A real AI system is a coordinated pipeline of specialized components, and success comes from clean integration, clear responsibilities, grounded reasoning, and systematic evaluation.
+- `topic01*_data_contracts_*`
+- `lab02_pipeline_contract_validation.py`
 
 ---
 
-## What You Must Be Able To Do After Stage 10
+## 6) Module B - Feature Layer
 
-- [ ] design a simple end-to-end AI pipeline
-- [ ] explain the role of each system layer clearly
-- [ ] combine ML prediction with LLM explanation appropriately
-- [ ] build a modular AI Trading Assistant MVP
-- [ ] design structured API input and output
-- [ ] evaluate data, features, model, LLM, and full-system behavior separately
-- [ ] identify integration failures and debug them stage by stage
-- [ ] keep the MVP simple before adding advanced complexity
-- [ ] understand that a final AI system is a coordinated product, not just a collection of models
+### What it is
+
+Transforms normalized data into deterministic ML-ready features.
+
+### Why it matters
+
+Feature quality usually dominates model quality in tabular systems.
+
+### Operatable checklist
+
+1. compute features with deterministic rules
+2. enforce train/inference parity
+3. version feature list
+4. validate leakage absence
+
+### Typical issues
+
+- target leakage
+- inconsistent feature columns
+- unstable rolling windows
+
+### Troubleshooting
+
+- compare train vs inference feature snapshots
+- verify target alignment offsets
+- run leakage tests
+
+### Metrics
+
+- feature null rate
+- drift statistics
+- leakage test pass/fail
+
+### Related scripts
+
+- `topic02*_feature_pipeline_*`
+
+---
+
+## 7) Module C - ML Prediction Layer
+
+### What it is
+
+Generates structured prediction signals (`class`, `probability`, optional confidence bands).
+
+### Why it matters
+
+This layer is the disciplined numeric signal engine.
+
+### Operatable checklist
+
+1. use fixed split or fixed CV
+2. persist model and config versions
+3. evaluate on holdout set
+4. log probability distribution
+
+### Typical issues
+
+- low recall in critical class
+- train/test gap
+- unstable probabilities
+
+### Troubleshooting
+
+- segment confusion matrix analysis
+- compare baseline vs tuned model
+- verify class imbalance policy
+
+### Metrics
+
+- accuracy/F1/AUC or MAE/RMSE
+- calibration score
+- segment-level error analysis
+
+### Related scripts
+
+- `topic03*_ml_prediction_*`
+
+---
+
+## 8) Module D - Retrieval Context Layer
+
+### What it is
+
+Builds contextual evidence from news/documents for LLM grounding.
+
+### Why it matters
+
+Weak retrieval quality appears as LLM hallucination in final output.
+
+### Operatable checklist
+
+1. declare data source and chunk strategy
+2. log retrieval latency and relevance@k
+3. enforce freshness policy
+4. track metadata filter effectiveness
+
+### Typical issues
+
+- stale context
+- low relevance retrieval
+- wrong metadata filters
+
+### Troubleshooting
+
+- inspect top-k retrieved snippets for failed cases
+- rerun with fixed queries
+- compare chunk/filter strategy options
+
+### Metrics
+
+- relevance@k
+- retrieval latency
+- freshness age
+
+### Related scripts
+
+- `topic04*_retrieval_context_*`
+
+---
+
+## 9) Module E - LLM Reasoning Layer
+
+### What it is
+
+Converts structured signals and evidence into controlled natural-language decisions.
+
+### Why it matters
+
+LLM output must be faithful to upstream signals and evidence.
+
+### Operatable checklist
+
+1. use structured prompt template
+2. enforce output schema validation
+3. include source attribution policy
+4. add fallback behavior on invalid output
+
+### Typical issues
+
+- fluent but unsupported claims
+- invalid JSON format
+- contradiction with ML signal
+
+### Troubleshooting
+
+- compare failed outputs by prompt version
+- validate evidence grounding
+- apply one prompt policy change at a time
+
+### Metrics
+
+- format validity rate
+- grounding score
+- contradiction rate
+
+### Related scripts
+
+- `topic05*_llm_reasoning_*`
+
+---
+
+## 10) Module F - API and Operations Layer
+
+### What it is
+
+Exposes the pipeline as a service with telemetry, alerting, and release controls.
+
+### Why it matters
+
+A model is not usable in production without stable interface and observability.
+
+### Operatable checklist
+
+1. enforce request/response schemas
+2. implement timeout/retry policy
+3. emit logs/metrics/traces with run ID
+4. define release and rollback gates
+
+### Typical issues
+
+- timeout spikes
+- missing run correlation
+- silent regressions after deployment
+
+### Troubleshooting
+
+- inspect endpoint latency by route
+- trace failing requests across layers
+- run controlled rollback drill
+
+### Metrics
+
+- p50/p95 latency
+- error rate
+- availability
+
+### Related scripts
+
+- `topic06*_api_serving_*`
+- `topic08*_ops_release_*`
+
+---
+
+## 11) PyTorch and CUDA in Stage 10
+
+### Why this is required
+
+Even in hybrid ML + LLM systems, runtime behavior (device, memory, throughput) affects release decisions.
+
+### Required checks
+
+1. confirm device placement consistency
+2. capture p50/p95 inference latency
+3. test OOM handling and fallback path
+4. compare CPU vs CUDA cost/performance profile
+
+### Stage mapping
+
+- `topic07*_evaluation_regression_*`
+- `lab03_incident_diagnosis_and_fix.py` (runtime branch)
+
+---
+
+## 12) Example Complexity Scale
+
+- L1 Simple: single-path run and one metric family
+- L2 Intermediate: baseline vs improved comparison on fixed test set
+- L3 Advanced: failure injection + tradeoff analysis + release decision
+
+Where complexity is:
+
+- data/schema complexity
+- cross-layer dependency complexity
+- compute/memory complexity
+- evaluation complexity
+- operations complexity
+
+---
+
+## 13) Stage 10 Script Mapping
+
+Target package: `red-book/src/stage-10/`
+
+Topic ladders:
+
+- `topic00*_integration_flow_*`
+- `topic01*_data_contracts_*`
+- `topic02*_feature_pipeline_*`
+- `topic03*_ml_prediction_*`
+- `topic04*_retrieval_context_*`
+- `topic05*_llm_reasoning_*`
+- `topic06*_api_serving_*`
+- `topic07*_evaluation_regression_*`
+- `topic08*_ops_release_*`
+
+Labs:
+
+- `lab01_end_to_end_baseline.py`
+- `lab02_pipeline_contract_validation.py`
+- `lab03_incident_diagnosis_and_fix.py`
+- `lab04_baseline_to_production_integration.py`
+
+All scripts must:
+
+- print data/schema declaration
+- include detailed functional comments
+- run deterministically
+- generate artifacts under `results/`
+
+---
+
+## 14) Practice Labs (Detailed and Operatable)
+
+## Lab 1: End-to-End Baseline
+
+Goal:
+
+- run complete pipeline and capture baseline metrics.
+
+Required workflow:
+
+1. fix dataset and evaluation scope
+2. run baseline pipeline
+3. collect per-layer outputs
+4. store baseline metrics and sample outputs
+
+Required outputs:
+
+- `results/lab1_baseline_outputs.jsonl`
+- `results/lab1_layer_metrics.csv`
+- `results/lab1_system_metrics.csv`
+
+## Lab 2: Pipeline Contract Validation
+
+Goal:
+
+- enforce strict schema/contract checks and localize contract failures.
+
+Required outputs:
+
+- `results/lab2_contract_checks.csv`
+- `results/lab2_failure_cases.csv`
+- `results/lab2_contract_fix_report.md`
+
+## Lab 3: Incident Diagnosis and Fix
+
+Goal:
+
+- execute troubleshooting loop on one injected incident.
+
+Required outputs:
+
+- `results/lab3_incident_baseline.csv`
+- `results/lab3_solution_options.csv`
+- `results/lab3_verification_rerun.csv`
+- `results/lab3_decision.md`
+
+## Lab 4: Baseline to Production Integration
+
+Goal:
+
+- move from baseline to release-ready state with gates.
+
+Required outputs:
+
+- `results/lab4_baseline_outputs.jsonl`
+- `results/lab4_improved_outputs.jsonl`
+- `results/lab4_layer_metrics.csv`
+- `results/lab4_solution_options.csv`
+- `results/lab4_verification_report.md`
+- `results/lab4_production_readiness.md`
+
+---
+
+## 15) Troubleshooting Standard (Identify -> Compare -> Verify)
+
+Use this exact process:
+
+1. reproduce with fixed run ID and fixed test set
+2. classify failure layer (`data`, `feature`, `ml`, `retrieval`, `llm`, `api`, `ops`)
+3. collect evidence (logs, metrics, traces, outputs)
+4. compare two solution options
+5. apply one targeted change only
+6. rerun same tests
+7. verify deltas and make decision
+
+Required run log fields:
+
+- run ID
+- data/model/prompt/config versions
+- latency/quality/cost metrics
+- failure class
+- selected fix and decision
+
+---
+
+## 16) Industry Pain-Point Matrix
+
+| Topic | Pain point | Root causes | Resolution | Related lab |
+|---|---|---|---|---|
+| Data contracts | pipeline breaks after source update | schema drift, weak validation | strict schema gates and versioning | `lab02_pipeline_contract_validation.py` |
+| Feature pipeline | model unstable in production | leakage or parity mismatch | parity checks and feature lock | `topic02*_feature_pipeline_*` |
+| ML signal | strong train but weak live behavior | overfit, bad threshold | segment analysis and threshold tuning | `topic03*_ml_prediction_*` |
+| Retrieval context | explanation uses weak evidence | stale or low relevance context | retrieval diagnostics and freshness SLO | `topic04*_retrieval_context_*` |
+| LLM reasoning | fluent but unfaithful output | weak prompt constraints | schema validation and grounding checks | `topic05*_llm_reasoning_*` |
+| API ops | latency and timeout storms | no backpressure or tracing | timeout/retry policy plus tracing | `topic06*_api_serving_*` |
+| Release decisions | regressions after release | no fixed rerun gate | baseline/improved gate policy | `lab04_baseline_to_production_integration.py` |
+
+---
+
+## 17) Self-Test (Readiness)
+
+You should answer with concrete workflow:
+
+1. How do you enforce contracts across all layers?
+2. How do you identify the layer that caused a bad final recommendation?
+3. Which metrics must pass before promotion?
+4. How do you prevent LLM drift from ML signals?
+5. How do you handle CUDA failure while keeping service available?
+6. What is your one-change rerun protocol?
+7. What exactly triggers rollback?
+8. How do you compare two fix options fairly?
+
+If you cannot answer at least 6/8 operationally, rerun labs 2-4.
+
+---
+
+## 18) Resource Library
+
+- FastAPI: https://fastapi.tiangolo.com/
+- Pandas: https://pandas.pydata.org/docs/
+- scikit-learn: https://scikit-learn.org/stable/
+- Qdrant: https://qdrant.tech/documentation/
+- PyTorch CUDA semantics: https://docs.pytorch.org/docs/stable/notes/cuda.html
+- PyTorch AMP recipe: https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html
+- OpenTelemetry: https://opentelemetry.io/docs/
+
+---
+
+## 19) What Comes After Stage 10
+
+Stage 11 focuses on infrastructure operations and scaling. You carry forward:
+
+- contract-first system design
+- evidence-based troubleshooting
+- measurable release decisions
+- baseline-to-production improvement discipline
+
+## 20) Missing-Item Gap Closure (Stage 10 Addendum)
+
+This section closes the remaining gaps and makes Stage 10 execution-ready.
+
+Mandatory additions for this chapter:
+- Topic-level deepening for each module, not only architecture-level summary.
+- Command-level lab operation details with pass/fail signals.
+- Explicit failure signatures so students know what bad behavior looks like.
+- Required evidence artifacts for every improvement claim.
+- Stronger topic -> script -> lab -> artifact mapping.
+- Stricter production gate criteria tied to measurable thresholds.
+
+## 21) Stage 10 Topic-by-Topic Deepening Matrix
+
+| Module | Theory Deepening | Operatable Tutorial Requirement | Typical Failure Signature | Required Evidence | Script/Lab |
+|---|---|---|---|---|---|
+| Data Layer | Data contract, freshness, null/type policy, schema drift | Run schema validator before every integration run; block on critical violations | Schema mismatch, stale snapshots, mixed timezone assumptions | `results/stage10/data_validation_report.md` | `topic01_data_contracts` + `lab02_pipeline_contract_validation.py` |
+| Feature Layer | Train-serve feature parity and leakage prevention | Use one transform library for offline/online; run parity check with fixed seed | Offline feature value differs from online value for same sample | `results/stage10/feature_parity.csv` | `topic02_feature_pipeline` + `lab02_pipeline_contract_validation.py` |
+| ML Prediction Layer | Fixed-split evaluation and regression control | Compare baseline vs candidate on same split and same seed | Candidate improves one metric but degrades stability/generalization | `results/stage10/before_after_metrics.csv` | `topic03_ml_prediction` + `lab03_incident_diagnosis_and_fix.py` |
+| Retrieval Context Layer | Chunk/filter/top-k/rerank tradeoff in RAG | Tune one parameter at a time using fixed evaluation questions | Low recall, irrelevant context, retrieval latency jump | `results/stage10/retrieval_eval.csv` | `topic04_retrieval_context` + `lab03_incident_diagnosis_and_fix.py` |
+| LLM Reasoning Layer | Grounded reasoning and output contract enforcement | Require citation format and response schema checks | Fluent but unsupported answer, format-breaking output | `results/stage10/citation_coverage.csv` | `topic05_llm_reasoning` + `lab03_incident_diagnosis_and_fix.py` |
+| API/Ops Layer | SLO, canary, rollback logic and release governance | Run canary gate and rollback drill before any promote decision | p95 spikes, timeout bursts, error-rate drift after rollout | `results/stage10/release_decision.md` + `rollback_drill.md` | `topic06_api_serving` + `lab04_baseline_to_production_integration.py` |
+
+## 22) Stage 10 Lab Operation Runbook (Command-Level)
+
+### Lab 1: End-to-End Baseline
+- Command: `pwsh red-book/src/stage-10/run_all_stage10.ps1 -Lab lab01_end_to_end_baseline`
+- Required outputs:
+  - `results/stage10/baseline_metrics.csv`
+  - `results/stage10/baseline_runbook.md`
+- Pass criteria:
+  - All core layer contracts pass.
+  - Baseline run is reproducible with same seed/config.
+- First troubleshooting action:
+  - If contract checks fail, run `topic01_data_contracts` standalone and fix schema violations first.
+
+### Lab 2: Pipeline Contract Validation
+- Command: `pwsh red-book/src/stage-10/run_all_stage10.ps1 -Lab lab02_pipeline_contract_validation`
+- Required outputs:
+  - `results/stage10/contract_violation_report.md`
+  - `results/stage10/feature_parity.csv`
+- Pass criteria:
+  - No critical schema violation.
+  - Feature parity delta under declared threshold.
+- First troubleshooting action:
+  - Pin transform version and rerun parity check with identical seed.
+
+### Lab 3: Incident Diagnosis and Fix
+- Command: `pwsh red-book/src/stage-10/run_all_stage10.ps1 -Lab lab03_incident_diagnosis_and_fix`
+- Required outputs:
+  - `results/stage10/incident_evidence.md`
+  - `results/stage10/before_after_metrics.csv`
+- Pass criteria:
+  - One-change fix improves target metric.
+  - No blocker regressions on fixed eval suite.
+- First troubleshooting action:
+  - Split diagnosis into retrieval-only and reasoning-only before changing both.
+
+### Lab 4: Baseline to Production Integration
+- Command: `pwsh red-book/src/stage-10/run_all_stage10.ps1 -Lab lab04_baseline_to_production_integration`
+- Required outputs:
+  - `results/stage10/release_decision.md`
+  - `results/stage10/rollback_drill.md`
+- Pass criteria:
+  - Promote/hold/rollback is explicitly justified by evidence.
+  - Rollback path is tested, not theoretical.
+- First troubleshooting action:
+  - If gates conflict, set decision to `hold` and assign remediation owner/date.
+
+## 23) Stage 10 Resource-to-Module Mapping (Must Cite in Chapter Text)
+
+- Contracts/API: FastAPI + Pydantic docs
+- Data quality: Great Expectations docs
+- Baseline ML/eval: scikit-learn user guide
+- Retrieval stack: Qdrant docs and examples
+- Observability: OpenTelemetry + Prometheus + Grafana
+- Runtime behavior: PyTorch CUDA notes
+
+Requirement: each Stage 10 module tutorial must cite at least one resource above as required reading.
+
+## 24) Stage 10 Production Review Rubric (Hard Gates)
+
+A Stage 10 improvement can be promoted only if all gates pass:
+- `contract_pass_rate >= 99%`
+- `quality_regression <= 2%` vs baseline
+- `p95_latency <= 2.5s` under declared load profile
+- rollback drill completed before final decision
+- all claims have before/after evidence artifacts
+
+If any hard gate fails: default decision is `hold` or `rollback`, never `promote`.

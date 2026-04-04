@@ -533,28 +533,34 @@ Lab rules:
 
 This section is mandatory and must be reflected in the final chapter content.
 
-| Topic | Typical industry pain point | Common root causes | Practical resolution strategy | Related lab practice example |
-|---|---|---|---|---|
-| Fine-tuning decision boundary | Team fine-tunes too early and spends budget with weak gain | No baseline, no decision rubric, mixing behavior and knowledge problems | Enforce decision flow: prompt baseline -> RAG baseline -> fine-tune only if measurable behavior gap remains | `lab05_finetune_vs_rag_vs_hybrid_qdrant.py` |
-| Dataset design and governance | Tuned model is inconsistent or unsafe | Inconsistent labels/style, low-quality examples, no schema checks, train/eval contamination | Add dataset contracts, schema validation, dedupe, quality sampling audit, strict split policy | `topic01_dataset_quality_intermediate.py` |
-| Instruction tuning (SFT) | Better on demos, weak on unseen prompts | Narrow prompt coverage, overfitting, template mismatch between train and production | Expand prompt diversity, hold-out eval set, template parity checks, controlled epoch/learning-rate tuning | `lab01_instruction_tuning_baseline.py` |
-| LoRA | Adapter quality unstable across domains | Wrong target modules, poor rank selection, undertrained adapters | Run rank/module sweep, track quality vs cost, pick smallest config meeting quality gate | `topic03c_lora_rank_sweep_advanced.py` |
-| QLoRA | Memory improves but quality drops or training becomes unstable | Aggressive quantization settings, incompatible optimizer/runtime settings | Use validated bitsandbytes config, gradient clipping, stability checks, compare against LoRA baseline | `lab02_lora_qlora_comparison.py` |
-| Distillation | Student model fast but too weak in edge cases | Weak teacher outputs, insufficient hard examples, no error-focused distill set | Curate high-quality teacher outputs, include failure-focused samples, evaluate by segment not only average | `lab03_distillation_tradeoff_lab.py` |
-| PyTorch/CUDA tuning loop | Training failures on real hardware (OOM/device mismatch) | Batch size too large, mixed cpu/cuda tensors, missing AMP/caching policy | Device checks at startup, CPU fallback, AMP where valid, batch-size ladder, memory telemetry logs | `topic00c_pytorch_cuda_tuning_advanced.py` |
-| Evaluation and regression gates | Model promoted based on subjective “looks better” | No fixed eval set, no baseline snapshots, no acceptance thresholds | Lock eval set, report base-vs-tuned deltas, enforce promotion thresholds and rollback criteria | `topic07c_promotion_gate_advanced.py` |
-| Operations and deployment | Good offline metrics but production incidents | No monitoring, no canary, no rollback plan, poor model/version traceability | Add model registry, canary rollout, live metric alerts, fast rollback runbook | `topic08c_canary_rollback_advanced.py` |
-| Fine-tuning + retrieval hybrid | Team treats tuning and retrieval as competing approaches | Missing architecture strategy and unclear failure ownership | Define hybrid policy: tuning for behavior, retrieval for freshness, with per-failure ownership map | `topic06c_hybrid_strategy_advanced.py` |
+### 11.1 Stage-Specific Industry Pain-Point Matrix (Mandatory)
 
-Required implementation rule:
+| Topic | Typical industry pain point | Common root causes | Resolution strategy (operatable) | Verification evidence | Mapped lab |
+|---|---|---|---|---|---|
+| Fine-tuning decision boundary | Team fine-tunes too early and spends budget with weak gain | No baseline, no decision rubric, mixing behavior and knowledge gaps | Enforce decision order: prompt baseline -> RAG baseline -> tune only if measurable gap remains | Decision matrix with baseline metrics | `lab05_finetune_vs_rag_vs_hybrid_qdrant.py` |
+| Dataset design/governance | Tuned model is inconsistent or unsafe | Label noise, split contamination, weak schema checks | Add dataset contracts, validation, dedupe, contamination checks | Data quality audit and contamination report | `topic01_dataset_quality_intermediate.py` |
+| Instruction tuning (SFT) | Better on demos, weak on unseen prompts | Narrow prompt coverage, overfitting, template mismatch | Expand prompt diversity and enforce template parity tests | Seen vs unseen performance delta | `lab01_instruction_tuning_baseline.py` |
+| LoRA | Adapter quality unstable across tasks | Wrong target modules, weak rank choice | Rank/module sweep with cost-quality tradeoff table | Rank sweep results and chosen config rationale | `topic03c_lora_rank_sweep_advanced.py` |
+| QLoRA | Memory improves but quality regresses | Aggressive quantization and unstable optimizer settings | Stabilize with validated config, clipping, and baseline parity checks | LoRA vs QLoRA quality/memory comparison | `lab02_lora_qlora_comparison.py` |
+| Distillation | Student model fast but brittle at edges | Weak teacher outputs, no hard-example focus | Build failure-focused distillation set and segment eval | Segment-level quality and latency report | `lab03_distillation_tradeoff_lab.py` |
+| PyTorch/CUDA tuning | Training crashes or underutilizes GPU | OOM, mixed device tensors, no AMP policy | Device checks, AMP policy, batch ladder, fallback path | GPU util/memory timeline + crash recovery log | `topic00c_pytorch_cuda_tuning_advanced.py` |
+| Evaluation/regression gates | Subjective promotion decisions | No fixed eval harness, no threshold gates | Lock eval set and enforce promotion/rollback thresholds | Gate report with pass/fail decisions | `topic07c_promotion_gate_advanced.py` |
+| Ops deployment | Good offline metrics but production incidents | Missing canary, weak traceability, no rollback drill | Add model registry + canary + rollback runbook | Canary metrics + rollback drill evidence | `topic08c_canary_rollback_advanced.py` |
+| Tune + retrieval hybrid | Team treats tune and retrieval as mutually exclusive | No failure ownership model | Define hybrid policy: tune for behavior, retrieve for freshness | Failure ownership map + hybrid benchmark | `topic06c_hybrid_strategy_advanced.py` |
 
-1. Each chapter topic must include one pain-point block:
-   - `industry pain point`
-   - `root causes`
-   - `resolution strategy`
-   - `related lab drill and expected artifact`
-2. Each listed lab drill must generate at least one file in `results/` proving fix verification.
-3. Each pain-point drill must include one before/after metric comparison.
+### 11.2 Required Matrix Usage Workflow
+
+1. Reproduce issue with fixed run ID and fixed eval split.
+2. Capture evidence before proposing any fix.
+3. Compare at least 2 options; apply 1 change.
+4. Rerun identical eval and compare deltas.
+5. Record promotion/hold/rollback decision.
+
+### 11.3 Mandatory Artifacts
+
+- `results/stage8/pain_point_matrix.md`
+- `results/stage8/method_compare_before_after.csv`
+- `results/stage8/promotion_gate_decision.md`
 
 ---
 
@@ -764,3 +770,94 @@ Handbook must end with `What Comes After Stage 8` and include:
 - 2-3 sentence summary of Stage 9 focus
 - mapping from Stage 8 skills to Stage 9 tasks
 - readiness sentence before progression
+
+---
+
+
+## Cross-Plan Consistency Addendum (2026-04-04, Additive-Only)
+
+This addendum is additive and does not remove or override existing content. Existing file names, workflows, and section details remain valid.
+
+### A) Canonical Decision Labels (Use Across All Stages)
+
+- `promote`: change passes all required gates and can move forward
+- `hold`: change is promising but evidence is incomplete or mixed
+- `rollback`: change increases risk/regression and must be reverted to prior baseline
+
+### B) Canonical Troubleshooting Flow Labels
+
+Use these labels in reports for consistency (even if stage-specific wording differs):
+
+1. `identify` (problem statement + failure class)
+2. `evidence` (logs/metrics/traces/schema snapshots)
+3. `compare` (>=2 options and tradeoffs)
+4. `change` (one targeted change only)
+5. `verify` (same dataset/split/eval/load profile)
+6. `decide` (`promote` / `hold` / `rollback`)
+
+### C) Canonical Artifact Naming Convention (Recommended)
+
+Keep all existing stage-specific filenames. In addition, produce or map to these canonical artifact names:
+
+- `pain_point_matrix.md`
+- `before_after_metrics.csv`
+- `verification_report.md`
+- `decision_log.md`
+- `reproducibility.md`
+
+If a stage already uses different names, add one of the following without deleting existing files:
+
+- a short mapping file: `artifact_name_map.md`
+- or duplicate/export canonical alias files that point to existing outputs
+
+### D) Evidence Schema (Minimum Fields for Any Metric Table)
+
+Every before/after metric table should include these columns (additive requirement):
+
+- `run_id`
+- `stage`
+- `topic_or_module`
+- `metric_name`
+- `before_value`
+- `after_value`
+- `delta`
+- `dataset_or_eval_set`
+- `seed_or_config_id`
+- `decision`
+
+### E) Failure Class Taxonomy (Cross-Stage)
+
+Use common labels for easier comparison across plans:
+
+- `data_schema`
+- `data_quality`
+- `feature_or_representation`
+- `training_or_optimization`
+- `retrieval_or_context`
+- `generation_or_reasoning`
+- `tool_or_api`
+- `latency_or_cost`
+- `security_or_policy`
+- `operations_or_release`
+
+### F) Stage Folder and Result Folder Convention
+
+Recommended unified pattern:
+
+- scripts: `red-book/src/stage-<N>/`
+- outputs: `results/stage<N>/`
+
+If a plan already uses another path, keep it and add a path mapping note in stage README.
+
+### G) No-Delete Compatibility Rule
+
+- Do not delete prior deliverable names from existing plan text.
+- Add normalization as aliases/mappings only.
+- When old and canonical names both exist, the stage README must state the mapping.
+
+## Global Key Request Addendum (2026-04-04)
+
+- Key request: emphasize industry standard instruction, operation, issue identification, troubleshooting, result evaluation, solution improvement in chapter content, scripts, labs, and acceptance criteria.
+
+
+

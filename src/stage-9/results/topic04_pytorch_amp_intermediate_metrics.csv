@@ -1,0 +1,2 @@
+topic_id,complexity,device,latency_p50_ms,latency_p95_ms,throughput_rps,oom_recovered,loops
+topic04_pytorch_amp_intermediate,intermediate,cpu,0.061,0.259,16273.39,False,80

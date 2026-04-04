@@ -2,4 +2,4 @@
 
 Selected: json_strong
 
-Reason: schema_rate improved from 0.667 to 1.000.
+Reason: schema_rate improved from 0.500 to 1.000.

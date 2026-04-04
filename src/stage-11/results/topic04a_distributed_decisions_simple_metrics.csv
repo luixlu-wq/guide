@@ -1,0 +1,3 @@
+topic_id,run_type,latency_p50_ms,latency_p95_ms,latency_p99_ms,throughput_rps,error_rate,gpu_mem_mb
+topic04a_distributed_decisions_simple,baseline,340.4,551.45,661.74,2.94,0.021,2024.0
+topic04a_distributed_decisions_simple,improved,292.74,424.48,475.42,3.89,0.011,2024.0

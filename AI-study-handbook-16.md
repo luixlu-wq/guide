@@ -1,562 +1,475 @@
-# Stage 16 — Becoming a Top AI Engineer
+﻿# Stage 16 - Becoming a Top AI Engineer
 
-**(Final Stage — Complete Mastery Guide)**
-
----
-
-## Goal
-
-Transition from:
-
-> someone who learns AI tools
-
-to:
-
-> someone who can design, build, debug, and ship real AI systems
+**Final Stage - Mastery Guide**
 
 ---
 
-## What This Stage Really Teaches (Deeper Meaning)
+## 0) If This Chapter Feels Hard
 
-This stage is not about learning new tools.
+Use this order:
 
-It is about:
+1. map your current competency baseline
+2. run architecture and incident drills
+3. produce portfolio-grade evidence artifacts
+4. close gaps with targeted improvement loops
 
-- thinking like a system designer
-- making engineering decisions under constraints
-- turning messy problems into working systems
-
----
-
-## The Real Transformation
-
-| Beginner | Advanced Engineer |
-|---|---|
-| Uses models | Designs systems |
-| Tunes randomly | Diagnoses systematically |
-| Focuses on accuracy | Optimizes tradeoffs |
-| Builds demos | Ships production systems |
-| Follows tutorials | Makes architecture decisions |
+This stage is about sustained professional capability, not new buzzwords.
 
 ---
 
-## The Most Valuable Skills Today
+## 1) Stage Goal
 
-- AI system architecture
-- data pipelines
-- ML + LLM integration
-- AI product engineering
+Transition from tool user to engineer who can design, operate, and improve real AI systems.
 
----
+You must be able to:
 
-## What These Actually Mean (Deep Breakdown)
-
-### 1. AI System Architecture
-
-Not just diagrams — **decision-making under constraints**.
-
-You must decide:
-
-- when to use ML vs LLM vs hybrid
-- how components communicate
-- where failures will happen
-- how to scale
-
-#### Beginner → Expert Gap
-
-**Beginner:**
-> "I used GPT + vector DB"
-
-**Expert:**
-> "I chose RAG because data changes frequently, added reranking to fix retrieval noise, and caching to reduce latency."
-
-#### Core Architecture Algorithm (How Experts Think)
-
-```
-1. Define problem
-2. Define inputs/outputs
-3. Identify constraints (latency, cost, scale)
-4. Choose architecture pattern
-5. Define components
-6. Define data flow
-7. Define failure points
-8. Define monitoring
-```
+- lead architecture decisions under constraints
+- enforce quality, safety, and reliability gates
+- run incident command and postmortem process
+- mentor teams with reproducible engineering workflow
+- deliver portfolio projects at industry standard
 
 ---
 
-### 2. Data Pipelines (Underrated but Critical)
+## 2) Mastery Competency Matrix
 
-Real systems depend on:
+Evaluate yourself across these dimensions:
 
-- data ingestion
-- cleaning
-- transformation
-- feature generation
-- validation
-- versioning
+- system architecture
+- data and pipeline reliability
+- ML and LLM integration
+- observability and incident response
+- governance and release management
+- communication and leadership
 
-> Most AI failures are actually **pipeline failures**, not model failures.
+### Maturity levels
 
-#### Pipeline Algorithm (How It Works)
-
-```
-Raw Data
-   ↓
-Validation (schema, missing)
-   ↓
-Cleaning (fix/remove issues)
-   ↓
-Transformation (feature creation)
-   ↓
-Storage (versioned dataset)
-   ↓
-Model training
-   ↓
-Deployment pipeline (same transformations!)
-```
-
-> **Critical Rule:** Train pipeline MUST equal production pipeline.
+- Level 1: can execute known workflows with guidance
+- Level 2: can diagnose and improve workflows independently
+- Level 3: can design standards and lead cross-functional delivery
 
 ---
 
-### 3. ML + LLM Integration
+## 3) Module A - Architecture Review Leadership
 
-Modern systems combine:
+### What it is
 
-| Component | Strength |
-|---|---|
-| ML | structured prediction |
-| LLM | reasoning + language |
-| RAG | knowledge grounding |
+Leading design reviews with tradeoff-based decisions.
 
-#### Integration Pattern
+### Required review outputs
 
-```
-ML → produces signals (numbers, scores)
-   ↓
-LLM → interprets + explains + decides
-```
+- problem statement and constraints
+- alternatives considered
+- tradeoff matrix (quality/latency/cost/risk)
+- selected option and rationale
+- rollback and risk controls
 
-#### Example (Trading)
+### Typical failure
 
-**ML predicts:** expected return, volatility, signal strength.
+- architecture chosen by trend or preference instead of evidence
 
-**LLM:** explains trade, generates summary, applies rules.
+### Related scripts
 
-#### Key Mechanism — Structured → Unstructured Bridge
-
-Convert:
-
-```json
-{"signal": 0.73, "risk": "high"}
-```
-
-Into: prompt input, decision context.
+- `topic01*_architecture_reviews_*`
+- `lab01_architecture_review_simulation.py`
 
 ---
 
-### 4. AI Product Engineering
+## 4) Module B - Incident Command and Recovery
 
-> This is what most engineers completely miss.
+### What it is
 
-**A model is NOT a product.**
+Running incident response with clear roles and communication.
 
-A product must have:
+### Core roles
 
-- stable outputs
-- predictable behavior
-- fast responses
-- error handling
-- user understanding
+- incident commander
+- technical owner
+- communications owner
+- observer/notetaker
 
-#### Product Algorithm
+### Required workflow
 
-```
-User Input
-   ↓
-Validation
-   ↓
-AI Processing
-   ↓
-Post-processing (format, filter)
-   ↓
-Output (structured + safe)
-   ↓
-Logging + feedback
-```
+1. detect and classify severity
+2. stabilize service
+3. investigate root cause
+4. apply controlled fix
+5. verify with rerun
+6. publish postmortem and actions
 
-> **Critical Rule:** If users cannot trust the output, the system has no value.
+### Related scripts
+
+- `topic02*_incident_command_*`
+- `lab02_incident_command_drill.py`
 
 ---
 
-## Advanced Skills You Must Develop
+## 5) Module C - Quality, Security, and Governance
 
-### 1. System Thinking
+### What it is
 
-Always think: `input → transformation → output → feedback`
+Operational controls that keep AI systems trustworthy.
 
-**Beginner Mistake:** Focus only on model performance.
+### Required controls
 
-**Expert Thinking:** Focus on entire pipeline behavior.
+- schema and contract validation
+- security checks for inputs and tools
+- policy validation for outputs
+- audit logs and traceability
+- release gate checklist
 
-#### System Thinking Algorithm
+### Typical failure
 
-```
-1. Identify all components
-2. Define inputs/outputs for each
-3. Identify dependencies
-4. Identify failure points
-5. Add monitoring
-```
+- fast iteration without governance causes silent risk accumulation.
+
+### Related scripts
+
+- `topic03*_quality_security_*`
+- `lab03_quality_governance_audit.py`
 
 ---
 
-### 2. Evaluation Thinking
+## 6) Module D - Team Workflows and Mentorship
 
-Always ask:
+### What it is
 
-- is it working?
-- under what conditions?
-- where does it fail?
-- how do we measure improvement?
+Engineering process that scales from individual contributor to team impact.
 
-> **Key Idea:** If you cannot measure it, you cannot improve it.
+### Required team practices
 
-#### Evaluation Algorithm
+- design review before major changes
+- experiment tracking for all tuning work
+- one-change verification protocol
+- incident retro with action ownership
+- weekly quality and reliability review
 
-```
-1. Define metric
-2. Define dataset
-3. Define baseline
-4. Run experiment
-5. Compare fairly
-6. Analyze failures
+### Typical failure
+
+- knowledge trapped in individuals, not in process.
+
+### Related scripts
+
+- `topic04*_team_workflows_*`
+
+---
+
+## 7) Module E - Portfolio Evidence for Industry Readiness
+
+### What it is
+
+Packaging your work into auditable evidence of real engineering ability.
+
+### Required portfolio artifacts
+
+- architecture decision records
+- baseline/improvement reports
+- incident postmortems
+- release gate checklists
+- operational dashboards or summaries
+
+### Typical failure
+
+- portfolio shows demos but no operational rigor.
+
+### Related scripts
+
+- `topic05*_portfolio_evidence_*`
+- `lab04_industry_project_portfolio_pack.py`
+
+---
+
+## 8) Module F - Continuous Improvement Loop
+
+### What it is
+
+A repeatable improvement loop for long-term growth.
+
+### Loop definition
+
+1. assess capability gaps
+2. set measurable improvement target
+3. run focused practice project
+4. verify impact with evidence
+5. institutionalize new standard
+
+### Typical failure
+
+- learning many tools without consolidating engineering habits.
+
+### Related scripts
+
+- `topic06*_continuous_improvement_*`
+
+---
+
+## 9) PyTorch and CUDA in Mastery Stage
+
+### Why this remains mandatory
+
+Senior engineers must understand runtime constraints, not only model APIs.
+
+### Required competency
+
+1. profile runtime behavior on CPU and CUDA
+2. detect and resolve mixed-device or OOM issues
+3. tune batch/precision with evidence
+4. include runtime risks in architecture and release reviews
+
+---
+
+## 10) Data Declaration Standard
+
+Every example must include:
+
+```text
+Data: <name and source>
+Records/Samples: <count>
+Input schema: <fields and types>
+Output schema: <fields and types>
+Eval policy: <fixed review or drill set>
+Type: <architecture/incident/governance/team/portfolio>
 ```
 
 ---
 
-### 3. Iteration Discipline
+## 11) Example Complexity Scale
 
-**Why Most People Fail Here:** They change everything at once, don't track experiments, rely on memory.
+- L1 Simple: execute a standard workflow correctly
+- L2 Intermediate: compare alternatives and justify decision
+- L3 Advanced: lead end-to-end workflow with governance and risk control
 
-#### Correct Iteration Algorithm
+Where complexity is:
 
-```
-1. Define hypothesis
-2. Change ONE variable
-3. Run experiment
-4. Record result
-5. Compare with baseline
-6. Decide next step
-```
+- cross-team coordination
+- decision quality under constraints
+- incident leadership and recovery
+- governance and auditability
 
 ---
 
-### 4. Tradeoff Awareness
+## 12) Stage 16 Script Mapping
 
-Every system has tradeoffs:
+Target package: `red-book/src/stage-16/`
 
-| Dimension | Tradeoff |
-|---|---|
-| Accuracy | vs Speed |
-| Cost | vs Performance |
-| Simplicity | vs Flexibility |
-| Determinism | vs Intelligence |
+Topics:
 
-**Real Example:**
+- `topic00*_competency_matrix_*`
+- `topic01*_architecture_reviews_*`
+- `topic02*_incident_command_*`
+- `topic03*_quality_security_*`
+- `topic04*_team_workflows_*`
+- `topic05*_portfolio_evidence_*`
+- `topic06*_continuous_improvement_*`
 
-- GPT-4 → high quality, high cost
-- smaller model → lower cost, lower reasoning
+Labs:
 
-> **Expert Skill:** Choosing the right compromise.
+- `lab01_architecture_review_simulation.py`
+- `lab02_incident_command_drill.py`
+- `lab03_quality_governance_audit.py`
+- `lab04_industry_project_portfolio_pack.py`
 
----
+Script requirements:
 
-### 5. Debugging Ability
-
-You must debug:
-
-- ML models
-- deep learning training
-- RAG systems
-- LLM prompts
-- agents
-- pipelines
-
-#### Debugging Algorithm (MASTER SKILL)
-
-```
-1. Define failure
-2. Locate failure stage
-3. Inspect inputs/outputs
-4. Form hypothesis
-5. Test one change
-6. Repeat
-```
+- detailed functional comments
+- deterministic runs
+- explicit failure paths
+- results artifacts for review
 
 ---
 
-## Final Mastery Checklist
+## 13) Practice Labs (Detailed)
 
-### 1. ML Pipelines
+## Lab 1: Architecture Review Simulation
 
-You can:
+Goal:
 
-- build data → feature → model → evaluation flow
-- prevent leakage
-- version datasets
+- run a full design review and select one architecture with tradeoff evidence.
 
-Must Know Algorithms: feature engineering, cross-validation, leakage detection, ablation testing.
+Required outputs:
 
----
+- `results/lab1_architecture_options.csv`
+- `results/lab1_tradeoff_matrix.csv`
+- `results/lab1_decision_record.md`
 
-### 2. Deep Learning
+## Lab 2: Incident Command Drill
 
-You can:
+Goal:
 
-- build PyTorch models
-- debug training issues
-- interpret loss curves
+- execute incident command workflow from alert to closure.
 
-Must Know Mechanisms: gradient descent, backpropagation, regularization, optimization stability.
+Required outputs:
 
----
+- `results/lab2_incident_timeline.csv`
+- `results/lab2_actions_and_owners.csv`
+- `results/lab2_postmortem.md`
 
-### 3. RAG Systems
+## Lab 3: Quality and Governance Audit
 
-You can:
+Goal:
 
-- design chunking
-- debug retrieval
-- improve grounding
+- audit one AI system against quality and governance standards.
 
-Must Know Algorithms: vector similarity search, top-k retrieval, reranking, embedding generation.
+Required outputs:
 
----
+- `results/lab3_audit_checklist.csv`
+- `results/lab3_risk_register.csv`
+- `results/lab3_audit_recommendation.md`
 
-### 4. AI Agents
+## Lab 4: Industry Project Portfolio Pack
 
-You can:
+Goal:
 
-- design tools
-- control agent behavior
-- debug decision flow
+- produce a hiring-ready project evidence package.
 
-Must Know Mechanisms: tool calling, planning loops, memory handling.
+Required outputs:
 
----
-
-### 5. Fine-Tuning
-
-You can:
-
-- build instruction datasets
-- apply LoRA/QLoRA
-- evaluate improvements
-
-Must Know Algorithms: supervised fine-tuning, parameter-efficient tuning, dataset curation.
+- `results/lab4_portfolio_index.md`
+- `results/lab4_case_study_summary.md`
+- `results/lab4_capability_matrix.csv`
 
 ---
 
-### 6. Deployment
+## 14) Troubleshooting and Leadership Workflow
 
-You can:
+Use `identify -> compare -> verify` at team level:
 
-- build APIs
-- manage configs
-- monitor performance
+1. identify: define the engineering problem and impact clearly
+2. compare: evaluate solution options with constraints
+3. verify: run evidence-based validation and record outcomes
 
-Must Know Systems: Docker, CI/CD, logging, monitoring.
+Leadership requirement:
 
----
-
-## Practice Project (Upgraded)
-
-### Project: AI System Design + Implementation Portfolio
-
-**Goal:** Create a portfolio proving you can design, implement, debug, and explain systems.
-
-### Required Components
-
-**1. ML System**
-- prediction model
-- feature engineering
-- evaluation
-- error analysis
-
-**2. RAG System**
-- ingestion pipeline
-- chunking strategy
-- retrieval + reranking
-- grounded answer generation
-
-**3. Agent System**
-- tools (API / DB / search)
-- reasoning loop
-- multi-step execution
-
-**4. End-to-End System**
-- API
-- orchestration
-- logging
-- monitoring
-
-### Step-by-Step (Expanded)
-
-**Step 1 — Select Use Cases**
-
-Pick something real:
-
-- trading assistant (best for you)
-- document QA
-- research assistant
-- AI code reviewer
-
-**Step 2 — Design Architecture**
-
-Write clearly: components, data flow, decisions, tradeoffs.
-
-**Step 3 — Implement Core System**
-
-Focus on: clarity, modularity, correctness.
-
-**Step 4 — Add Evaluation**
-
-Include: metrics, failure cases, slice analysis.
-
-**Step 5 — Add Debugging Evidence**
-
-Show: what failed, why, how you fixed it.
-
-**Step 6 — Documentation (CRITICAL)**
-
-Include: architecture explanation, tradeoffs, limitations, future improvements.
-
-### Deliverables
-
-- GitHub repo
-- architecture diagrams
-- working demo
-- evaluation results
-- README
-
-### Evaluation Criteria
-
-| Criterion | Weight |
-|---|---|
-| System design quality | 30% |
-| Implementation | 25% |
-| Evaluation | 20% |
-| Clarity | 15% |
-| Completeness | 10% |
+- decisions must be explainable, reversible, and auditable.
 
 ---
 
-## Common Mistakes (Expanded)
+## 15) Industry Pain-Point Matrix
 
-| # | Mistake | Reason | Fix |
-|---|---|---|---|
-| 1 | Focusing only on models | Models are exciting. | Think system, not model. |
-| 2 | No architecture explanation | People jump into coding. | Design first. |
-| 3 | No evaluation | Demo "looks good". | Measure everything. |
-| 4 | No debugging evidence | Only showing success. | Show failures and fixes. |
-| 5 | No documentation | Time pressure. | Explain your system like a professional. |
-| 6 | Overengineering too early | Trying to be advanced. | Start simple → iterate. |
-| 7 | Ignoring latency and cost | Focus on correctness only. | Always consider production constraints. |
+| Topic | Pain point | Root causes | Resolution | Related lab |
+|---|---|---|---|---|
+| Architecture reviews | weak decisions | no tradeoff process | formal review template and matrix | `lab01_architecture_review_simulation.py` |
+| Incident command | slow recovery and confusion | unclear roles | role-based incident command | `lab02_incident_command_drill.py` |
+| Governance | hidden risk accumulation | missing controls and audits | quality/security audit cadence | `lab03_quality_governance_audit.py` |
+| Team scaling | inconsistent engineering quality | ad-hoc process | standard workflows and mentorship loops | `topic04*_team_workflows_*` |
+| Portfolio readiness | projects not credible to industry | no operational evidence | portfolio evidence pack | `lab04_industry_project_portfolio_pack.py` |
 
 ---
 
-## Final Understanding (Deep Version)
+## 16) Self-Test (Mastery Readiness)
 
-> A top AI engineer builds systems, not just models.
+1. Can you lead architecture decisions with measurable tradeoffs?
+2. Can you command incident response with clear ownership?
+3. Can you enforce quality and governance controls?
+4. Can you mentor teams into reproducible engineering behavior?
+5. Can you produce portfolio artifacts that prove production competence?
+6. Can you run continuous improvement loops with measurable outcomes?
 
-**What This REALLY Means:**
-
-You can:
-
-- turn messy problems into structured pipelines
-- make tradeoffs under constraints
-- debug failures systematically
-- explain decisions clearly
-- ship working systems
+If fewer than 5/6 are confidently actionable, rerun labs 1-4.
 
 ---
 
-## Final Advice (Upgraded)
+## 17) Resource Library
 
-### The Biggest Shift
-
-From: **learning tools**
-
-To: **solving real problems**
-
-### What Makes You Stand Out
-
-- strong fundamentals
-- system thinking
-- debugging skill
-- communication ability
-- ability to ship
-
-### Final Outcome
-
-If you complete all stages, you will be able to:
-
-- build end-to-end AI systems
-- design ML + LLM architectures
-- implement RAG + agents
-- debug real-world failures
-- deploy production AI
-
-### The Real Final Skill
-
-> The difference between a beginner and a top AI engineer is NOT knowledge.
-> It is the ability to make good decisions under uncertainty.
+- Google SRE workbook: https://sre.google/workbook/table-of-contents/
+- NIST AI RMF: https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10
+- OpenTelemetry docs: https://opentelemetry.io/docs/
+- Kubernetes docs: https://kubernetes.io/docs/home/
+- PyTorch docs: https://docs.pytorch.org/docs/stable/
 
 ---
 
-## Self Test
+## 18) Final Completion Criteria
 
-### Questions
+You complete the handbook program when you can:
 
-1. What is the difference between using AI tools and building AI systems?
-2. Why is system architecture more important than model choice?
-3. What is the most common real-world failure source?
-4. Why must training and production pipelines match?
-5. What is the role of ML vs LLM in modern systems?
-6. Why is evaluation thinking critical?
-7. What is iteration discipline?
-8. Why are tradeoffs unavoidable?
-9. What makes debugging a core skill?
-10. Why is a model not a product?
-11. What components make a full AI system?
-12. Why is documentation important?
-13. What is a good portfolio project?
-14. Why must failures be shown in projects?
-15. What is the biggest mindset shift in this stage?
+- design and ship AI systems with explicit contracts and gates
+- troubleshoot failures with evidence and controlled changes
+- operate with production standards for reliability and governance
+- communicate decisions clearly across technical and non-technical stakeholders
 
-### Answers
+This is the transition from learner to industry-grade AI engineer.
 
-1. Tools are components; systems combine components to solve real problems.
-2. Because architecture determines scalability, reliability, and performance.
-3. Data and pipeline issues.
-4. Otherwise the model behaves differently in production.
-5. ML handles structured prediction; LLM handles reasoning and language.
-6. Without measurement, improvement is impossible.
-7. Controlled, step-by-step improvement with tracking.
-8. Because improving one dimension often worsens another.
-9. Because real systems always fail in unexpected ways.
-10. A product requires reliability, usability, and consistency.
-11. Data pipeline, model, orchestration, evaluation, and deployment.
-12. It enables others to understand, use, and trust the system.
-13. One that shows design, implementation, evaluation, and debugging.
-14. Because real engineering includes failure and iteration.
-15. From learning tools → solving real-world problems.
+## 19) Missing-Item Gap Closure (Stage 16 Addendum)
 
----
+This section closes remaining gaps and makes Stage 16 mastery outcomes measurable and operatable.
 
-## Closing Thought
+Mandatory additions for this chapter:
+- deeper leadership-level theory for review, incident command, governance, mentorship
+- explicit module failure signatures with measurable evidence requirements
+- command-level runbook for all mastery labs
+- stricter portfolio and readiness evaluation gates
 
-> The best AI engineers are not the ones who know the most models.
-> They are the ones who can turn messy real-world problems into reliable, working systems.
+## 20) Stage 16 Topic-by-Topic Deepening Matrix
+
+| Module | Theory Deepening | Operatable Tutorial Requirement | Typical Failure Signature | Required Evidence | Script/Lab |
+|---|---|---|---|---|---|
+| Competency Matrix | behavior-based mastery levels and objective progression theory | assess each competency with evidence-linked rubric | subjective self-rating with no growth plan | `results/stage16/competency_assessment.csv` | `topic00_competency_matrix` + `lab01_architecture_review_simulation.py` |
+| Architecture Review Leadership | risk/tradeoff/failure-mode review theory | run structured review agenda and closure tracking | feature-only reviews miss operational risks | `results/stage16/review_findings.md` | `topic01_architecture_reviews` + `lab01_architecture_review_simulation.py` |
+| Incident Command | command roles, comm cadence, escalation theory | run incident drill with timeline checkpoints | owner confusion during high-severity event | `results/stage16/incident_drill_timeline.md` | `topic02_incident_command` + `lab02_incident_command_drill.py` |
+| Quality/Governance | shift-left policy and control-gate theory | audit gates and assign remediation owner/date | compliance/security gaps found too late | `results/stage16/governance_gap_report.md` | `topic03_quality_security` + `lab03_quality_governance_audit.py` |
+| Team Workflow/Mentorship | knowledge-transfer and review culture theory | define onboarding map, review checklist, mentoring cadence | siloed knowledge and inconsistent quality | `results/stage16/workflow_quality_metrics.csv` | `topic04_team_workflows` + `lab02_incident_command_drill.py` |
+| Portfolio Evidence | measurable impact storytelling and decision traceability | build portfolio pack linking outcomes to decisions | project list without impact/evidence narrative | `results/stage16/portfolio_pack.md` | `topic05_portfolio_evidence` + `lab04_industry_project_portfolio_pack.py` |
+| Continuous Improvement | retrospective-to-action and KPI loop theory | run monthly review and track action closure | recurring issues without process gains | `results/stage16/improvement_backlog_status.md` | `topic06_continuous_improvement` + `lab04_industry_project_portfolio_pack.py` |
+
+## 21) Stage 16 Lab Operation Runbook (Command-Level)
+
+### Lab 1: Architecture Review Simulation
+- Command: `pwsh red-book/src/stage-16/run_all_stage16.ps1 -Lab lab01_architecture_review_simulation`
+- Required outputs:
+  - `results/stage16/review_findings.md`
+  - `results/stage16/architecture_decision.md`
+- Pass criteria:
+  - Review includes risk, tradeoff, owner, fallback path.
+- First troubleshooting action:
+  - Add missing failure-mode section before signoff.
+
+### Lab 2: Incident Command Drill
+- Command: `pwsh red-book/src/stage-16/run_all_stage16.ps1 -Lab lab02_incident_command_drill`
+- Required outputs:
+  - `results/stage16/incident_drill_timeline.md`
+  - `results/stage16/communication_log.md`
+- Pass criteria:
+  - Response timeline is complete and decision points are traceable.
+- First troubleshooting action:
+  - Reassign unclear roles and rerun the drill.
+
+### Lab 3: Quality and Governance Audit
+- Command: `pwsh red-book/src/stage-16/run_all_stage16.ps1 -Lab lab03_quality_governance_audit`
+- Required outputs:
+  - `results/stage16/governance_gap_report.md`
+  - `results/stage16/control_remediation_plan.md`
+- Pass criteria:
+  - Critical gaps have owners and due dates.
+- First troubleshooting action:
+  - Block release for unresolved critical controls.
+
+### Lab 4: Industry Project Portfolio Pack
+- Command: `pwsh red-book/src/stage-16/run_all_stage16.ps1 -Lab lab04_industry_project_portfolio_pack`
+- Required outputs:
+  - `results/stage16/portfolio_pack.md`
+  - `results/stage16/mastery_readiness_score.csv`
+- Pass criteria:
+  - Portfolio demonstrates measurable impact, decisions, and operational ownership.
+- First troubleshooting action:
+  - Attach missing metrics and incident evidence before final submission.
+
+## 22) Stage 16 Resource-to-Module Mapping (Must Cite in Chapter Text)
+
+- Architecture decision discipline: ADR resources
+- Operational leadership and reliability: SRE resources
+- Security/governance risk model: OWASP LLM Top 10
+- Telemetry evidence: OpenTelemetry docs
+- Retrieval operations governance: Qdrant docs
+- Runtime/cost tradeoff evidence: PyTorch CUDA notes
+
+Requirement: each module tutorial must cite at least one mapped source.
+
+## 23) Stage 16 Mastery Review Rubric (Hard Gates)
+
+- competency rubric is evidence-backed and periodically reassessed
+- architecture review and incident command drills are complete with artifacts
+- governance/security controls are treated as hard release constraints
+- portfolio pack shows measurable industry-level impact and decision traceability
+- all improvement claims include before/after evidence artifacts
+
+If any hard gate fails: Stage 16 completion cannot be approved.
