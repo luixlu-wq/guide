@@ -1,0 +1,11 @@
+sample_id,tokenizer,token_count,tokens_preview,oov_like_rate
+1,whitespace,10,Ontario | GIS | polygon | metadata | includes | EPSG:4326 | coordinates | and | zoning | identifiers.,0.5
+1,subword_like,23,ont | ##ario | gis | pol | ##ygon | met | ##adat | ##a | inc | ##lude | ##s | epsg,0.9565217391304348
+2,whitespace,7,MapToGo | integrates | scenic-spot | descriptions | with | retrieval-based | grounding.,1.0
+2,subword_like,22,map | ##togo | int | ##egra | ##tes | scenic | - | spot | des | ##crip | ##tion | ##s,0.9545454545454546
+3,whitespace,11,The | model | must | return | valid | JSON | with | citations | and | confidence_note | fields.,0.8181818181818182
+3,subword_like,17,the | model | must | return | valid | json | with | cit | ##atio | ##ns | and | con,0.9411764705882353
+4,whitespace,10,Tokenization | quality | impacts | both | context | budget | and | retrieval | chunk | boundaries.,0.7
+4,subword_like,21,tok | ##eniz | ##atio | ##n | qua | ##lity | imp | ##acts | both | con | ##text | budget,1.0
+5,whitespace,7,Long | camelCaseIdentifiersAndGeoHashes | can | fragment | into | many | sub-tokens.,1.0
+5,subword_like,20,long | cam | ##elca | ##seid | ##enti | ##fier | ##sand | ##geoh | ##ashe | ##s | can | fra,1.0

@@ -1,0 +1,9 @@
+case_id,problem,answer,raw_prediction,cot_prediction,raw_correct,cot_correct
+1,Alice has 7 apples and buys 3 more. How many now?,10,7,10,False,True
+2,A store had 20 books and sold 6. How many remain?,14,20,20,False,False
+3,"Tom starts with 12 coins, gives away 5, then gets 4. Total?",11,12,3,False,False
+4,"A tank has 30 liters, loses 8, then loses 7. Remaining?",15,30,15,False,True
+5,"You own 9 tickets, buy 2, buy 2 more. Total tickets?",13,9,11,False,False
+6,"Mia had 15 stickers, gave 4, found 6. How many now?",17,15,19,False,False
+7,"Server queue is 18, removes 9, adds 3. Queue length?",12,18,12,False,True
+8,"Portfolio had 25 units, spends 10, receives 5. Final?",20,25,20,False,True

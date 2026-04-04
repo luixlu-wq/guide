@@ -1228,6 +1228,122 @@ If LLM results are poor, check:
 
 ---
 
+## Review-Driven Operatable Upgrade (Topic 05-07)
+
+This section converts Stage 5 from concept-only reading to an operatable engineering workflow.
+
+### Example Complexity Scale (Used In Stage 5)
+
+- `Simple`: one mechanism, tiny data, inspectable math.
+- `Baseline`: full runnable training/evaluation loop with fixed split and metrics.
+- `Advanced`: hardware-aware optimization, failure diagnostics, and before/after evidence.
+
+Where complexity is in Chapter 5:
+
+- Topic 05 (Transformer): formula understanding -> block training loop -> BF16/SDP performance tuning.
+- Topic 06 (Tokenization): text split intuition -> tokenizer comparison -> OOV/fragmentation diagnosis.
+- Topic 07 (Prompting): template-based prompting -> controlled comparison -> reasoning/reliability regression.
+
+### Topic 05: Transformer Architecture (Operatable Module)
+
+1. Intuition:
+   - Transformer uses parallel attention instead of sequential recurrence.
+2. Mechanics contract:
+   - `Q`: what token asks for
+   - `K`: what token offers for matching
+   - `V`: what token contributes
+   - attention equation: `softmax((QK^T)/sqrt(d_k))V`
+3. The scripts (simple -> baseline -> advanced):
+   - [topic05a_attention_math.py](src/stage-5/topic05a_attention_math.py): manual NumPy attention for a 3-token sequence.
+   - [topic05b_min_transformer.py](src/stage-5/topic05b_min_transformer.py): minimal decoder-style transformer block in PyTorch.
+   - [topic05c_vram_optimization.py](src/stage-5/topic05c_vram_optimization.py): BF16/FP16 and SDP-kernel performance path.
+4. Hardware corner:
+   - choose `device` explicitly (`cpu` or `cuda`)
+   - prefer BF16 on supported GPUs, else FP16/FP32 fallback
+   - measure throughput + peak VRAM instead of guessing
+5. Acceptance criteria:
+   - learner can explain attention shapes and causal masking
+   - learner can run baseline transformer and report val-loss delta
+   - learner can compare baseline vs optimized attention throughput
+
+### Topic 06: Tokenization and Embeddings (Operatable Module)
+
+1. Intuition:
+   - tokenization converts text to IDs; embeddings convert IDs to vectors.
+2. Mechanics pipeline:
+   - normalization -> pre-tokenization -> model tokenizer -> embedding lookup
+3. The scripts:
+   - [topic06a_tokenizer_comparison.py](src/stage-5/topic06a_tokenizer_comparison.py): tokenizer count/fragmentation comparison (with optional `tiktoken`/Llama path).
+   - [topic01a_tokenization_simple.py](src/stage-5/topic01a_tokenization_simple.py)
+   - [topic01_tokenization_intermediate.py](src/stage-5/topic01_tokenization_intermediate.py)
+   - [topic01c_tokenization_advanced.py](src/stage-5/topic01c_tokenization_advanced.py)
+4. Failure mode focus:
+   - OOV/UNK-like fragmentation
+   - unstable token budgets causing truncation and context loss
+5. Acceptance criteria:
+   - learner can show token count differences on same text
+   - learner can identify high-fragmentation/OOV risk and mitigation plan
+
+### Topic 07: Prompt Engineering (Guidable Module)
+
+Use this system prompt skeleton for all baseline prompt experiments:
+
+```text
+Role: <who the assistant should behave as>
+Context: <domain facts and boundaries>
+Task: <exact operation to perform>
+Constraints: <must/must-not rules>
+Output Format: <strict schema or template>
+```
+
+Runnable comparison scripts:
+
+- [topic02a_prompting_simple.py](src/stage-5/topic02a_prompting_simple.py)
+- [topic02_prompting_intermediate.py](src/stage-5/topic02_prompting_intermediate.py)
+- [topic02c_prompting_advanced.py](src/stage-5/topic02c_prompting_advanced.py)
+- [topic07c_chain_of_thought.py](src/stage-5/topic07c_chain_of_thought.py) (raw completion vs reasoning-style policy)
+
+Acceptance criteria:
+
+- learner can compare at least two prompt versions on a fixed test set
+- learner can report stability/reliability, not only one-shot quality
+
+### Stage 5 Failure Lab (Mandatory)
+
+1. Hallucination diagnosis:
+   - distinguish `knowledge gap` vs `reasoning failure`
+   - verify with grounded context rerun
+2. Context-window overload:
+   - detect lost-in-the-middle behavior
+   - enforce token budget and chunk ranking checks
+3. Format drift:
+   - detect JSON/schema failures
+   - enforce parse/validate/repair/fail-fast workflow
+
+Mapped scripts for failure lab:
+
+- [topic03_structured_output_intermediate.py](src/stage-5/topic03_structured_output_intermediate.py)
+- [topic04_rag_intermediate.py](src/stage-5/topic04_rag_intermediate.py)
+- [topic07_prompt_eval_regression.py](src/stage-5/topic07_prompt_eval_regression.py)
+
+### Integration Case Study: MTG RAG (Project Bridge)
+
+Use your MapToGo-style data as the chapter's realistic RAG case:
+
+- Data source: scraped Baidu Baike / scenic-spot text corpus
+- Task: retrieve relevant spot facts and generate grounded guide response
+- Required checks:
+  - retrieval relevance evidence (`top-k` with scores)
+  - citation coverage in final answer
+  - hallucination audit for unsupported claims
+
+Implementation anchor:
+
+- [topic04_rag_intermediate.py](src/stage-5/topic04_rag_intermediate.py)
+- [topic08_project_baseline.py](src/stage-5/topic08_project_baseline.py)
+
+---
+
 ## Stage 5 Script Mapping (for `/red-book/src/stage-5`)
 
 Core run commands:
@@ -1237,6 +1353,7 @@ powershell -ExecutionPolicy Bypass -File .\src\stage-5\run_all_stage5.ps1
 powershell -ExecutionPolicy Bypass -File .\src\stage-5\run_ladder_stage5.ps1
 powershell -ExecutionPolicy Bypass -File .\src\stage-5\run_ladder_stage5.ps1 -IncludeBridge
 powershell -ExecutionPolicy Bypass -File .\src\stage-5\run_ladder_stage5.ps1 -IncludeBridge -IncludeLab
+powershell -ExecutionPolicy Bypass -File .\src\stage-5\run_ladder_stage5.ps1 -IncludeDeepDive
 ```
 
 Script mapping:
@@ -1247,6 +1364,12 @@ Script mapping:
   - [topic00c_pytorch_cuda_advanced.py](src/stage-5/topic00c_pytorch_cuda_advanced.py)
 - Multi-head attention bridge:
   - [topic01_multihead_attention.py](src/stage-5/topic01_multihead_attention.py)
+- Review deep-dive modules (Topic 05/06/07 operatable upgrades):
+  - [topic05a_attention_math.py](src/stage-5/topic05a_attention_math.py)
+  - [topic05b_min_transformer.py](src/stage-5/topic05b_min_transformer.py)
+  - [topic05c_vram_optimization.py](src/stage-5/topic05c_vram_optimization.py)
+  - [topic06a_tokenizer_comparison.py](src/stage-5/topic06a_tokenizer_comparison.py)
+  - [topic07c_chain_of_thought.py](src/stage-5/topic07c_chain_of_thought.py)
 - Tokenization ladder:
   - [topic01a_tokenization_simple.py](src/stage-5/topic01a_tokenization_simple.py)
   - [topic01_tokenization_intermediate.py](src/stage-5/topic01_tokenization_intermediate.py)
@@ -1311,8 +1434,11 @@ Use this map when you want runnable code for each core concept in this chapter.
 | RAG workflow | `topic04a` -> `topic04` -> `topic04c` | from retrieval intuition to diagnostic checks |
 | Embeddings and semantic retrieval | `topic05a` -> `topic05` -> `topic05c` | from vector basics to retrieval metrics (`hit@k`) |
 | Multi-head attention mechanism | `topic01_multihead_attention.py` | shape flow, Q/K/V mapping, head behavior |
+| Transformer mechanics (review deep-dive) | `topic05a_attention_math.py` -> `topic05b_min_transformer.py` -> `topic05c_vram_optimization.py` | from manual attention math to baseline training to hardware optimization |
+| Tokenizer comparison and OOV diagnostics | `topic06a_tokenizer_comparison.py` | compare token boundaries, token budgets, and fragmentation risks |
 | End-to-end mini LLM with MHA | `lab01_simple_mha_llm.py` | full data -> model -> training -> generation workflow |
 | Prompt evaluation and regression | `topic07_prompt_eval_regression.py` | compare prompt versions on fixed evaluation set |
+| Reasoning-policy prompt comparison | `topic07c_chain_of_thought.py` | compare raw completion vs reasoning-style prompting policy |
 | Operatable project baseline | `topic08_project_baseline.py` | fixed deliverables and before/after comparison |
 
 ### Best External Teaching Examples (Curated)

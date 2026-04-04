@@ -59,6 +59,20 @@ Stage-5-specific locked requirements:
   - device management and CPU/GPU execution checks
   - runnable examples that print selected device and training behavior
   - simple/intermediate/advanced PyTorch/CUDA example ladder in `red-book/src/stage-5`
+- Reviewer-additive requirement: add a dedicated `Transformer Architecture` module with explicit Q/K/V contract and troubleshooting patterns.
+- Reviewer-additive requirement: add a dedicated `Tokenization & Embeddings` module with complete encoding pipeline and failure diagnostics.
+- Reviewer-additive requirement: add section-focused runnable suites for:
+  - manual attention math
+  - minimal decoder-only GPT training
+  - performance/distributed transformer path
+  - tokenizer visualization
+  - embedding similarity search
+  - domain tokenizer training
+- Reviewer-additive requirement: include an LLM hardware configuration subsection for BF16/FP16 selection and Flash-Attention-style SDP kernel guidance.
+- Reviewer-additive requirement: include explicit failure labs for:
+  - causal masking leakage
+  - context-window memory pressure (quadratic attention cost)
+  - unknown-token and out-of-vocabulary behavior
 
 - Mandatory request: include PyTorch and CUDA conceptual/tutorial content in the chapter.
 - Mandatory request: include runnable PyTorch/CUDA example code (simple -> intermediate -> advanced) with very detailed and clear functional comments.
@@ -305,6 +319,80 @@ Hard requirement: no module ships with missing fields.
 
 ---
 
+## 5.1 Reviewer-Mandated Deep-Dive Modules (Additive)
+
+This subsection is additive and does not remove existing module requirements.
+
+### Topic 05 - Transformer Architecture (Engine of Modern LLMs)
+
+5.1 What it is and why it matters:
+
+- Transformer replaces sequential recurrence with parallel attention over tokens.
+- It is the architecture foundation of modern GPT/Claude/Llama-style systems.
+
+5.2 Mechanics contract (must appear in chapter + scripts):
+
+- Query (`Q`): what this token is looking for.
+- Key (`K`): what this token offers for matching.
+- Value (`V`): information contributed when selected.
+- Scaled dot-product attention:
+  - `Attention(Q, K, V) = softmax((QK^T) / sqrt(d_k)) V`
+
+5.3 Operatable practice suite (section-focused aliases):
+
+- `topic05a_attention_manual.py`:
+  - NumPy manual attention on tiny sentence-level matrix
+  - prints score matrix, normalized attention weights, and weighted output
+- `topic05b_min_gpt.py`:
+  - minimal decoder-only transformer in PyTorch
+  - includes causal masking and next-token objective
+- `topic05c_distributed_transformer.py`:
+  - performance-oriented transformer run path
+  - DDP-ready path and SDP-kernel acceleration path with CPU fallback
+
+5.4 Failure lab requirements:
+
+- Causal masking leakage:
+  - red flag: suspiciously low loss with poor generation quality
+  - check: mask matrix correctness and autoregressive shift alignment
+- Context-window memory pressure:
+  - red flag: OOM when sequence length increases
+  - check: quadratic attention cost visibility, then apply sequence/batch reduction or checkpointing
+
+### Topic 06 - Tokenization & Embeddings (Text to Numbers)
+
+6.1 Intuition and purpose:
+
+- tokenizer converts text into token IDs
+- embeddings convert token IDs to dense vectors used by transformer layers
+
+6.2 Encoding pipeline contract (must appear in chapter + scripts):
+
+1. normalization
+2. pre-tokenization
+3. model tokenization (for example BPE/WordPiece)
+4. embedding lookup to shape `[batch, seq_len, hidden_dim]`
+
+6.3 Operatable practice suite (section-focused aliases):
+
+- `topic06a_bpe_visualizer.py`:
+  - tokenizes sample text and prints token boundaries + IDs
+- `topic06b_embedding_search.py`:
+  - builds sentence embeddings and cosine-similarity retrieval demo
+- `topic06c_custom_tokenizer.py`:
+  - trains domain tokenizer on local corpus and compares tokenization efficiency
+
+6.4 Failure lab requirements:
+
+- unknown-token saturation:
+  - red flag: high `[UNK]` rate / broken segmentation quality
+  - check: vocabulary size, normalization policy, and domain token coverage
+- out-of-vocabulary bias:
+  - red flag: poor handling of non-English or domain-specific terms
+  - check: tokenizer corpus mismatch, then retrain/extend tokenizer and re-evaluate
+
+---
+
 ## 6) Operable Roadmap (Week 10-11)
 
 ### Week 10 (Foundations and Prompt Control)
@@ -386,6 +474,22 @@ Script requirements:
 - all scripts must print expected metrics and interpretation text
 - concept-to-script mapping must be explicit in Chapter 5 so students can find each runnable example quickly
 - lab script must include numbered steps that match chapter instructions exactly
+
+Section-focused deep-dive aliases (additive; do not remove existing ladders):
+
+- Transformer architecture suite:
+  - `topic05a_attention_manual.py`
+  - `topic05b_min_gpt.py`
+  - `topic05c_distributed_transformer.py`
+- Tokenization & embedding suite:
+  - `topic06a_bpe_visualizer.py`
+  - `topic06b_embedding_search.py`
+  - `topic06c_custom_tokenizer.py`
+
+Alias compatibility rule:
+
+- Existing stage script names remain valid and must not be deleted.
+- If both legacy and section-focused names exist, add `artifact_name_map.md` and README mapping.
 
 ---
 
@@ -561,6 +665,32 @@ Required runnable checks:
 - print before/after metric delta
 - print one failure example and one corrected example
 - print deterministic fallback note when external model/API unavailable
+
+### 14.1 LLM Hardware-Aware Configuration (Reviewer Additive)
+
+Mandatory chapter/script guidance:
+
+- choose `device = cuda|cpu` explicitly
+- choose `dtype` with BF16 priority on supported GPUs, else FP16/FP32 fallback
+- include SDP-kernel/flash-attention compatibility path with safe fallback
+- print selected runtime path in every advanced run
+
+Reference configuration pattern (must be explained and adapted per script):
+
+```python
+device = "cuda" if torch.cuda.is_available() else "cpu"
+dtype = torch.bfloat16 if (torch.cuda.is_available() and torch.cuda.is_bf16_supported()) else torch.float16
+
+# Use high-performance SDP kernel path when supported; fallback safely otherwise.
+with torch.backends.cuda.sdp_kernel(enable_flash=True, enable_math=False, enable_mem_efficient=False):
+    output = model(input_tensor)
+```
+
+Runtime evidence requirements:
+
+- report tokens/sec or samples/sec
+- report peak VRAM usage
+- report stability note (for example overflow/NaN checks)
 
 ---
 

@@ -36,6 +36,12 @@ Include the multi-head attention bridge before ladders:
 powershell -ExecutionPolicy Bypass -File .\run_ladder_stage5.ps1 -IncludeBridge
 ```
 
+Include review deep-dive modules (Transformer mechanics + tokenizer comparison + CoT):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run_ladder_stage5.ps1 -IncludeDeepDive
+```
+
 Include the step-by-step multi-head-attention mini-LLM lab:
 
 ```powershell
@@ -51,6 +57,12 @@ python .\lab01_simple_mha_llm.py
   - `topic00c_pytorch_cuda_advanced.py`
 - Multi-head attention bridge:
   - `topic01_multihead_attention.py`
+- Review deep-dive modules:
+  - `topic05a_attention_math.py`
+  - `topic05b_min_transformer.py`
+  - `topic05c_vram_optimization.py`
+  - `topic06a_tokenizer_comparison.py`
+  - `topic07c_chain_of_thought.py`
 - Tokenization ladder:
   - `topic01a_tokenization_simple.py`
   - `topic01_tokenization_intermediate.py`

@@ -1,7 +1,8 @@
 param(
     [string]$PythonExe = "python",
     [switch]$IncludeBridge,
-    [switch]$IncludeLab
+    [switch]$IncludeLab,
+    [switch]$IncludeDeepDive
 )
 
 Set-StrictMode -Version Latest
@@ -37,11 +38,22 @@ if ($IncludeLab) {
     $scripts = $scripts + @("lab01_simple_mha_llm.py")
 }
 
+if ($IncludeDeepDive) {
+    $scripts = @(
+        "topic05a_attention_math.py",
+        "topic05b_min_transformer.py",
+        "topic05c_vram_optimization.py",
+        "topic06a_tokenizer_comparison.py",
+        "topic07c_chain_of_thought.py"
+    ) + $scripts
+}
+
 Write-Host "Stage 5 ladder runner (simple -> intermediate -> advanced)" -ForegroundColor Cyan
 Write-Host "Python executable: $PythonExe"
 Write-Host "Script directory : $scriptDir"
 Write-Host "Include multi-head bridge: $IncludeBridge"
 Write-Host "Include simple MHA LLM lab: $IncludeLab"
+Write-Host "Include review deep-dive modules: $IncludeDeepDive"
 
 foreach ($name in $scripts) {
     $path = Join-Path $scriptDir $name

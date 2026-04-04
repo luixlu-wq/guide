@@ -1,0 +1,2 @@
+run_id,stage,topic_or_module,metric_name,before_value,after_value,delta,dataset_or_eval_set,seed_or_config_id,decision
+stage5_topic05b_min_transformer,5,topic05b_min_transformer,val_loss,3.1961750984191895,2.4157769680023193,-0.7803981304168701,tiny_char_val,seed505,promote
